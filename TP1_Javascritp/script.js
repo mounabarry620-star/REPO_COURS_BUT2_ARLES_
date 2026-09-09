@@ -1,25 +1,24 @@
-document.addEventListener("DOMContentLoaded", event => {
+
+window.addEventListener("load", function () {
 
 
-    let toc = document.querySelector("#toc");
+    var toc = document.querySelector("#toc");
+    var titres = document.querySelectorAll("h1");
 
-
-    let titres = document.querySelectorAll("h1");
-
-
-    let titreSommaire = document.createElement("p");
+    var titreSommaire = document.createElement("p");
     titreSommaire.textContent = "Sommaire";
     toc.appendChild(titreSommaire);
-    let liste = document.createElement("ol");
 
-    for (let i = 0; i < titres.length; i++) {
 
+    var liste = document.createElement("ol");
+
+    for (var i = 0; i < titres.length; i++) {
 
         titres[i].id = "titre" + i;
 
-        let li = document.createElement("li");
+        var li = document.createElement("li");
+        var lien = document.createElement("a");
 
-        let lien = document.createElement("a");
         lien.href = "#titre" + i;
         lien.textContent = titres[i].textContent;
 
