@@ -1,0 +1,17 @@
+# ==============================================================================
+# Fichiers vidéos volumineux (cours et démonstrations)
+# ==============================================================================
+*.mp4
+**/*.mp4
+
+# Autres formats vidéo et médias lourds
+*.avi
+*.mov
+*.mkv
+*.webm
+
+# Fichiers temporaires et système
+.DS_Store
+Thumbs.db
+*~
+*.swp

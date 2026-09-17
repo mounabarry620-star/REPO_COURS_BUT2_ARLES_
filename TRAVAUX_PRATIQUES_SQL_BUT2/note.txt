@@ -1,0 +1,10 @@
+pas du polymorphism. 
+on peut se retrouver avec deux fonction de meme nom mais paramètres different. donc qui font pas même chose 
+à éviter catégoriquement. 
+Autre chose :
+Si ça retourne plus d'une colone.
+select * from info_emp(12) as (col1 type, col2 type...)
+et si c'est plus d'une ligne l'appel là est parfait:
+select * from info_emp(12)
+
+
