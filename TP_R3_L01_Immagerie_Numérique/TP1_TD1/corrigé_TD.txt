@@ -1,0 +1,68 @@
+TD n°1 : corrigé
+
+
+Trouver le fichier avant tout.
+
+
+
+void grayImage: PGM (std:: ostream& f) const {
+    os << "P5 \n" << this -> _width << " " << this -> length
+    << "\n" << "# Bonjour" << "\n" << 255 << "\n";
+    os.write((const char *), this ->  array);
+    
+}
+
+
+void skip_line (std::istream &){
+    char c = '';
+    while (c != '\n'){
+        c = is.get();
+    }
+
+}
+
+void skip_comments (std::istream&)
+{
+    char c = is.get(c);
+    while ( c == '#'){
+        skip_line(is);
+        is.get(c);
+    }
+    is.putback(c);
+    
+}
+
+static grayImage *grayImage::readPGM(std::istream& is){
+    
+std::string magicline = "";
+
+getline(is, magicline);
+if (magicline != "P5"){
+    throw std::runtime_error(" ce n'est pas du PGM ");
+    skip_comments(is);
+    uint12_t width,lenght ;
+    if (!(is >> width >> lenght)){
+        throw std::runtime_error(" pas de largeur ni hauteur ");
+    }
+    
+   skip_comments(is);
+   
+   int dyn = 0;
+   is >> dyn;
+   skip_comments(is);
+   
+   if (dyn != 255){
+    throw std::runtime_error(" ce n'est pas du PGM ");
+    char c = ' ';
+    is.get(c);
+    
+    GrayImage *image = new GrayImage(lenght, lenght);
+    is.read((char*)this -> _array, res -> width , res -> lenght);
+
+    return res;
+    
+   }
+}
+
+}
+
