@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>R3.04 - TP n°3 : Gestion d'une Médiathèque - Documentation Technique</title>
+<style>
+  @page {
+    size: A4;
+    margin: 10mm 14mm 10mm 14mm;
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #1e293b;
+    line-height: 1.48;
+    font-size: 9.8pt;
+    margin: 0;
+    padding: 0;
+  }
+  .header-box {
+    border-bottom: 2.5px solid #2563eb;
+    padding-bottom: 10px;
+    margin-bottom: 14px;
+  }
+  .header-box .institution {
+    font-size: 8.5pt;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #64748b;
+    font-weight: 700;
+  }
+  .header-box h1 {
+    margin: 4px 0 2px 0;
+    font-size: 19pt;
+    color: #0f172a;
+    font-weight: 800;
+  }
+  .header-box .subtitle {
+    font-size: 11.5pt;
+    color: #2563eb;
+    font-weight: 600;
+  }
+  .meta-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin-bottom: 16px;
+    font-size: 9pt;
+  }
+  .meta-grid div strong {
+    color: #334155;
+  }
+  h2 {
+    font-size: 12.5pt;
+    color: #0f172a;
+    border-left: 4px solid #2563eb;
+    padding-left: 8px;
+    margin-top: 18px;
+    margin-bottom: 8px;
+    page-break-after: avoid;
+  }
+  h3 {
+    font-size: 10.8pt;
+    color: #1e40af;
+    margin-top: 14px;
+    margin-bottom: 6px;
+    page-break-after: avoid;
+  }
+  p {
+    margin: 0 0 7px 0;
+    text-align: justify;
+  }
+  ul, ol {
+    margin: 0 0 8px 0;
+    padding-left: 18px;
+  }
+  li {
+    margin-bottom: 3px;
+  }
+  .ref-badge {
+    display: inline-block;
+    background-color: #eff6ff;
+    color: #1d4ed8;
+    border: 1px solid #bfdbfe;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 8pt;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .course-callout {
+    background-color: #f0fdf4;
+    border-left: 3.5px solid #16a34a;
+    padding: 6px 10px;
+    margin: 6px 0 10px 0;
+    border-radius: 0 4px 4px 0;
+    font-size: 8.8pt;
+  }
+  .course-callout strong {
+    color: #15803d;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10px 0 14px 0;
+    font-size: 8.5pt;
+  }
+  th, td {
+    border: 1px solid #cbd5e1;
+    padding: 5px 8px;
+    text-align: left;
+    vertical-align: top;
+  }
+  th {
+    background-color: #f1f5f9;
+    color: #0f172a;
+    font-weight: 700;
+  }
+  tr:nth-child(even) {
+    background-color: #f8fafc;
+  }
+  pre {
+    background-color: #0f172a;
+    color: #f8fafc;
+    padding: 8px 10px;
+    border-radius: 5px;
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+    font-size: 7.8pt;
+    line-height: 1.35;
+    overflow-x: auto;
+    margin: 6px 0 10px 0;
+  }
+  code {
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+    font-size: 8.5pt;
+    background-color: #f1f5f9;
+    padding: 1px 3px;
+    border-radius: 3px;
+    color: #0f172a;
+  }
+  pre code {
+    background: none;
+    padding: 0;
+    color: inherit;
+    font-size: inherit;
+  }
+  .kw { color: #f472b6; font-weight: bold; }
+  .type { color: #38bdf8; font-weight: bold; }
+  .func { color: #fbbf24; }
+  .str { color: #4ade80; }
+  .num { color: #f87171; }
+  .comment { color: #94a3b8; font-style: italic; }
+  .ann { color: #c084fc; font-weight: bold; }
+  .page-break {
+    page-break-before: always;
+  }
+  .card {
+    border: 1px solid #e2e8f0;
+    border-radius: 5px;
+    padding: 8px 10px;
+    margin-bottom: 12px;
+    background: #ffffff;
+  }
+  .card-title {
+    font-weight: 700;
+    color: #1e3a8a;
+    margin-bottom: 4px;
+    font-size: 9.5pt;
+  }
+</style>
+</head>
+<body>
+
+<div class="header-box">
+  <div class="institution">IUT d'Aix-Marseille Université • Site d'Arles • Département Informatique • BUT 2ème Année</div>
+  <h1>TP n°3 : Gestion d'une Médiathèque</h1>
+  <div class="subtitle">Ressource R3.04 – Qualité de Développement • Documentation & Synthèse Pédagogique</div>
+</div>
+
+<div class="meta-grid">
+  <div><strong>Module :</strong> R3.04 Qualité de développement (Java)</div>
+  <div><strong>Enseignant :</strong> Sébastien Thon</div>
+  <div><strong>Niveau :</strong> BUT Informatique – Semestre 3</div>
+  <div><strong>Conformité :</strong> 100% basé sur le cours officiel (Chapitres 1 à 10) et TP1 / TP2</div>
+</div>
+
+<h2>1. Introduction & Objectifs Pédagogiques</h2>
+<p>
+Le TP n°3 met en application les principes clés de la programmation orientée objet en Java vus en cours magistral. 
+À travers la réalisation d'une application en console de gestion d'une médiathèque hébergeant des livres et des DVD, ce travail valide :
+</p>
+<ul>
+  <li><strong>L'encapsulation et le contrôle des visibilités</strong> : distinction stricte entre variables privées (<code>private</code>) et protégées (<code>protected</code>) selon les spécifications.</li>
+  <li><strong>L'héritage simple</strong> : dérivation de classes spécialisées (<code>Livre</code>, <code>DVD</code>) à partir d'une classe de base générique (<code>Ouvrage</code>) avec le mot-clé <code>extends</code>.</li>
+  <li><strong>La réutilisation de constructeurs</strong> : délégation de l'initialisation à la classe mère via l'instruction <code>super(...)</code>.</li>
+  <li><strong>La redéfinition de méthodes (Overriding)</strong> : spécialisation de l'affichage avec l'annotation <code>@Override</code> et appel de la méthode parente via <code>super.afficher()</code>.</li>
+  <li><strong>Les collections dynamiques génériques</strong> : utilisation de la classe <code>ArrayList&lt;Ouvrage&gt;</code> pour dimensionner la collection dynamiquement.</li>
+  <li><strong>Le polymorphisme d'exécution</strong> : traitement unifié des ouvrages au sein de la médiathèque permettant d'invoquer la méthode d'affichage adéquate selon la nature réelle de l'objet.</li>
+  <li><strong>L'interactivité console</strong> : boucle d'exécution avec menu interactif <code>do ... while / switch</code> et gestion fiable des flux de saisie via <code>Scanner</code>.</li>
+</ul>
+
+<h2>2. Tableau de Concordance : Syntaxe Utilisée vs Références du Cours</h2>
+<p>
+Conformément aux exigences de rigueur, <strong>absolument aucune syntaxe externe ou non enseignée n'a été employée</strong>. 
+Chaque construction syntaxique correspond rigoureusement aux diapositives du cours de Sébastien Thon :
+</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="width: 25%;">Construction Java</th>
+      <th style="width: 35%;">Rôle dans le TP03</th>
+      <th style="width: 40%;">Référence exacte Cours R3.04</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>private</code> / <code>protected</code> / <code>public</code></td>
+      <td>Encapsulation de <code>numero</code> (privé), <code>emprunte</code> (protégé), et données des classes dérivées</td>
+      <td><span class="ref-badge">Chapitre 3 – Diapo 20</span><br>« Les 3 niveaux de protection des données : public, private, protected »</td>
+    </tr>
+    <tr>
+      <td><code>class B extends A</code></td>
+      <td>Héritage de <code>Livre</code> et <code>DVD</code> depuis <code>Ouvrage</code></td>
+      <td><span class="ref-badge">Chapitre 3 – Diapo 22</span><br>« Héritage : Syntaxe Class B extends A »</td>
+    </tr>
+    <tr>
+      <td>Constructeur &amp; <code>this</code></td>
+      <td>Initialisation des champs dans les constructeurs</td>
+      <td><span class="ref-badge">Chapitre 3 – Diapos 10 &amp; 13</span><br>« Constructeur d'une classe et mot-clé this »</td>
+    </tr>
+    <tr>
+      <td><code>super(...)</code> (constructeur)</td>
+      <td>Appel du constructeur d'<code>Ouvrage</code> depuis <code>Livre</code> et <code>DVD</code></td>
+      <td><span class="ref-badge">Chapitre 3 – Diapos 25 &amp; 27</span><br>« Appel direct d'un constructeur de la classe mère avec super »</td>
+    </tr>
+    <tr>
+      <td><code>@Override</code></td>
+      <td>Redéfinition de <code>afficher()</code> dans <code>Livre</code> et <code>DVD</code></td>
+      <td><span class="ref-badge">Chapitre 3 – Diapos 28 &amp; 29</span><br>« Annotation @Override : vérification de l'authenticité de la surcharge »</td>
+    </tr>
+    <tr>
+      <td><code>super.afficher()</code></td>
+      <td>Affichage des attributs communs d'<code>Ouvrage</code> dans les sous-classes</td>
+      <td><span class="ref-badge">Chapitre 3 – Diapo 25</span><br>« Appel d'une méthode de la super-classe avec super »</td>
+    </tr>
+    <tr>
+      <td><code>ArrayList&lt;Ouvrage&gt;</code></td>
+      <td>Structure de stockage dynamique des ouvrages</td>
+      <td><span class="ref-badge">Chapitre 6 – Diapo 19</span><br>« 3. Le type ArrayList (tableaux redimensionnables génériques) »</td>
+    </tr>
+    <tr>
+      <td><code>liste.add(elem)</code></td>
+      <td>Ajout d'un livre ou DVD à la fin de la collection</td>
+      <td><span class="ref-badge">Chapitre 6 – Diapo 22</span><br>« 1) Ajout d'élément à une ArrayList avec add() »</td>
+    </tr>
+    <tr>
+      <td><code>liste.get(i)</code></td>
+      <td>Lecture d'un ouvrage par son indice dans la boucle</td>
+      <td><span class="ref-badge">Chapitre 6 – Diapo 23</span><br>« 2) Lire un élément d'une ArrayList avec get() »</td>
+    </tr>
+    <tr>
+      <td><code>size()</code> &amp; test <code>size() == 0</code></td>
+      <td>Vérification de liste vide et borne de boucle de parcours</td>
+      <td><span class="ref-badge">Chapitre 6 – Diapos 26 &amp; 43</span><br>« Connaître le nombre d'éléments avec size() »</td>
+    </tr>
+    <tr>
+      <td>Polymorphisme dynamique</td>
+      <td><code>listeOuvrages.get(i).afficher()</code> résolu selon le type réel</td>
+      <td><span class="ref-badge">Chapitre 7 – Diapo 14</span> &amp; <span class="ref-badge">Chapitre 3 – Diapo 25</span><br>« Polymorphisme : écrire du code générique sur les types dérivés »</td>
+    </tr>
+    <tr>
+      <td><code>Scanner</code> (<code>nextInt</code>, <code>nextByte</code>, <code>nextLine</code>)</td>
+      <td>Saisies des données et purge du retour à la ligne</td>
+      <td><span class="ref-badge">Chapitre 2 – Diapos 14 &amp; 15</span><br>« Saisie de données au clavier avec Scanner et purge avec nextLine() »</td>
+    </tr>
+    <tr>
+      <td><code>equalsIgnoreCase(...)</code></td>
+      <td>Comparaison de la réponse d'emprunt ("oui")</td>
+      <td><span class="ref-badge">Chapitre 4 – Diapo 10</span><br>« boolean equalsIgnoreCase(autre_mot) sans différencier la casse »</td>
+    </tr>
+    <tr>
+      <td>Menu <code>do ... while</code> / <code>switch</code></td>
+      <td>Structure globale de la boucle du programme principal</td>
+      <td><span class="ref-badge">Chapitre 6 – Diapos 14 &amp; 15</span><br>« Exemple d'application interactive : GestionClasse.java »</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="page-break"></div>
+
+<h2>3. Architecture Globale de la Solution</h2>
+<p>
+L'application s'articule autour de 5 fichiers sources situés dans le dossier <code>TP03/</code>, respectant le principe de responsabilité unique :
+</p>
+
+<div class="card">
+  <div class="card-title">Diagramme de Classes et Relations (UML)</div>
+  <pre>
+                      +------------------------------------------+
+                      |                 Ouvrage                  |
+                      +------------------------------------------+
+                      | - numero: int                            |
+                      | # emprunte: boolean                      |
+                      +------------------------------------------+
+                      | + Ouvrage(numero: int, emprunte: boolean)|
+                      | + getNumero(): int                       |
+                      | + setNumero(numero: int): void           |
+                      | + getEmprunte(): boolean                 |
+                      | + isEmprunte(): boolean                  |
+                      | + setEmprunte(emprunte: boolean): void   |
+                      | + afficher(): void                       |
+                      +------------------------------------------+
+                                           ^
+                                           | extends
+                        +------------------+------------------+
+                        |                                     |
+    +---------------------------------------+   +------------------------------------+
+    |                 Livre                 |   |                DVD                 |
+    +---------------------------------------+   +------------------------------------+
+    | - titre: String                       |   | - titre: String                    |
+    | - auteur: String                      |   | - duree: int                       |
+    +---------------------------------------+   +------------------------------------+
+    | + Livre(num, emp, titre, auteur)      |   | + DVD(num, emp, titre, duree)      |
+    | + getTitre(): String                  |   | + getTitre(): String               |
+    | + setTitre(titre: String): void       |   | + setTitre(titre: String): void    |
+    | + getAuteur(): String                 |   | + getDuree(): int                  |
+    | + setAuteur(auteur: String): void     |   | + setDuree(duree: int): void       |
+    | + afficher(): void [@Override]        |   | + afficher(): void [@Override]     |
+    +---------------------------------------+   +------------------------------------+
+
+    +----------------------------------------------------+       +-------------------+
+    |                    Mediatheque                     |       |     Principal     |
+    +----------------------------------------------------+       +-------------------+
+    | - listeOuvrages: ArrayList&lt;Ouvrage&gt;                |&lt;------| + main(args): void|
+    +----------------------------------------------------+       +-------------------+
+    | + Mediatheque()                                    |
+    | + getListeOuvrages(): ArrayList&lt;Ouvrage&gt;           |
+    | + ajouterOuvrage(): void                           |
+    | + ajouterOuvrage(clavier: Scanner): void           |
+    | + afficherOuvrages(): void                         |
+    +----------------------------------------------------+
+  </pre>
+</div>
+
+<div class="page-break"></div>
+<h2>4. Analyse Détaillée Classe par Classe et Fonction par Fonction</h2>
+
+<h3>4.1 Classe <code>Ouvrage.java</code></h3>
+<div class="course-callout">
+  <strong>Justification Cours R3.04 :</strong> Chapitre 3 (Diapo 20 pour la visibilité <code>private</code> et <code>protected</code>, Diapo 13 pour le constructeur, Diapo 21 pour les accesseurs).
+</div>
+<p>
+La classe <code>Ouvrage</code> est la classe mère générale. Elle stocke les deux propriétés communes :
+</p>
+<ul>
+  <li><code>private int numero</code> : identifiant d'ouvrage. Il est déclaré privé, interdisant tout accès direct extérieur ou hérité (les accès se font via <code>getNumero()</code> et <code>setNumero()</code>).</li>
+  <li><code>protected boolean emprunte</code> : statut d'emprunt. Il est déclaré protégé, permettant aux classes dérivées (<code>Livre</code>, <code>DVD</code>) d'y accéder directement conformément aux spécifications du sujet.</li>
+  <li><code>public void afficher()</code> : affiche le numéro et le statut de disponibilité.</li>
+</ul>
+
+<pre><code><span class="kw">public class</span> <span class="type">Ouvrage</span> {
+    <span class="kw">private int</span> numero;
+    <span class="kw">protected boolean</span> emprunte;
+
+    <span class="comment">// Constructeur initialisant les attributs (Chapitre 3, Diapo 13)</span>
+    <span class="kw">public</span> <span class="func">Ouvrage</span>(<span class="kw">int</span> numero, <span class="kw">boolean</span> emprunte) {
+        <span class="kw">this</span>.numero = numero;
+        <span class="kw">this</span>.emprunte = emprunte;
+    }
+
+    <span class="comment">// Accesseurs et mutateurs (Chapitre 3, Diapo 21)</span>
+    <span class="kw">public int</span> <span class="func">getNumero</span>() { <span class="kw">return this</span>.numero; }
+    <span class="kw">public void</span> <span class="func">setNumero</span>(<span class="kw">int</span> numero) { <span class="kw">this</span>.numero = numero; }
+
+    <span class="kw">public boolean</span> <span class="func">getEmprunte</span>() { <span class="kw">return this</span>.emprunte; }
+    <span class="kw">public boolean</span> <span class="func">isEmprunte</span>() { <span class="kw">return this</span>.emprunte; }
+    <span class="kw">public void</span> <span class="func">setEmprunte</span>(<span class="kw">boolean</span> emprunte) { <span class="kw">this</span>.emprunte = emprunte; }
+
+    <span class="comment">// Méthode d'affichage des caractéristiques d'un ouvrage</span>
+    <span class="kw">public void</span> <span class="func">afficher</span>() {
+        System.out.println(<span class="str">"Numéro d'identification : "</span> + <span class="kw">this</span>.numero);
+        <span class="kw">if</span> (<span class="kw">this</span>.emprunte) {
+            System.out.println(<span class="str">"Statut : Emprunté"</span>);
+        } <span class="kw">else</span> {
+            System.out.println(<span class="str">"Statut : Disponible"</span>);
+        }
+    }
+}</code></pre>
+
+<div class="page-break"></div>
+
+<h3>4.2 Classe <code>Livre.java</code></h3>
+<div class="course-callout">
+  <strong>Justification Cours R3.04 :</strong> Chapitre 3 (Diapo 22 pour <code>extends</code>, Diapos 25 &amp; 27 pour <code>super(...)</code>, Diapos 28 &amp; 29 pour <code>@Override</code>, Diapo 25 pour <code>super.afficher()</code>).
+</div>
+<p>
+La classe <code>Livre</code> spécialise <code>Ouvrage</code> en lui ajoutant un <code>titre</code> et un <code>auteur</code> :
+</p>
+<ul>
+  <li><code>super(numero, emprunte)</code> : invoque le constructeur de la classe de base pour lui transmettre les paramètres d'initialisation du numéro et du statut.</li>
+  <li><code>@Override public void afficher()</code> : redéfinit la méthode d'affichage en appelant préalablement <code>super.afficher()</code> pour mutualiser l'affichage commun, puis affiche les informations spécifiques du livre.</li>
+</ul>
+
+<pre><code><span class="kw">public class</span> <span class="type">Livre</span> <span class="kw">extends</span> <span class="type">Ouvrage</span> {
+    <span class="kw">private</span> <span class="type">String</span> titre;
+    <span class="kw">private</span> <span class="type">String</span> auteur;
+
+    <span class="comment">// Constructeur recevant données spécifiques + données de base (Chapitre 3, Diapos 25-27)</span>
+    <span class="kw">public</span> <span class="func">Livre</span>(<span class="kw">int</span> numero, <span class="kw">boolean</span> emprunte, <span class="type">String</span> titre, <span class="type">String</span> auteur) {
+        <span class="kw">super</span>(numero, emprunte); <span class="comment">// Délégation à la super-classe</span>
+        <span class="kw">this</span>.titre = titre;
+        <span class="kw">this</span>.auteur = auteur;
+    }
+
+    <span class="kw">public</span> <span class="type">String</span> <span class="func">getTitre</span>() { <span class="kw">return this</span>.titre; }
+    <span class="kw">public void</span> <span class="func">setTitre</span>(<span class="type">String</span> titre) { <span class="kw">this</span>.titre = titre; }
+
+    <span class="kw">public</span> <span class="type">String</span> <span class="func">getAuteur</span>() { <span class="kw">return this</span>.auteur; }
+    <span class="kw">public void</span> <span class="func">setAuteur</span>(<span class="type">String</span> auteur) { <span class="kw">this</span>.auteur = auteur; }
+
+    <span class="ann">@Override</span> <span class="comment">// Chapitre 3, Diapos 28-29</span>
+    <span class="kw">public void</span> <span class="func">afficher</span>() {
+        System.out.println(<span class="str">"--- Livre ---"</span>);
+        <span class="kw">super</span>.afficher(); <span class="comment">// Chapitre 3, Diapo 25 : réutilisation méthode classe mère</span>
+        System.out.println(<span class="str">"Titre : "</span> + <span class="kw">this</span>.titre);
+        System.out.println(<span class="str">"Auteur : "</span> + <span class="kw">this</span>.auteur);
+    }
+}</code></pre>
+
+<div class="page-break"></div>
+<h3>4.3 Classe <code>DVD.java</code></h3>
+<div class="course-callout">
+  <strong>Justification Cours R3.04 :</strong> Même principe de dérivation et de réutilisation avec <code>super</code> qu'au Chapitre 3.
+</div>
+<p>
+La classe <code>DVD</code> spécialise également <code>Ouvrage</code> en encapsulant le <code>titre</code> et la <code>duree</code> en minutes :
+</p>
+
+<pre><code><span class="kw">public class</span> <span class="type">DVD</span> <span class="kw">extends</span> <span class="type">Ouvrage</span> {
+    <span class="kw">private</span> <span class="type">String</span> titre;
+    <span class="kw">private int</span> duree;
+
+    <span class="kw">public</span> <span class="func">DVD</span>(<span class="kw">int</span> numero, <span class="kw">boolean</span> emprunte, <span class="type">String</span> titre, <span class="kw">int</span> duree) {
+        <span class="kw">super</span>(numero, emprunte); <span class="comment">// Chapitre 3, Diapos 25 et 27</span>
+        <span class="kw">this</span>.titre = titre;
+        <span class="kw">this</span>.duree = duree;
+    }
+
+    <span class="kw">public</span> <span class="type">String</span> <span class="func">getTitre</span>() { <span class="kw">return this</span>.titre; }
+    <span class="kw">public void</span> <span class="func">setTitre</span>(<span class="type">String</span> titre) { <span class="kw">this</span>.titre = titre; }
+
+    <span class="kw">public int</span> <span class="func">getDuree</span>() { <span class="kw">return this</span>.duree; }
+    <span class="kw">public void</span> <span class="func">setDuree</span>(<span class="kw">int</span> duree) { <span class="kw">this</span>.duree = duree; }
+
+    <span class="ann">@Override</span>
+    <span class="kw">public void</span> <span class="func">afficher</span>() {
+        System.out.println(<span class="str">"--- DVD ---"</span>);
+        <span class="kw">super</span>.afficher(); <span class="comment">// Appel caractéristiques Ouvrage</span>
+        System.out.println(<span class="str">"Titre : "</span> + <span class="kw">this</span>.titre);
+        System.out.println(<span class="str">"Durée : "</span> + <span class="kw">this</span>.duree + <span class="str">" minutes"</span>);
+    }
+}</code></pre>
+
+<div class="page-break"></div>
+
+<h3>4.4 Classe <code>Mediatheque.java</code></h3>
+<div class="course-callout">
+  <strong>Justification Cours R3.04 :</strong> Chapitre 6 (Diapo 19 pour <code>ArrayList&lt;Ouvrage&gt;</code>, Diapo 22 pour <code>add()</code>, Diapo 23 pour <code>get()</code>, Diapo 26 &amp; 43 pour <code>size() == 0</code>) ; Chapitre 4 (Diapo 10 pour <code>equalsIgnoreCase()</code>) ; Chapitre 2 (Diapos 14-15 pour <code>Scanner</code>).
+</div>
+<p>
+Cette classe gère l'inventaire des documents à l'aide d'une collection <code>ArrayList&lt;Ouvrage&gt;</code> :
+</p>
+<ul>
+  <li><code>ajouterOuvrage(Scanner clavier)</code> : aiguille la création vers un <code>Livre</code> ou un <code>DVD</code>, lit les données au clavier avec purge du retour chariot (<code>clavier.nextLine()</code>, Chapitre 2 diapo 15), instancie l'objet et l'ajoute via <code>this.listeOuvrages.add(...)</code>.</li>
+  <li><code>afficherOuvrages()</code> : teste la présence d'ouvrages avec <code>size() == 0</code> (Chapitre 6 diapo 26 &amp; 43), puis boucle sur la liste pour invoquer <code>this.listeOuvrages.get(i).afficher()</code>. Le <strong>polymorphisme</strong> permet à la JVM d'exécuter la méthode appropriée (Livre ou DVD) de façon transparente.</li>
+</ul>
+
+<pre><code><span class="kw">import</span> java.util.<span class="type">ArrayList</span>; <span class="comment">// Chapitre 6, Diapo 19</span>
+<span class="kw">import</span> java.util.<span class="type">Scanner</span>;   <span class="comment">// Chapitre 2, Diapo 14</span>
+
+<span class="kw">public class</span> <span class="type">Mediatheque</span> {
+    <span class="kw">private</span> <span class="type">ArrayList</span>&lt;<span class="type">Ouvrage</span>&gt; listeOuvrages;
+
+    <span class="kw">public</span> <span class="func">Mediatheque</span>() {
+        <span class="kw">this</span>.listeOuvrages = <span class="kw">new</span> <span class="type">ArrayList</span>&lt;<span class="type">Ouvrage</span>&gt;();
+    }
+
+    <span class="kw">public</span> <span class="type">ArrayList</span>&lt;<span class="type">Ouvrage</span>&gt; <span class="func">getListeOuvrages</span>() {
+        <span class="kw">return this</span>.listeOuvrages;
+    }
+
+    <span class="kw">public void</span> <span class="func">ajouterOuvrage</span>() {
+        <span class="type">Scanner</span> clavier = <span class="kw">new</span> <span class="type">Scanner</span>(System.in);
+        ajouterOuvrage(clavier);
+    }
+
+    <span class="kw">public void</span> <span class="func">ajouterOuvrage</span>(<span class="type">Scanner</span> clavier) {
+        System.out.println(<span class="str">"
+Quel type d'ouvrage voulez-vous ajouter ?"</span>);
+        System.out.println(<span class="str">"1. Livre"</span>);
+        System.out.println(<span class="str">"2. DVD"</span>);
+        System.out.print(<span class="str">"Votre choix : "</span>);
+        <span class="kw">int</span> type = clavier.nextInt();
+        clavier.nextLine(); <span class="comment">// Purge retour ligne (Chapitre 2, Diapo 15)</span>
+
+        <span class="kw">if</span> (type != <span class="num">1</span> &amp;&amp; type != <span class="num">2</span>) {
+            System.out.println(<span class="str">"Type d'ouvrage invalide."</span>);
+            <span class="kw">return</span>;
+        }
+
+        System.out.print(<span class="str">"Numéro d'identification : "</span>);
+        <span class="kw">int</span> numero = clavier.nextInt();
+        clavier.nextLine();
+
+        System.out.print(<span class="str">"L'ouvrage est-il emprunté ? (oui/non) : "</span>);
+        <span class="type">String</span> repEmprunt = clavier.nextLine();
+        <span class="comment">// equalsIgnoreCase vu au Chapitre 4, Diapo 10</span>
+        <span class="kw">boolean</span> emprunte = repEmprunt.equalsIgnoreCase(<span class="str">"oui"</span>);
+
+        <span class="kw">if</span> (type == <span class="num">1</span>) {
+            System.out.print(<span class="str">"Titre du livre : "</span>);
+            <span class="type">String</span> titre = clavier.nextLine();
+            System.out.print(<span class="str">"Nom de l'auteur : "</span>);
+            <span class="type">String</span> auteur = clavier.nextLine();
+
+            <span class="type">Livre</span> livre = <span class="kw">new</span> <span class="type">Livre</span>(numero, emprunte, titre, auteur);
+            <span class="kw">this</span>.listeOuvrages.add(livre); <span class="comment">// Chapitre 6, Diapo 22</span>
+            System.out.println(<span class="str">"Livre ajouté avec succès !"</span>);
+        } <span class="kw">else</span> {
+            System.out.print(<span class="str">"Titre du DVD : "</span>);
+            <span class="type">String</span> titre = clavier.nextLine();
+            System.out.print(<span class="str">"Durée du DVD (en minutes) : "</span>);
+            <span class="kw">int</span> duree = clavier.nextInt();
+            clavier.nextLine();
+
+            <span class="type">DVD</span> dvd = <span class="kw">new</span> <span class="type">DVD</span>(numero, emprunte, titre, duree);
+            <span class="kw">this</span>.listeOuvrages.add(dvd); <span class="comment">// Chapitre 6, Diapo 22</span>
+            System.out.println(<span class="str">"DVD ajouté avec succès !"</span>);
+        }
+    }
+
+    <span class="kw">public void</span> <span class="func">afficherOuvrages</span>() {
+        <span class="comment">// Test de liste vide via size() (Chapitre 6, Diapos 26 &amp; 43)</span>
+        <span class="kw">if</span> (<span class="kw">this</span>.listeOuvrages.size() == <span class="num">0</span>) {
+            System.out.println(<span class="str">"
+Aucun ouvrage dans la médiathèque."</span>);
+            <span class="kw">return</span>;
+        }
+
+        System.out.println(<span class="str">"
+===== Liste des ouvrages de la médiathèque ("</span> + <span class="kw">this</span>.listeOuvrages.size() + <span class="str">") ====="</span>);
+        <span class="comment">// Parcours par indice (Chapitre 6, Diapo 23 &amp; Diapos 50-51)</span>
+        <span class="kw">for</span> (<span class="kw">int</span> i = <span class="num">0</span>; i &lt; <span class="kw">this</span>.listeOuvrages.size(); i++) {
+            <span class="comment">// Résolution dynamique polymorphique (Chapitre 7, Diapo 14)</span>
+            <span class="kw">this</span>.listeOuvrages.get(i).afficher();
+            System.out.println(<span class="str">"----------------------------------------"</span>);
+        }
+    }
+}</code></pre>
+
+<div class="page-break"></div>
+
+<h3>4.5 Classe <code>Principal.java</code></h3>
+<div class="course-callout">
+  <strong>Justification Cours R3.04 :</strong> Chapitre 6 (Diapos 14 et 15, fichier modèle <code>GestionClasse.java</code>).
+</div>
+<p>
+Point d'entrée contenant la méthode <code>main</code>. Elle applique le canevas type du cours :
+instanciation de l'objet gestionnaire, lecture du choix et dispatching avec <code>switch (choix)</code> dans une boucle <code>do ... while (choix != 3)</code> :
+</p>
+
+<pre><code><span class="kw">import</span> java.util.<span class="type">Scanner</span>;
+
+<span class="kw">public class</span> <span class="type">Principal</span> {
+    <span class="kw">public static void</span> <span class="func">main</span>(<span class="type">String</span>[] args) {
+        <span class="type">Mediatheque</span> mediatheque = <span class="kw">new</span> <span class="type">Mediatheque</span>();
+        <span class="type">Scanner</span> clavier = <span class="kw">new</span> <span class="type">Scanner</span>(System.in);
+        <span class="kw">byte</span> choix = <span class="num">0</span>;
+
+        <span class="comment">// Boucle de menu calquée sur GestionClasse.java (Chapitre 6, Diapos 14-15)</span>
+        <span class="kw">do</span> {
+            System.out.println(<span class="str">"
+=== Menu Médiathèque ==="</span>);
+            System.out.println(<span class="str">"1. Ajouter un ouvrage"</span>);
+            System.out.println(<span class="str">"2. Afficher la liste des ouvrages"</span>);
+            System.out.println(<span class="str">"3. Quitter"</span>);
+            System.out.print(<span class="str">"Votre choix : "</span>);
+
+            choix = clavier.nextByte();
+            clavier.nextLine(); <span class="comment">// Consomme le retour à la ligne</span>
+
+            <span class="kw">switch</span> (choix) {
+                <span class="kw">case</span> <span class="num">1</span>:
+                    mediatheque.ajouterOuvrage(clavier);
+                    <span class="kw">break</span>;
+                <span class="kw">case</span> <span class="num">2</span>:
+                    mediatheque.afficherOuvrages();
+                    <span class="kw">break</span>;
+                <span class="kw">case</span> <span class="num">3</span>:
+                    System.out.println(<span class="str">"Au revoir !"</span>);
+                    <span class="kw">break</span>;
+                <span class="kw">default</span>:
+                    System.out.println(<span class="str">"Option inexistante."</span>);
+            }
+        } <span class="kw">while</span> (choix != <span class="num">3</span>);
+    }
+}</code></pre>
+
+<div class="page-break"></div>
+<h2>5. Validation et Déroulement des Tests</h2>
+<p>
+Le projet compile sans aucune anomalie et a été exécuté sur un scénario complet d'ajout et de consultation :
+</p>
+
+<h3>Trace d'exécution en console</h3>
+<pre><code>=== Menu Médiathèque ===
+1. Ajouter un ouvrage
+2. Afficher la liste des ouvrages
+3. Quitter
+Votre choix : 1
+
+Quel type d'ouvrage voulez-vous ajouter ?
+1. Livre
+2. DVD
+Votre choix : 1
+Numéro d'identification : 101
+L'ouvrage est-il emprunté ? (oui/non) : non
+Titre du livre : Le Petit Prince
+Nom de l'auteur : Antoine de Saint-Exupéry
+Livre ajouté avec succès !
+
+=== Menu Médiathèque ===
+1. Ajouter un ouvrage
+2. Afficher la liste des ouvrages
+3. Quitter
+Votre choix : 1
+
+Quel type d'ouvrage voulez-vous ajouter ?
+1. Livre
+2. DVD
+Votre choix : 2
+Numéro d'identification : 202
+L'ouvrage est-il emprunté ? (oui/non) : oui
+Titre du DVD : Inception
+Durée du DVD (en minutes) : 148
+DVD ajouté avec succès !
+
+=== Menu Médiathèque ===
+1. Ajouter un ouvrage
+2. Afficher la liste des ouvrages
+3. Quitter
+Votre choix : 2
+
+===== Liste des ouvrages de la médiathèque (2) =====
+--- Livre ---
+Numéro d'identification : 101
+Statut : Disponible
+Titre : Le Petit Prince
+Auteur : Antoine de Saint-Exupéry
+----------------------------------------
+--- DVD ---
+Numéro d'identification : 202
+Statut : Emprunté
+Titre : Inception
+Durée : 148 minutes
+----------------------------------------
+
+=== Menu Médiathèque ===
+1. Ajouter un ouvrage
+2. Afficher la liste des ouvrages
+3. Quitter
+Votre choix : 3
+Au revoir !</code></pre>
+
+<div class="page-break"></div>
+<h2>6. Bilan Pédagogique, Qualité de Code & Perspectives</h2>
+
+<h3>6.1 Bilan Technique et Notions Clés Validées</h3>
+<p>
+Ce TP n°3 constitue une étape pivot du module R3.04. Il consolide l'ensemble des mécanismes fondamentaux de la programmation orientée objet en Java :
+</p>
+<ul>
+  <li><strong>Encapsulation et modularité :</strong> Respect rigoureux des portées <code>private</code> et <code>protected</code> conformément aux spécifications du sujet. L'état interne de chaque classe est protégé des altérations directes externes, tout en permettant aux classes dérivées d'interagir efficacement avec la classe de base.</li>
+  <li><strong>Héritage et réutilisabilité :</strong> Mutualisation de la logique commune dans la classe mère <code>Ouvrage</code> et spécialisation sans redondance au sein des classes filles <code>Livre</code> et <code>DVD</code> grâce aux appels systématiques à <code>super(...)</code> et <code>super.afficher()</code>.</li>
+  <li><strong>Polymorphisme à l'exécution :</strong> Utilisation d'une collection hétérogène <code>ArrayList&lt;Ouvrage&gt;</code> capable de stocker indifféremment des instances de <code>Livre</code> et de <code>DVD</code>, tout en déléguant à la machine virtuelle Java la résolution dynamique des méthodes d'affichage spécifiques lors du parcours.</li>
+  <li><strong>Stricte orthodoxie du cours :</strong> Utilisation exclusive des idiomes enseignés en cours magistral (<code>Scanner</code> avec purge explicite de ligne, boucle interactive <code>do ... while / switch</code> calquée sur <code>GestionClasse.java</code>).</li>
+</ul>
+
+<h3>6.2 Tableau Récapitulatif des Bonnes Pratiques Appliquées</h3>
+<table>
+  <thead>
+    <tr>
+      <th style="width: 30%;">Critère Qualité R3.04</th>
+      <th style="width: 35%;">Mise en œuvre dans le TP03</th>
+      <th style="width: 35%;">Bénéfice Développement</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Conventions de nommage Java</strong></td>
+      <td>Majuscule pour les classes (<code>Ouvrage</code>, <code>Mediatheque</code>), camelCase pour méthodes/variables.</td>
+      <td>Lisibilité et homogénéité du code selon les normes professionnelles Java.</td>
+    </tr>
+    <tr>
+      <td><strong>Délégation au constructeur parent</strong></td>
+      <td><code>super(numero, emprunte)</code> en première ligne des constructeurs dérivés.</td>
+      <td>Garantit l'initialisation ordonnée et robuste de l'ensemble de l'état objet.</td>
+    </tr>
+    <tr>
+      <td><strong>Annotation <code>@Override</code></strong></td>
+      <td>Placée devant chaque méthode <code>afficher()</code> redéfinie dans <code>Livre</code> et <code>DVD</code>.</td>
+      <td>Vérification à la compilation contre les fautes de frappe de signature (Chapitre 3, Diapo 29).</td>
+    </tr>
+    <tr>
+      <td><strong>Gestion propre des flux I/O</strong></td>
+      <td>Purge systématique du retour chariot par <code>clavier.nextLine()</code> après lecture d'entier.</td>
+      <td>Évite tout saut inopiné de saisie texte lors des entrées interactives en console.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>6.3 Perspectives et Évolutions Naturelles (Chapitres Suivants)</h3>
+<p>
+L'architecture ainsi posée offre une évolutivité naturelle vers les compétences abordées dans les chapitres ultérieurs du cours R3.04 :
+</p>
+<ul>
+  <li><strong>Archivage et persistance (Chapitre 9) :</strong> Possibilité de sauvegarder et charger automatiquement la liste des ouvrages sur disque au moyen de flux de données (fichiers texte ou sérialisation d'objets via <code>ObjectOutputStream</code>).</li>
+  <li><strong>Gestion robuste des exceptions (Chapitre 10) :</strong> Encadrement des saisies utilisateur par des blocs <code>try { ... } catch (InputMismatchException e) { ... }</code> afin d'empêcher toute interruption du programme en cas de saisie invalide.</li>
+  <li><strong>Abstraction et contrats (Chapitre 7) :</strong> Évolution éventuelle d'<code>Ouvrage</code> en classe abstraite (<code>abstract class Ouvrage</code>) ou implémentation d'interfaces métier (ex: <code>Empruntable</code>).</li>
+</ul>
+
+</body>
+</html>

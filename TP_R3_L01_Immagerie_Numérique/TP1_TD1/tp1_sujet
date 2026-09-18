@@ -1,0 +1,38 @@
+
+Sujet de TP n°1 : GrayImage et format PGM
+Conditions d’achèvement
+
+Planche de TP n°1 : la classe GrayImage
+Planche de TP n°1 : la classe GrayImage
+Conception et réalisation de la classe GrayImage
+À partir de ce qui a été vu en TD, réaliser la classe GrayImage permettant de coder en mémoire une image numérique pouvant utiliser jusqu'à 256 niveaux de gris. Votre classe devra comporter les constructeurs et le destructeur indispensables, mais également :
+
+    des accesseurs getWidth() et getHeight() pour consulter la taille de l'image, et pour consulter et modifier la valeur du pixel de coordonnées (x,y) comme vu dans le cours ;
+    dans toutes ses fonctions, une gestion d'erreur à base d'exceptions C++ (classes d'exceptions judicieusement choisie de préférence) ;
+    une fonction membre void GrayImage::clear(uint8_t gray = 0) effaçant l'image, c'est-à-dire mettant tous ses pixels à la valeur gray reçue en paramètre, et qui sera par défaut égale à la couleur noire ;
+    une fonction membre void GrayImage::rectangle(x,y,w,h,gray)qui trace dans l'image un cadre rectangulaire (d'un pixel d'épaisseur) de la couleur gray dont le coin supérieur gauche est à la coordonnée (x,y) et dont la largeur et la hauteur sont respectivement w et h.
+    une fonction void GrayImage::fillRectangle(x,y,w,h,gray) qui trace un rectangle plein sur le même principe que la précédente.
+
+Remarques préliminaires sur la lecture et l'écriture d'une image
+On va réaliser une série de fonctions membres de lectures et d'écritures d'images en niveaux de gris dans différents formats qui ne se limiteront pas au PGM vu en TD. Toutes les méthodes pour l'écriture auront un prototype de la forme :
+void GrayImage::writeFormat(ostream&) const
+où "Format" devra être remplacé par "PGM", "TGA", "JPEG", etc.
+
+Pour la lecture, vous devez implanter, comme vu en TD, une fonction static GrayImage * GrayImage::readFormat(istream&), c'est-à-dire une fonction de classe (static sur un membre) et non plus une fonction d'instance. Avec ce choix de conception, lire une nouvelle image ne nécessite pas d'avoir déjà créé préalablement en mémoire une GrayImage : c'est la fonction elle-même qui crée une nouvelle GrayImage dont elle renvoie l'adresse :
+GrayImage *pi=GrayImage::readFormat(f); // La lecture crée dynamiquement l'image, et renvoie son adresse.
+
+Lecture et écriture d'images au format PGM
+Vous devez réaliser la lecture et l'écriture de vos images au format PGM dont la description est donnée dans le document [PGM.txt]. Vous réaliserez tout d'abord void GrayImage::writePGM(ostream& f) const en vous inspirant de ce qui a été vu en cours. Sous Windows, les images produites pourront être testées avec XnView. Sous Linux, vous pouvez utiliser eog (la visionneuse d'image Gnome), qiv (Quick Image Viewer, mon choix personnel). Évitez de lancer The Gimp ou Photoshop juste pour regarder l'image : c'est super lourd et sans intérêt ici !
+ 
+Vous réaliserez ensuite la lecture avec static GrayImage* GrayImage::readPGM(istream& f).
+
+
+Assurez vous du bon fonctionnement de vos fonctions. Pour tester l'écriture, faites une image qui ne soit pas carrée, effacez ses pixels avec clear(), dessinez quelques rectangles dedans, puis écrivez la avec writePGM() et enfin ouvrez la avec un visualiseur pour contrôler.
+
+Ensuite, pour tester la lecture, utilisez votre readPGM() sur l'image chat.pgm, puis dessinez des rectangles dedans, puis enregistrez la (sous un autre nom !) avec writePGM() et vérifiez avec un visualiseur que toutes les opérations sont bien correctes.
+
+Pour tester que l'image a été bien lue puis réécrite, faites alterner l'image d'origine et l'image finale dans le visualiseur (touche espace ou droite-gauche), ainsi la moindre différence vous sautera normalement aux yeux.
+
+Vous pouvez également travailler sur une image de votre choix, à condition de l'avoir transformée en fichier PGM (dont le magic number est « P5 » c'est-à-dire ASCII+binaire).
+
+Pour des points supplémentaires, vous pouvez ajouter la lecture d'une image PGM au format ASCII pur, c'est-à-dire avec le magic number "P2".
