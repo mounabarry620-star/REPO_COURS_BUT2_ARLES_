@@ -1,0 +1,5 @@
+une partie d'arithmétique
+une partie sur les rsa
+et aussi l'algorithme des carré
+
+le tp c'est sur sage math uniquement 
