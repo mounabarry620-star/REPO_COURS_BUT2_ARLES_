@@ -1,0 +1,4 @@
+@font-face {
+  font-family: 'MaPolice';
+  src: url('./ma-police.woff2') format('woff2');
+}
