@@ -1,0 +1,54 @@
+TD n°2 : corrigé
+
+entre PGM et PPM au lieu de P5 on fait P6.
+12 | 34 | FA | BC   base 16 
+poinds    poids 
+forts     faibles
+
+big endian on commence par les poids forts et little par les poids faibles.
+
+1°) # include <cstdint>
+
+    template <typename T> 
+
+
+    void swap_bytes (T & t)
+    {
+        int8_t * ptr = reinterpret_cast <int8_t *> (& t)
+
+        for (size_t i = 0 ; i < sizeof(T) / 2 ; i++)
+        {
+            int8_t tmp = *(ptr + i);
+            *(ptr + i)= *(ptr + sizeof(T) - i - 1);
+            *(ptr + sizeof(T) - i - 1) = tmp;
+        }
+    }
+
+Dans une struct par défaut tout est public alors qu'une classe tout est private.
+
+2°)  
+stuct Data{
+    uint16_t a;
+    double b;
+    char fourcc[4];
+    std::string d;
+};
+
+void read_Data (Data & data , std::istream & is)
+{
+    is.read ((char *) & data.a, 2 );
+    is.read ((char *) & data.b, 8 );
+    is.read ((char *) & data.fourcc[0], 4 );
+
+    uint8_t  str_size;
+    is.read ((char *) & str_size, 1 );
+
+    data.d = string ( 'X', str_size);
+    is.read (data.d.data(), str_size);
+    // il dit qu'il faut regarder la doc donc pas trop sûr ici !
+
+    
+
+
+    
+}
