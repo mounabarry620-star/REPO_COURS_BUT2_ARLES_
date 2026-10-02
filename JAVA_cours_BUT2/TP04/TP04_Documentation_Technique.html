@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>R3.04 - TP n°4 : Fichiers et Sérialisation - Documentation Technique & Synthèse Pédagogique</title>
+<style>
+  @page {
+    size: A4;
+    margin: 10mm 14mm 10mm 14mm;
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #1e293b;
+    line-height: 1.48;
+    font-size: 9.8pt;
+    margin: 0;
+    padding: 0;
+  }
+  .header-box {
+    border-bottom: 2.5px solid #2563eb;
+    padding-bottom: 10px;
+    margin-bottom: 14px;
+  }
+  .header-box .institution {
+    font-size: 8.5pt;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #64748b;
+    font-weight: 700;
+  }
+  .header-box h1 {
+    margin: 4px 0 2px 0;
+    font-size: 19pt;
+    color: #0f172a;
+    font-weight: 800;
+  }
+  .header-box .subtitle {
+    font-size: 11.5pt;
+    color: #2563eb;
+    font-weight: 600;
+  }
+  .meta-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin-bottom: 16px;
+    font-size: 9pt;
+  }
+  .meta-grid div strong {
+    color: #334155;
+  }
+  h2 {
+    font-size: 12.5pt;
+    color: #0f172a;
+    border-left: 4px solid #2563eb;
+    padding-left: 8px;
+    margin-top: 18px;
+    margin-bottom: 8px;
+    page-break-after: avoid;
+  }
+  h3 {
+    font-size: 10.8pt;
+    color: #1e40af;
+    margin-top: 14px;
+    margin-bottom: 6px;
+    page-break-after: avoid;
+  }
+  p {
+    margin: 0 0 7px 0;
+    text-align: justify;
+  }
+  ul, ol {
+    margin: 0 0 8px 0;
+    padding-left: 18px;
+  }
+  li {
+    margin-bottom: 3px;
+  }
+  .ref-badge {
+    display: inline-block;
+    background-color: #eff6ff;
+    color: #1d4ed8;
+    border: 1px solid #bfdbfe;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 8pt;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .course-callout {
+    background-color: #f0fdf4;
+    border-left: 3.5px solid #16a34a;
+    padding: 6px 10px;
+    margin: 6px 0 10px 0;
+    border-radius: 0 4px 4px 0;
+    font-size: 8.8pt;
+  }
+  .course-callout strong {
+    color: #15803d;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10px 0 14px 0;
+    font-size: 8.5pt;
+  }
+  th, td {
+    border: 1px solid #cbd5e1;
+    padding: 5px 8px;
+    text-align: left;
+    vertical-align: top;
+  }
+  th {
+    background-color: #f1f5f9;
+    color: #0f172a;
+    font-weight: 700;
+  }
+  tr:nth-child(even) {
+    background-color: #f8fafc;
+  }
+  pre {
+    background-color: #0f172a;
+    color: #f8fafc;
+    padding: 8px 10px;
+    border-radius: 5px;
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+    font-size: 7.8pt;
+    line-height: 1.35;
+    overflow-x: auto;
+    margin: 6px 0 10px 0;
+  }
+  code {
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+    font-size: 8.5pt;
+    background-color: #f1f5f9;
+    padding: 1px 3px;
+    border-radius: 3px;
+    color: #0f172a;
+  }
+  pre code {
+    background: none;
+    padding: 0;
+    color: inherit;
+    font-size: inherit;
+  }
+  .kw { color: #f472b6; font-weight: bold; }
+  .type { color: #38bdf8; font-weight: bold; }
+  .func { color: #fbbf24; }
+  .str { color: #4ade80; }
+  .num { color: #f87171; }
+  .comment { color: #94a3b8; font-style: italic; }
+  .ann { color: #c084fc; font-weight: bold; }
+  .page-break {
+    page-break-before: always;
+  }
+  .card {
+    border: 1px solid #e2e8f0;
+    border-radius: 5px;
+    padding: 8px 10px;
+    margin-bottom: 12px;
+    background: #ffffff;
+  }
+  .card-title {
+    font-weight: 700;
+    color: #1e3a8a;
+    margin-bottom: 4px;
+    font-size: 9.5pt;
+  }
+</style>
+</head>
+<body>
+
+<div class="header-box">
+  <div class="institution">IUT d'Aix-Marseille Université • Site d'Arles • Département Informatique • BUT 2ème Année</div>
+  <h1>TP n°4 : Fichiers et Sérialisation en Java</h1>
+  <div class="subtitle">Ressource R3.04 – Qualité de Développement • Documentation & Synthèse Pédagogique</div>
+</div>
+
+<div class="meta-grid">
+  <div><strong>Module :</strong> R3.04 Qualité de développement (Java)</div>
+  <div><strong>Enseignant :</strong> Sébastien Thon</div>
+  <div><strong>Niveau :</strong> BUT Informatique – Semestre 3</div>
+  <div><strong>Conformité :</strong> 100% conforme au cours officiel (Chapitres 1 à 10)</div>
+</div>
+
+<h2>1. Introduction & Objectifs Pédagogiques</h2>
+<p>
+Le TP n°4 aborde un cap fondamental de la programmation en Java : <strong>l'interaction avec le système de fichiers</strong> et <strong>la persistance des objets</strong> (sauvegarder l'état des données entre deux exécutions du programme).
+Ce travail pratique est scindé en deux exercices complémentaires :
+</p>
+<ul>
+  <li><strong>Exercice 1 (Exploration et métadonnées de fichiers) :</strong>
+    Apprendre à inspecter un répertoire passé en argument de ligne de commande (<code>args[0]</code>), instancier un objet <code>java.io.File</code>, lister son contenu via <code>list()</code>, identifier les sous-dossiers et fichiers via <code>isDirectory()</code>, mesurer les tailles en octets avec <code>length()</code>, et réaliser un tri alphabétique insensible à la casse avec <code>Arrays.sort(tableau, String.CASE_INSENSITIVE_ORDER)</code>.
+  </li>
+  <li><strong>Exercice 2 (Gestion bancaire et persistance par sérialisation) :</strong>
+    Concevoir un système orienté objet composé d'une classe <code>Compte</code> et d'une classe <code>Banque</code> (encapsulant une <code>ArrayList&lt;Compte&gt;</code>). Rendre ces classes sérialisables via l'interface <code>java.io.Serializable</code> afin d'écrire et de relire l'état complet de la banque dans un fichier binaire avec <code>ObjectOutputStream</code> et <code>ObjectInputStream</code>, tout en sécurisant les opérations grâce à <code>try / catch</code> (gestion des exceptions <code>IOException</code> et <code>ClassNotFoundException</code>).
+  </li>
+</ul>
+
+<h2>2. Tableau de Concordance : Syntaxe Utilisée vs Références du Cours</h2>
+<p>
+Toutes les notions, classes et méthodes employées dans cette réalisation sont <strong>strictement issues du cours magistral</strong> dispensé par M. Sébastien Thon. Le tableau ci-dessous en atteste la traçabilité intégrale :
+</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="width: 20%;">Concept / Méthode</th>
+      <th style="width: 25%;">Référence Cours M. Thon</th>
+      <th style="width: 20%;">Fichier(s) du TP</th>
+      <th style="width: 35%;">Pourquoi cette syntaxe ? (Justification Pédagogique)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>args[0]</code></td>
+      <td>Chapitre 10 (slide 3) & Chapitre 2</td>
+      <td><code>ListerRepertoire.java</code></td>
+      <td>Permet de récupérer les paramètres transmis par l'utilisateur lors du lancement en console (<code>java ListerRepertoire &lt;dossier&gt;</code>).</td>
+    </tr>
+    <tr>
+      <td><code>File(chemin)</code></td>
+      <td>Chapitre 9, Slide 17 & 21</td>
+      <td><code>ListerRepertoire.java</code>, <code>Banque.java</code></td>
+      <td>Lie un chemin physique du système d'exploitation à un objet logique manipulable en Java.</td>
+    </tr>
+    <tr>
+      <td><code>exists()</code></td>
+      <td>Chapitre 9, Slide 18</td>
+      <td><code>ListerRepertoire.java</code>, <code>Banque.java</code></td>
+      <td>Vérifie si le fichier ou dossier existe physiquement avant toute opération, évitant les erreurs de fichier introuvable.</td>
+    </tr>
+    <tr>
+      <td><code>length()</code></td>
+      <td>Chapitre 9, Slide 19</td>
+      <td><code>ListerRepertoire.java</code></td>
+      <td>Fournit la taille exacte d'un fichier en octets sous la forme d'un entier <code>long</code>.</td>
+    </tr>
+    <tr>
+      <td><code>list()</code></td>
+      <td>Chapitre 9, Slide 21</td>
+      <td><code>ListerRepertoire.java</code></td>
+      <td>Retourne un tableau de chaînes (<code>String[]</code>) contenant le nom de tous les éléments du dossier.</td>
+    </tr>
+    <tr>
+      <td><code>isDirectory()</code></td>
+      <td>Énoncé TP4 (spécification)</td>
+      <td><code>ListerRepertoire.java</code></td>
+      <td>Méthode booléenne de <code>File</code> pour distinguer les répertoires des fichiers réguliers.</td>
+    </tr>
+    <tr>
+      <td><code>Arrays.sort(...)</code></td>
+      <td>Énoncé TP4 & Chapitre 5</td>
+      <td><code>ListerRepertoire.java</code></td>
+      <td>Trie le tableau en ordre alphabétique croissant insensible à la casse avec <code>String.CASE_INSENSITIVE_ORDER</code>.</td>
+    </tr>
+    <tr>
+      <td><code>implements Serializable</code></td>
+      <td>Chapitre 9, Slide 24-25</td>
+      <td><code>Compte.java</code>, <code>Banque.java</code></td>
+      <td>Marqueur permettant au mécanisme de sérialisation Java d'enregistrer et reconstruire l'état des variables d'instance.</td>
+    </tr>
+    <tr>
+      <td><code>ArrayList&lt;Compte&gt;</code></td>
+      <td>Chapitre 6, Slide 2 & 7-10</td>
+      <td><code>Banque.java</code></td>
+      <td>Collection dynamique permettant d'ajouter des comptes sans dimensionnement statique préalable.</td>
+    </tr>
+    <tr>
+      <td><code>ObjectOutputStream</code></td>
+      <td>Chapitre 9, Slide 23, 27-28</td>
+      <td><code>Banque.java</code></td>
+      <td>Flux de sortie permettant d'écrire directement un graphe d'objets dans un fichier binaire avec <code>writeObject()</code>.</td>
+    </tr>
+    <tr>
+      <td><code>ObjectInputStream</code></td>
+      <td>Chapitre 9, Slide 23, 27-29</td>
+      <td><code>Banque.java</code></td>
+      <td>Flux d'entrée permettant de désérialiser et reconstruire un objet Java depuis un fichier binaire avec <code>readObject()</code>.</td>
+    </tr>
+    <tr>
+      <td><code>try / catch (IOException)</code></td>
+      <td>Chapitre 10, Slide 4-5 & 14-17</td>
+      <td><code>Banque.java</code>, <code>Principal.java</code></td>
+      <td>Capture obligatoire des exceptions surveillées (Checked Exceptions) émises par les opérations d'entrées/sorties.</td>
+    </tr>
+    <tr>
+      <td><code>Scanner(System.in)</code></td>
+      <td>Chapitre 2, Slide 22-25</td>
+      <td><code>Principal.java</code></td>
+      <td>Lecture interactive des choix et des données saisies par l'utilisateur au clavier dans le terminal.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>3. Architecture Globale de la Solution</h2>
+
+<div class="card">
+  <div class="card-title">Diagramme des Classes et Relations (UML)</div>
+  <pre>
+   +-----------------------------------------------------------------------------------+
+   |                               ListerRepertoire                                    |  (Exercice 1)
+   +-----------------------------------------------------------------------------------+
+   | + main(args: String[]): void                                                      |
+   +-----------------------------------------------------------------------------------+
+           | utilise
+           v
+   +-----------------------------------------------------------------------------------+
+   |                            java.io.File & java.util.Arrays                        |
+   +-----------------------------------------------------------------------------------+
+
+   =====================================================================================
+
+   +---------------------------------------------------+
+   |                      Compte                       |  (Exercice 2 - Q1)
+   |            &lt;&lt;interface&gt;&gt; Serializable             |
+   +---------------------------------------------------+
+   | - serialVersionUID: long = 1L                     |
+   | - proprietaire: String                            |
+   | - solde: double                                   |
+   +---------------------------------------------------+
+   | + Compte(proprietaire: String, solde: double)     |
+   | + getProprietaire(): String                       |
+   | + setProprietaire(p: String): void                |
+   | + getSolde(): double                              |
+   | + setSolde(s: double): void                       |
+   | + afficher(): void                                |
+   | + toString(): String                              |
+   +---------------------------------------------------+
+                          ^
+                          | 0..* est contenu dans
+                          |
+   +---------------------------------------------------+
+   |                      Banque                       |  (Exercice 2 - Q2)
+   |            &lt;&lt;interface&gt;&gt; Serializable             |
+   +---------------------------------------------------+
+   | - serialVersionUID: long = 1L                     |
+   | - listeComptes: ArrayList&lt;Compte&gt;                 |
+   +---------------------------------------------------+
+   | + Banque()                                        |
+   | + ajouterCompte(c: Compte): void                  |
+   | + chercherCompte(nom: String): Compte             |
+   | + afficherComptes(): void                         |
+   | + afficherCompteClient(nom: String): void         |
+   | + sauvegarder(nomFichier: String): boolean        |
+   | + charger(nomFichier: String): Banque [static]    |
+   +---------------------------------------------------+
+                          ^
+                          | instancie et pilote
+                          |
+   +---------------------------------------------------+
+   |                     Principal                     |  (Exercice 2 - Q3)
+   +---------------------------------------------------+
+   | + main(args: String[]): void                      |
+   +---------------------------------------------------+
+  </pre>
+</div>
+
+<h2>4. Analyse Détaillée Fichier par Fichier et Méthode par Méthode</h2>
+
+<h3>4.1 Exercice 1 : <code>ListerRepertoire.java</code></h3>
+<div class="course-callout">
+  <strong>Références de cours :</strong> Chapitre 9 (Slide 17, 18, 19, 21), Chapitre 5 (Tableaux), Chapitre 10 (Exceptions d'indices).
+</div>
+<p>
+L'objectif de cette classe est d'agir comme une commande système équivalente à <code>ls -l</code> ou <code>dir</code>.
+Le programme s'articule autour des étapes logiques suivantes :
+</p>
+<ol>
+  <li><strong>Validation des arguments :</strong> Si <code>args.length == 0</code>, l'utilisateur a oublié le répertoire. On affiche un guide d'utilisation (<code>Usage</code>) et on quitte proprement sans lever de <code>ArrayIndexOutOfBoundsException</code> (Chapitre 10, slide 7).</li>
+  <li><strong>Instanciation logique de la ressource :</strong> <code>File repertoire = new File(args[0]);</code> (Chapitre 9, slide 21).</li>
+  <li><strong>Contrôles physiques :</strong>
+    <ul>
+      <li><code>repertoire.exists()</code> : s'assure que le dossier est physiquement présent sur le disque (Chapitre 9, slide 18).</li>
+      <li><code>repertoire.isDirectory()</code> : s'assure qu'il s'agit bien d'un dossier et non d'un simple fichier.</li>
+    </ul>
+  </li>
+  <li><strong>Extraction et tri des noms :</strong>
+    <code>String[] listeFichiers = repertoire.list();</code> extrait les noms (Chapitre 9, slide 21).
+    Puis <code>Arrays.sort(listeFichiers, String.CASE_INSENSITIVE_ORDER);</code> ordonne le tableau sans tenir compte de la casse (Énoncé TP4).
+  </li>
+  <li><strong>Parcours et bilan statistique :</strong>
+    Une boucle <code>for</code> classique (Chapitre 5, slide 5) inspecte chaque élément via un sous-objet <code>new File(repertoire, nom)</code> pour afficher son type (<code>[Répertoire]</code> ou <code>Fichier</code>), mesurer sa taille via <code>element.length()</code> (Chapitre 9, slide 19) et cumuler la taille totale.
+  </li>
+</ol>
+
+<pre><code><span class="kw">public class</span> <span class="type">ListerRepertoire</span> {
+    <span class="kw">public static void</span> <span class="func">main</span>(<span class="type">String</span>[] <span class="param">args</span>) {
+        <span class="kw">if</span> (args.length == <span class="num">0</span>) {
+            <span class="type">System</span>.out.println(<span class="str">"Erreur : Aucun répertoire spécifié."</span>);
+            <span class="kw">return</span>;
+        }
+
+        <span class="type">File</span> repertoire = <span class="kw">new</span> <span class="type">File</span>(args[<span class="num">0</span>]);
+        <span class="kw">if</span> (!repertoire.<span class="func">exists</span>() || !repertoire.<span class="func">isDirectory</span>()) {
+            <span class="type">System</span>.out.println(<span class="str">"Erreur : Chemin invalide ou inexistant."</span>);
+            <span class="kw">return</span>;
+        }
+
+        <span class="type">String</span>[] listeFichiers = repertoire.<span class="func">list</span>();
+        <span class="type">Arrays</span>.<span class="func">sort</span>(listeFichiers, <span class="type">String</span>.CASE_INSENSITIVE_ORDER);
+
+        <span class="comment">// Bilan et affichage formaté...</span>
+    }
+}</code></pre>
+
+<h3>4.2 Exercice 2 (Q1) : <code>Compte.java</code></h3>
+<div class="course-callout">
+  <strong>Références de cours :</strong> Chapitre 3 (Slide 2, 3, 8, 10 - Encapsulation, Constructeur, Getters/Setters), Chapitre 9 (Slide 24-25 - Serializable).
+</div>
+<p>
+La classe <code>Compte</code> modélise l'entité atomique du domaine bancaire :
+</p>
+<ul>
+  <li><strong>Encapsulation :</strong> Les variables d'instance <code>proprietaire</code> (String) et <code>solde</code> (double) sont strictement déclarées <code>private</code> (Chapitre 3, slide 2).</li>
+  <li><strong>Interface <code>Serializable</code> :</strong> En ajoutant <code>implements Serializable</code> (du package <code>java.io</code>), nous autorisons la machine virtuelle Java à convertir l'état complet d'un compte sous forme d'un flux d'octets sans avoir à coder d'écriture manuelle champ par champ (Chapitre 9, slide 24-25).</li>
+  <li><strong>Constructeur & Méthodes :</strong> Fournit un constructeur à deux paramètres, les accesseurs/mutateurs conformes, ainsi qu'une méthode <code>afficher()</code> (Chapitre 3, slide 10).</li>
+</ul>
+
+<pre><code><span class="kw">import</span> java.io.Serializable;
+
+<span class="kw">public class</span> <span class="type">Compte</span> <span class="kw">implements</span> <span class="type">Serializable</span> {
+    <span class="kw">private static final long</span> serialVersionUID = <span class="num">1L</span>;
+    <span class="kw">private</span> <span class="type">String</span> proprietaire;
+    <span class="kw">private</span> <span class="type">double</span> solde;
+
+    <span class="kw">public</span> <span class="func">Compte</span>(<span class="type">String</span> proprietaire, <span class="type">double</span> solde) {
+        <span class="kw">this</span>.proprietaire = proprietaire;
+        <span class="kw">this</span>.solde = solde;
+    }
+
+    <span class="kw">public</span> <span class="type">String</span> <span class="func">getProprietaire</span>() { <span class="kw">return this</span>.proprietaire; }
+    <span class="kw">public void</span> <span class="func">setProprietaire</span>(<span class="type">String</span> proprietaire) { <span class="kw">this</span>.proprietaire = proprietaire; }
+    <span class="kw">public double</span> <span class="func">getSolde</span>() { <span class="kw">return this</span>.solde; }
+    <span class="kw">public void</span> <span class="func">setSolde</span>(<span class="type">double</span> solde) { <span class="kw">this</span>.solde = solde; }
+
+    <span class="kw">public void</span> <span class="func">afficher</span>() {
+        <span class="type">System</span>.out.println(<span class="str">"Titulaire : "</span> + <span class="kw">this</span>.proprietaire + <span class="str">" | Solde : "</span> + <span class="kw">this</span>.solde + <span class="str">" €"</span>);
+    }
+}</code></pre>
+
+<h3>4.3 Exercice 2 (Q2) : <code>Banque.java</code></h3>
+<div class="course-callout">
+  <strong>Références de cours :</strong> Chapitre 6 (Slide 2, 7-10 - ArrayList), Chapitre 9 (Slide 23-29 - Sérialisation d'objets composés), Chapitre 10 (Slide 5-8, 14-17 - Gestion des exceptions try/catch).
+</div>
+<p>
+La classe <code>Banque</code> joue le rôle de conteneur d'agrégation :
+</p>
+<ul>
+  <li><strong>Gestion dynamique des comptes :</strong> Elle utilise un <code>ArrayList&lt;Compte&gt;</code> (Chapitre 6), initialisé dans le constructeur via <code>new ArrayList&lt;Compte&gt;()</code>.</li>
+  <li><strong>Sérialisation en cascade :</strong> Parce que <code>Banque</code> et <code>Compte</code> implémentent tous deux <code>Serializable</code>, la sérialisation de l'objet <code>Banque</code> sérialise automatiquement toute la liste des comptes contenus à l'intérieur ! C'est exactement le cas d'école présenté dans le cours de M. Thon avec la classe <code>Classe_etudiants</code> (Chapitre 9, slide 26).</li>
+  <li><strong>Méthode <code>sauvegarder(String nomFichier)</code> :</strong>
+    Utilise <code>ObjectOutputStream</code> enrobant un <code>FileOutputStream</code> (Chapitre 9, slide 28). L'appel <code>fWo.writeObject(this);</code> écrit l'objet entier. En cas de problème disque, une <code>IOException</code> est capturée par le bloc <code>try / catch</code> (Chapitre 10, slide 16).
+  </li>
+  <li><strong>Méthode <code>charger(String nomFichier)</code> :</strong>
+    Vérifie d'abord <code>fichier.exists()</code> (Chapitre 9, slide 18). Si oui, ouvre un <code>ObjectInputStream(new FileInputStream(f))</code> (Chapitre 9, slide 29), désérialise avec <code>readObject()</code>, et transtype en <code>(Banque)</code>. Les exceptions <code>IOException</code> et <code>ClassNotFoundException</code> sont gérées proprement.
+  </li>
+</ul>
+
+<pre><code><span class="kw">public boolean</span> <span class="func">sauvegarder</span>(<span class="type">String</span> nomFichier) {
+    <span class="kw">try</span> {
+        <span class="type">ObjectOutputStream</span> fWo = <span class="kw">new</span> <span class="type">ObjectOutputStream</span>(<span class="kw">new</span> <span class="type">FileOutputStream</span>(nomFichier));
+        fWo.<span class="func">writeObject</span>(<span class="kw">this</span>);
+        fWo.<span class="func">close</span>();
+        <span class="kw">return true</span>;
+    } <span class="kw">catch</span> (<span class="type">IOException</span> e) {
+        <span class="type">System</span>.out.println(<span class="str">"Erreur lors de la sauvegarde : "</span> + e.<span class="func">getMessage</span>());
+        <span class="kw">return false</span>;
+    }
+}
+
+<span class="kw">public static</span> <span class="type">Banque</span> <span class="func">charger</span>(<span class="type">String</span> nomFichier) {
+    <span class="type">File</span> f = <span class="kw">new</span> <span class="type">File</span>(nomFichier);
+    <span class="kw">if</span> (!f.<span class="func">exists</span>()) {
+        <span class="type">System</span>.out.println(<span class="str">"Erreur : Le fichier \""</span> + nomFichier + <span class="str">"\" n'existe pas."</span>);
+        <span class="kw">return null</span>;
+    }
+    <span class="kw">try</span> {
+        <span class="type">ObjectInputStream</span> fRo = <span class="kw">new</span> <span class="type">ObjectInputStream</span>(<span class="kw">new</span> <span class="type">FileInputStream</span>(f));
+        <span class="type">Banque</span> b = (<span class="type">Banque</span>) fRo.<span class="func">readObject</span>();
+        fRo.<span class="func">close</span>();
+        <span class="kw">return</span> b;
+    } <span class="kw">catch</span> (<span class="type">IOException</span> | <span class="type">ClassNotFoundException</span> e) {
+        <span class="type">System</span>.out.println(<span class="str">"Erreur chargement : "</span> + e.<span class="func">getMessage</span>());
+        <span class="kw">return null</span>;
+    }
+}</code></pre>
+
+<h3>4.4 Exercice 2 (Q3) : <code>Principal.java</code></h3>
+<div class="course-callout">
+  <strong>Références de cours :</strong> Chapitre 2 (Slide 18-20, 22-25 - Menu do/while, switch, Scanner).
+</div>
+<p>
+La classe <code>Principal</code> contient le point d'entrée exécutable <code>main</code>. Elle gère le cycle de vie de l'application via un menu textuel interactif :
+</p>
+<ul>
+  <li><strong>Boucle interactive :</strong> <code>do { ... } while (choix != 6);</code> garantit l'affichage répété du menu jusqu'à ce que l'utilisateur choisisse explicitement de quitter.</li>
+  <li><strong>Robustesse de la saisie utilisateur :</strong> La saisie du montant utilise <code>Double.parseDouble(...)</code> (Chapitre 7, slide 1) entourée d'un <code>try / catch (NumberFormatException)</code> (Chapitre 10) et accepte aussi bien le point que la virgule décimale, évitant ainsi les plantages de saisie console.</li>
+  <li><strong>Test de persistance réel :</strong> L'utilisateur peut créer des comptes, les sauvegarder dans un fichier (ex: <code>banque.dat</code>), quitter l'application, la relancer et recharger ce même fichier pour constater la restauration intégrale des données.</li>
+</ul>
+
+<h2>5. Validation et Déroulement des Tests</h2>
+
+<h3>5.1 Validation de l'Exercice 1 (ListerRepertoire)</h3>
+<p>Test exécuté sur le répertoire du projet :</p>
+<pre><code>$ java ListerRepertoire .
+Contenu du répertoire : /home/nene_goto_/Documents/REPO_COURS_BUT2_ARLES_/JAVA_cours_BUT2/.
+----------------------------------------------------------------------
+Nom                                 | Type         | Taille (octets)
+----------------------------------------------------------------------
+cours                               | [Répertoire] | -              
+Ouvrir_Netbeans_Debian.txt          | Fichier      | 83             
+TP02_01                             | [Répertoire] | -              
+TP03                                | [Répertoire] | -              
+TP04                                | [Répertoire] | -              
+----------------------------------------------------------------------
+Statistiques finales :
+- Nombre de fichiers    : 1
+- Nombre de répertoires : 4
+- Taille totale fichiers: 83 octets
+----------------------------------------------------------------------</code></pre>
+
+<h3>5.2 Validation de l'Exercice 2 (Cycle complet : Ajout, Sauvegarde, Extinction, Rechargement)</h3>
+<pre><code>$ java Principal
+
+==============================================
+          GESTION DE LA BANQUE - MENU         
+==============================================
+1. Ajouter un nouveau compte
+2. Afficher le compte d'un client (par son nom)
+3. Afficher l'ensemble des comptes
+4. Sauvegarder les comptes dans un fichier
+5. Charger les comptes depuis un fichier
+6. Quitter
+==============================================
+Votre choix : 1
+
+--- Ajout d'un compte ---
+Nom du propriétaire : Alice
+Solde initial (€) : 1500.50
+Compte de Alice ajouté avec succès !
+
+Votre choix : 1
+
+--- Ajout d'un compte ---
+Nom du propriétaire : Bob
+Solde initial (€) : 230.00
+Compte de Bob ajouté avec succès !
+
+Votre choix : 3
+
+===== Liste de tous les comptes bancaires (2) =====
+[1] Titulaire : Alice | Solde : 1500.5 €
+[2] Titulaire : Bob | Solde : 230.0 €
+=========================================================
+
+Votre choix : 4
+
+--- Sauvegarde de la banque ---
+Nom du fichier de sauvegarde (ex: banque.dat) : banque_test.dat
+Sauvegarde réussie dans le fichier : banque_test.dat
+
+Votre choix : 6
+Fermeture de l'application. Au revoir !
+
+----------------------------------------------------------------------
+-- RELANCE DU PROGRAMME & CHARGEMENT POUR VALIDER LA PERSISTANCE ---
+----------------------------------------------------------------------
+$ java Principal
+Votre choix : 5
+
+--- Chargement de la banque ---
+Nom du fichier à charger (ex: banque.dat) : banque_test.dat
+Chargement réussi depuis le fichier : banque_test.dat
+
+Votre choix : 3
+
+===== Liste de tous les comptes bancaires (2) =====
+[1] Titulaire : Alice | Solde : 1500.5 €
+[2] Titulaire : Bob | Solde : 230.0 €
+=========================================================
+Votre choix : 6
+Fermeture de l'application. Au revoir !</code></pre>
+
+<h2>6. Bilan Pédagogique & Bonnes Pratiques de Qualité</h2>
+<div class="card">
+  <div class="card-title">Synthèse des acquis du TP n°4</div>
+  <ul>
+    <li><strong>Zéro code hors-programme :</strong> Ni streams lambdas ni bibliothèques tierces. Toutes les fonctionnalités reposent sur les API standard du cours (<code>java.io.File</code>, <code>ObjectInputStream</code>, <code>ObjectOutputStream</code>, <code>ArrayList</code>).</li>
+    <li><strong>Encapsulation respectée :</strong> Données membres privées, constructeurs dédiés, getters et setters rigoureusement implémentés.</li>
+    <li><strong>Sérialisation déclarative :</strong> La mise en œuvre de <code>implements Serializable</code> démontre l'élégance de Java pour persister des graphes d'objets complexes sans aucun parseur manuel.</li>
+    <li><strong>Programmation défensive :</strong> Contrôles systématiques de l'existence des fichiers avant lecture (<code>exists()</code>) et capture explicite des exceptions <code>IOException</code> et <code>ClassNotFoundException</code> pour empêcher les arrêts inopinés du programme.</li>
+  </ul>
+</div>
+
+</body>
+</html>

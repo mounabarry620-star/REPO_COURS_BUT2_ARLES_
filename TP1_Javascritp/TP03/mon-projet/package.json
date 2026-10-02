@@ -1,0 +1,38 @@
+{
+    "name": "mon-projet",
+    "version": "1.0.0",
+    "description": "TP03 - Vélib Métropole",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "start": "webpack serve --config webpack.dev.js",
+        "build": "webpack --config webpack.prod.js"
+    },
+    "keywords": [],
+    "author": "Desbenoit B.",
+    "license": "ISC",
+    "devDependencies": {
+        "@babel/core": "^8.0.6",
+        "@babel/preset-env": "^8.0.6",
+        "babel-loader": "^10.1.1",
+        "dotenv": "^18.0.3",
+        "dotenv-webpack": "^9.0.0",
+        "handlebars": "^4.7.9",
+        "html-webpack-plugin": "^5.6.8",
+        "leaflet": "^1.9.4",
+        "leaflet.markercluster": "^1.5.3",
+        "material-icons": "^1.13.14",
+        "materialize-css": "^1.0.0",
+        "sass": "^1.105.0",
+        "sass-loader": "^17.0.1",
+        "webpack": "^5.111.1",
+        "webpack-cli": "^7.2.3",
+        "webpack-dev-server": "^6.0.0",
+        "webpack-merge": "^6.0.1"
+    },
+    "browserslist": [
+        "> 0.5%",
+        "last 2 versions",
+        "not dead"
+    ]
+}

@@ -7,14 +7,14 @@ public class Principal {
         byte choix = 0;
 
         do {
-            System.out.println("\n=== Menu Médiathèque ===");
+            System.out.println("Menu Médiathèque");
             System.out.println("1. Ajouter un ouvrage");
             System.out.println("2. Afficher la liste des ouvrages");
             System.out.println("3. Quitter");
             System.out.print("Votre choix : ");
 
             choix = clavier.nextByte();
-            clavier.nextLine(); // Consomme le retour à la ligne
+            clavier.nextLine();
 
             switch (choix) {
                 case 1:
