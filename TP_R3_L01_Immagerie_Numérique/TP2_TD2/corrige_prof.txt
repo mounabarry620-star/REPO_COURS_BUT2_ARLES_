@@ -45,7 +45,38 @@ void read_Data (Data & data , std::istream & is)
 
     data.d = string ( 'X', str_size);
     is.read (data.d.data(), str_size);
-    // il dit qu'il faut regarder la doc donc pas trop sûr ici !
+    // il dit qu'il faut regarder la doc donc pas trop sûr ici ! str() ?????
+
+    if (doit_permuter) {
+        swap_bytes(data a);
+        swap_bytes (data b);
+    }
+
+    // Prendre un entier et le mettre dans une variable.
+
+    // ex: 12| 34 |16
+
+    uint16_t var = 0x123;
+
+    uint8_t * ptr = reinterpret_cast <uint8_t> (& var)
+      if (*ptr = 0x 34) // little endian ?
+
+
+Exo3:
+
+4032 * 3024/ 1024/1024
+
+couleur 24bits-> pixel 24 bits
+il faut la taille de width et height -> 2octets
+il faut la taille du pointeur p* array = 8 octects  64 bits
+                                         4octects 32 bits
+
+4032 * 3024 
+
+    
+
+
+
 
     
 

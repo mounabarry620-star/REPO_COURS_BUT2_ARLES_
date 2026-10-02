@@ -1,0 +1,25 @@
+Rééchantillonage bilinéaire
+Parcour I et pour chaque point recopier
+
+GrayImage* GrayImage::simpleScale (uint16_t w, uint16_t h)
+
+
+GrayImage * I_prime = new GrayImage (w,h); {
+
+for (uint16_t y_prime = a; y_prime < h; y_prime++){
+    for(uint16_t x_prime = 0; x_prime <w; x_prime++) {
+        uint16_t x = (x_prime * width)/w;
+                 y = (y_prime *height)/h;
+      I_prime -> pixel(x_prime, y_prime) = pixel(x,y)
+    }
+ }
+
+return I_prime;
+
+} 
+
+2°) 
+
+GrayImage * GrayImage::bilinearScale (uint16_t w, uint16_t )
+
+
