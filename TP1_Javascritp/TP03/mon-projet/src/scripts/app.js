@@ -12,8 +12,9 @@ L.Icon.Default.mergeOptions({ iconUrl, iconRetinaUrl, shadowUrl });
 
 const mapMarqueurs = new Map();
 
-function creerContenuPopup(nom, velos, docks) {
+function creerContenuPopup(code, nom, velos, docks) {
     return popupTpl
+        .replace('{{code}}', code)
         .replace('{{nom}}', nom)
         .replace('{{velos}}', velos)
         .replace('{{docks}}', docks);
@@ -32,6 +33,7 @@ async function actualiserStatuts() {
                 const docksLibres = st.num_docks_available || 0;
 
                 const nouveauContenu = creerContenuPopup(
+                    markerData.code,
                     markerData.nom,
                     totalVelos,
                     docksLibres
@@ -52,24 +54,31 @@ async function initCarte() {
 
     const map = L.map('map').setView([48.8566, 2.3522], 12);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    const fondCarte = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
+
+    const calqueStations = L.layerGroup().addTo(map);
+
+    L.control.layers(
+        { "OpenStreetMap": fondCarte },
+        { "Stations Vélib": calqueStations }
+    ).addTo(map);
 
     const reponse = await fetch('/api/opendata/Velib_Metropole/station_information.json');
     const donnees = await reponse.json();
     const stations = donnees.data.stations;
 
     stations.forEach(station => {
-        const marker = L.marker([station.lat, station.lon]).addTo(map);
-        marker.bindPopup(`<b>${station.name}</b><br>Chargement des disponibilités...`);
+        const marker = L.marker([station.lat, station.lon]).addTo(calqueStations);
+        marker.bindPopup(`<b>${station.stationCode} - ${station.name}</b><br>Chargement des disponibilités...`);
 
         mapMarqueurs.set(station.station_id, {
             marker: marker,
+            code: station.stationCode,
             nom: station.name
         });
     });
-
 
     await actualiserStatuts();
 }

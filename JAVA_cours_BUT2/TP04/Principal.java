@@ -1,6 +1,5 @@
 import java.util.Scanner;
 
-
 public class Principal {
 
     public static void main(String[] args) {
@@ -23,12 +22,12 @@ public class Principal {
 
             if (!clavier.hasNextInt()) {
                 System.out.println("Veuillez saisir un numéro valide entre 1 et 6.");
-                clavier.nextLine(); 
+                clavier.nextLine();
                 continue;
             }
 
             choix = clavier.nextInt();
-            clavier.nextLine(); 
+            clavier.nextLine();
 
             switch (choix) {
                 case 1:
@@ -45,7 +44,8 @@ public class Principal {
                             solde = Double.parseDouble(saisieSolde);
                             soldeValide = true;
                         } catch (NumberFormatException e) {
-                            System.out.println("Erreur : veuillez entrer un montant numérique valide (ex: 1500 ou 1500.50).");
+                            System.out.println(
+                                    "Erreur : veuillez entrer un montant numérique valide (ex: 1500 ou 1500.50).");
                         }
                     }
 
@@ -93,6 +93,6 @@ public class Principal {
 
         } while (choix != 6);
 
-        clavier.close();s
+        clavier.close();
     }
 }
