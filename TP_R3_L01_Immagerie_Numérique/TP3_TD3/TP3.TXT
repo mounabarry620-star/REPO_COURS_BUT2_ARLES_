@@ -1,0 +1,70 @@
+
+Sujet de TP n°3 (facultatif) : format JPEG
+Conditions d’achèvement
+Imagerie numérique : représentation et codage des images
+TP n°3 : Lecture et écriture d'image JPEG 
+Introduction
+Le format d'image JPEG, comme beaucoup de formats modernes, est très compliqué... en particulier au niveau mathématiques, avec la transformation en cosinus discrets (DCT). En conséquence, programmer soi-même la lecture d'une image JPEG est ardu. Dans ce genre de situation, la meilleure méthode consiste à utiliser une bibliothèque de lecture/écriture qui permet de s'affranchir de la connaissance technique du format de stockage sur le disque dur. Évidemment, il n'y a pas de magie : au lieu d'apprendre le format, il faut apprendre à se servir de la bibliothèque... mais souvent c'est un moindre mal, surtout si on réalise que la bibliothèque évolue dans le temps et permet de lire les nouvelles variantes du format sans pour autant qu'il soit nécessaire de changer le programme ! Dans la suite, nous allons voir ensemble comment utiliser la bibliothèque libjpeg du Independant JPEG Group.
+
+Pour compiler sur une machine Linux un programme tirant partie de la bibliothèque libjpeg, vous allez devoir utiliser l'option de compilation -ljpeg qui stipule que votre programme doit être lié à la bibliothèque libjpeg lors de l'édition de liens :
+ g++ -Wall -c programme.cpp                # compilation (rien de particulier)
+ g++ -Wall -o programme programme.o -ljpeg # édition de liens
+Ces lignes de commandes supposent que la bibliothèque est correctement installée avec les autres bibliothèques du système. Pour installer la bibliothèque sur votre portable sous Linux Debian ou Ubuntu, tapez simplement (en tant que root) :
+apt-get install libjpeg62 libjpeg62-dev
+
+Sur un portable sous Windows, la solution la plus simple consiste à télécharger la bibliothèque déjà compilée sous forme d'un installeur sur GNU Win32. Cherchez "Download" puis "package", puis libjpeg, puis prenez le setup du "complete package" et installez-le. Il vous restera ensuite à modifier les réglages de votre compilateur pour lui indiquer où se trouvent les fichiers include d'une part et la library d'autre part (ce réglage dépend de votre compilateur). Pour MinGW g++, il suffit de compiler en rajoutant l'option -I suivie du chemin contenant les fichiers include, puis d'effectuer l'édition de liens avec l'option -L suivie du répertoire contenant le fichier libjpeg.lib. En supposant que vous utilisez les versions installées sur le disque réseau L: des machines de l'IUT, cela donne :
+ g++ -Wall -IL:\GnuWin32\include -c programme.cpp                # compilation (rien de particulier)
+ g++ -Wall -LL:\GnuWin32\lib     -o programme programme.o -ljpeg # édition de liens
+Il vous faudra enfin, pour que votre programme démarre, que vous indiquiez l'emplacement de la .dll (dans [répertoire d'installation]\bin) à la suite de votre %PATH%. Une solution simple mais inélégante consiste à copier la DLL dans le répertoire de démarrage de votre programme puisque sous Windows, le répertoire courant fait partie du PATH... La solution élégante consiste ici à rajouter L:\GnuWin32\bin à votre PATH.
+
+Pour l'installation sous MacOS X, grâce à un étudiant des années précédentes, quelques indications figurent sous le lien de ce TP, sur la page d'accueil du module (revenez en arrière sur votre navigateur).
+
+
+Pour utiliser les fonctions de la bibliothèque, vous devez vérifier que votre programme comporte bien dans chaque début de fichier .cpp la directive de compilation suivante : #include <jpeglib.h>... ou, pour être parfaitement précis, comme les fonctions de la bibliothèque ont été écrites en C et non en C++, et qu'on veut les utiliser en C++, la directive suivante (à recopier en conservant la mise en forme sur 3 lignes différentes) :
+extern "C" {
+ #include <jpeglib.h> /* Ce sont des déclarations relatives à des fonctions C ! */
+}
+
+Ceci fait, vous disposez maintenant de toute la puissance de la bibliothèque jpeglib !
+Documentation technique de la bibliothèque
+Depuis cette page Web, vous pouvez accéder à :
+
+    la documentation technique officielle de la bibliothèque [libjpeg.txt] ;
+    le fichier d'exemple fourni avec [jpeg_exemple.c] (attention, il n'est pas compilable tel quel ! Vous devrez vous en inspirer).
+
+À chaque fois que vous désirez utiliser une bibliothèque trouvée sur le Web, vous devez récupérer et étudier les fichiers d'aide fournis. La documentation de la libjpeg est coupée en 3 parties qui rentrent à chaque fois un peu plus dans le détail :
+
+    Une première partie décrit un aperçu général de la bibliothèque (utile pour savoir où regarder par la suite) ;
+    La deuxième partie explique comment utiliser les fonctions basiques servant à la lecture et à l'écriture (c'est cette partie qui va nous intéresser le plus) ;
+    La dernière partie donne le détail exact de toutes les fonctions permettant le réglage de l'écriture et de la lecture (taux de compression et réglage de qualité, contrôle de l'algorithme de DCT et de Huffman, etc.).
+
+Vous devez lire maintenant les deux premières parties de [libjpeg.txt] : "Overview" et "Outline of typical usage". Vous lirez ensuite les premières parties de "Basic library usage" décrivant les formats de données ("Data formats") et l'écriture ("Compression details"). Pour vous aider, lisez en même temps la partie "JPEG COMPRESSION INTERFACE" du programme C [jpeg_exemple.c] qui traite lui aussi de l'écriture d'une JPEG.
+Écriture d'une image au format JPEG
+Grâce aux explications fournies par la documentation technique, compléter la fonction void ColorImage::writeJPEG(const char *fname) const de notre classe.
+Ne perdez pas de vue que les indications données sont valables pour le C. En particulier, les fonctions de la bibliothèque utilisent des structures et non des classes, etc. Ne pas chercher à placer un gestionnaire d'erreur comme indiqué dans le fichier d'exemple : il existe en C++ de meilleures façon de faire cela grâce aux exceptions !
+
+Rappel : une struct en C est comme une class à laquelle vous ne pourriez mettre que des données membres et pas de fonctions membres, et où ces données membres sont nécessairement public.
+Test de l'écriture
+Charger une image PPM, tracer quelques rectangles colorés dedans, et la réécrire au format JPEG, puis vérifier qu'un visualiseur lit l'image sans problème. Vous devriez obtenir un résultat de la forme :
+	
+Original PPM (226 Ko) 	Image JPEG (19 Ko !)
+Écriture avec réglage du taux de qualité JPEG
+Modifier maintenant dans les fichiers image.hpp et image.cpp la fonction membre writeJPEG() pour qu'elle accepte maintenant un paramètre supplémentaire entier donnant un taux de qualité voulue au moment de la compression. La nouvelle fonction est void ColorImage::writeJPEG(const char *fname,unsigned int quality) const.
+
+Pour faire cette fonction, après les initialisations et juste avant de commencer la compression, placer l'appel de fonction jpeg_set_quality(&cinfo,quality,TRUE). Le paramètre quality est évidement le même que l'argument de notre nouvelle fonction membre. Votre classe peut maintenant écrire des JPEG de plus ou moins bonne qualité, avec le taux de compression qui est proportionnel.
+
+Modifier le .hpp pour attribuer une valeur par défaut au paramètre quality : 75 %.
+Test de l'écriture avec taux de qualité
+
+Rajouter dans votre programme les includes et la boucle suivante qui permet de faire une série de 21 images avec des taux de qualités variant entre 0 et 100 (de 5 en 5).
+#include <iomanip>
+#include <sstream>
+...
+
+for(unsigned int quality=0;quality<=100;quality+=5)  {
+  std::ostringstream oss; // Variable pour former le nom de chaque fichier.
+  oss << "out_" << std::setfill('0') << std::setw(3) << quality << ".jpg";
+  im->writeJPEG(oss.str().c_str(),quality);
+}
+Compiler et observer les résultats obtenus : la qualité visuelle et la taille des fichiers. Remarquez que la taille du fichier de qualité 75% est la même que celle du fichier obtenu la première fois avant qu'on règle le taux de compression explicitement : cela confirme (de manière informelle) que le réglage de qualité est mis par défaut par la bibliothèque à 75%. Remarquez que même sur l'image à 100% de qualité, la couleur des rectangles est plus terne qu'en PPM.
+Modifié le: samedi 17 octobre 2020, 10:19

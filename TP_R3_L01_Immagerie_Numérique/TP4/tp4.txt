@@ -1,0 +1,29 @@
+
+
+
+Sujet du TP n°4 : format Targa (TGA)
+Conditions d’achèvement
+Imagerie numérique : représentation et codage des images
+TP n°4 : Lecture et écriture d'image TarGA
+Dans les fonctions qu'il est demandé d'écrire, vous serez régulièrement confrontés à des cas que vous n'êtes pas en mesure de traiter (par exemple, vous rencontrez une image d'un sous-format que vous ne gérez pas). Il vous est demandé de générer alors systématiquement une exception dérivée de std::exception (cf. cours de C++). En effet, il n'est pas acceptable que votre programme ne fasse vraiment rien lorsqu'il ne sait pas gérer ces cas. Vous ne devrez arriver à lire et écrire que les images utilisant un codage de couleur sur 24 bits : 8 bits de rouge, 8 bits de vert et 8 bits de bleu. Vous n'avez pas à traiter les cas des couleurs sur 16 bits ni sur 32 bits... sauf si ça vous amuse.
+
+Pour ce TP, vous pouvez vous servir des quatre images Targa du chat qui se trouvent sur la page des exemples d'image.
+
+Si vous avez besoin de réviser les manipulations des bits qui forment le codage binaire d'une variable, un rappel des cours de C/C++, de mathématiques et d'architecture des ordinateurs de première année est disponible ici.
+
+Lecture et écriture d'images au format TrueVision Targa RGB non-compressé
+Vous devez réaliser la lecture et l'écriture de vos images au format Targa en vous basant sur les documentations disponibles sur Internet, par exemple :
+
+    [tga.pdf] ;
+    [tgaffs.pdf] ;
+    la page Wikipédia anglophone du TrueVision TARGA.
+
+Vous réaliserez tout d'abord void ColorImage::writeTGA(ostream& f) const en vous inspirant de ce qui a été vu en cours, aux TP précédents et en TD. On demande dans un premier temps uniquement l'écriture utilisant le format RGB non-compressé (sous-format 2).
+Vous réaliserez ensuite la lecture correspondante avec static ColorImage * ColorImage::readTGA(istream& f) (toujours pour le sous-format 2).
+Vérifiez que vous arrivez à lire n'importe quelle image, puis que vous pouvez l'écrire sous un autre nom puis l'ouvrir avec un visualiseur (sous Linux, Eye Of Gnome, gThumb, etc. ; sous Windows, XnView ou IrfanView).
+Lecture d'images au format TrueVision Targa avec Palette RGB, format non compressé RLE
+Vous devez modifiez votre fonction de lecture pour lui ajouter la capacité à lire des images comportant une palette 24 bits, appelée en anglais color mapped images. Lors de la lecture, l'image est convertie en image RGB puisque notre classe ColorImage ne permet pas (telle qu'elle est actuellement) de mémoriser une palette. Vous traiterez le cas des images avec Palette non-compressées (sous-format 1).
+Écriture d'images au format TrueVision Targa RGB compressé RLE
+
+Modifiez votre fonction d'écriture en void ColorImage::writeTGA(ostream& f,bool rle=true) const avec un deuxième paramètre qui indique si la compression RLE doit être utilisée. Si ce paramètre est à la valeur faux, alors votre fonction se comporte comme précédemment. Puis ajoutez la capacité à encoder les images en RLE (sous-format 10) d'après les indications fournies dans le document sur le format Targa, lorsque le paramètre est à vrai, ce qui sera le cas par défaut.
+Vous pourrez tirer parti des dernière pages du deuxième document, qui reprennent en détail le principe du codage RLE ainsi que la structure des paquets compressés et non-compressés pour le format TGA.

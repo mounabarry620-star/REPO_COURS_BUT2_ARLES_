@@ -1,0 +1,91 @@
+
+Sujet du TP n°5 (facultatif) : algorithme de Bresenham
+Conditions d’achèvement
+Imagerie numérique : représentation et codage des images
+TP n°5 : Tracé de segments discrets
+Implantation de l'algorithme incrémental entier de Bresenham dans le premier octant du plan
+Dans ce TP, on s'intéresse au tracé d'un segment de droite (x1,y1)-(x2,y2) sur une grille de pixels disposés en une grille régulière carrée. Ce problème est aussi vieux que l'informatique graphique. La solution la plus commune est appelée « Algorithme de Bresenham entier » qui date de 1962. Lisez les explications figurant sur la page de Wikipedia consacrée à cette méthode puis étudiez la version suivante de l'algorithme :
+Procedure BresenhamOctant1(x1,y1,x2,y2,couleur)
+{
+ const int c2=2*(y2-y1);
+ const int c1=c2-2*(x2-x1);
+ int critère=c2-(x2-x1);
+ ushort x=x1;
+ ushort y=y1;
+ while(x<=x2)
+  {
+   DessinePoint(x,y,couleur);
+   if(critère>=0)
+    { // changement de ligne horizontale
+     y++;
+     critère=critère+c1;
+    }
+   else
+    // toujours la même ligne horizontale
+    critère=critère+c2;
+   x++; // Colone suivante, et recommence
+  }
+}
+Cet algorithme calcule et trace les points d'un segment de droite se trouvant dans le premier octant du plan, c'est-à-dire quand 0 <= (y2-y1) <= (x2-x1) (voir la figure ci-dessous). Transcrire cet algorithme en une fonction membre void ColorImage::line(ushort x1,ushort y1,ushort x2,ushort y2,const Color pixel_value).
+Test de l'algorithme
+Dans une image en couleurs de 400 x 400 de fond rouge, tracer en vert une série de segments du point en haut à gauche (0,0) à une série d'extrémités situées tous les 10 pixels sur le bord droit (le tracé se fait donc bien dans le premier octant du plan puisque l'axe y est vers le bas). Vous devriez obtenir une résultat conforme à ceci :
+
+Généralisation de l'algorithme au 2ème octant
+On veut maintenant pouvoir tracer dans le deuxième octant, c'est-à-dire la zone telle que 0 <= (x2-x1) <= (y2-y1). Pour y arriver, il suffit de remarquer qu'en inversant les rôles de x et y, le tour est joué :
+Procedure BresenhamOctant1Et2(x1,y1,x2,y2,couleur)
+{
+ ushort x=x1;
+ ushort y=y1;
+ int longX=x2-x1;
+ int longY=y2-y1;
+
+ if(longY<longX)
+  { // 1er Octant
+   const int c1=2*(longY-longX);
+   const int c2=2*longY;
+   int critère=c2-longX;
+   while(x<=x2)
+    {
+     DessinePoint(x,y,couleur);
+     if(critère>=0)
+      { // changement de ligne horizontale
+       y++;
+       critère=critère+c1;
+      }
+     else
+      // toujours la même ligne horizontale
+      critère=critère+c2;
+     x++; // ligne suivante, et recommence
+    }
+  }
+ else
+  { // 2eme Octant
+   const int c1=2*(longX-longY);
+   const int c2=2*longX;
+   int critère=c2-longY;
+   while(y<=y2)
+    {
+     DessinePoint(x,y,couleur);
+     if(critère>=0)
+      { // changement de ligne verticale
+       x++;
+       critère=critère+c1;
+      }
+     else
+      // toujours la même ligne verticale
+      critère=critère+c2;
+     y++; // ligne suivante, et recommence
+    }
+  }
+}
+Test sur les 2 premiers octants du plan
+
+Écrire un programme qui trace toujours à partir de (0,0), aussi bien les lignes tracées à la question 2 qu'une série toujours tous les 10 pixels mais horizontaux cette fois. Vous devriez obtenir ceci :
+Généralisation de l'algorithme aux autres octants
+Les autres octants ont comme seule différence d'avoir une décrémentation sur x et/ou sur y à la place de l'incrémentation. La solution la plus élégante consiste à remplacer dans l'algorithme précédant chaque incrément du type « a++ » en « x += inca » où inca est une variable qui contient soit +1 soit -1 suivant les cas. Attention, les variables de longueur longX et longY doivent rester positives. Donc, dans les octants où elles sont négatives, vous devez les remplacer par leurs opposés. Enfin, la boucle ne peut plus se faire sur la coordonnée x (resp. y) du point courant, il faut maintenant faire varier un compteur du nombre de point entre 0 et longX  (resp. longY). Vous pouvez alors écrire la version finale de l'algorithme de Bresenham entier généralisé.
+Test complet
+
+Réalisez le diagramme suivant :
+
+Cette fois-ci, vous tracez des segments en partant du centre de l'image noire de 500 × 500 pixels vers chaque point figurant en blanc sur l'image ci-dessus. Les coordonnées de ces points sont obtenues en utilisant les fonctions trigonométriques sinus et cosinus sur le cercle de centre (250,250) et de rayon 200 pixels et en faisant varier l'angle par pas de 5 degrés. Attention aux deux pièges stupides : les fonctions sinus et cosinus de la bibliothèque standard sont accessibles après avoir inclus <cmath> (ce qui vous donne également la constante M_PI pour la valeur de ¶) et reçoivent un argument en radians.
+Modifié le: mercredi 4 janvier 2017, 13:39
