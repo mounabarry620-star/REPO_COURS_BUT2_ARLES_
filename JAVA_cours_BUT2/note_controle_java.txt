@@ -1,0 +1,3 @@
+
+pour le controle en java nous aurons 2 types de controle: 
+écrit sur papier et un porjet et dans ce projet on serait emmener à utiliser 2 design pattern: le pattern

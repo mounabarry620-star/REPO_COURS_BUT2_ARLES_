@@ -1,0 +1,52 @@
+
+Sujet de TP n°2 : ColorImage, format PPM et échantillonnage bilinéaire
+Conditions d’achèvement
+Planche de TP n°2 : La classe ColorImage et l'interpolation bilinéaire
+Conception et réalisation de la classe ColorImage
+
+Dans les mêmes fichiers Image.hpp et Image.cpp, implanter les classes Color et ColorImage vues en cours et TD. Pensez à implanter les mêmes fonctions élémentaires que pour la classe GrayImage :
+
+    des accesseurs getWidth() et getHeight() pour consulter la taille de l'image, et pour consulter et modifier la valeur du pixel de coordonnées (x,y) comme vu dans le cours ;
+    dans toutes ses fonctions, une gestion d'erreur à base d'exceptions C++ (classes d'exceptions judicieusement choisie de préférence) ;
+    une fonction membre void ColorImage::clear(Color color = Color() ) effaçant l'image, c'est-à-dire mettant tous ses pixels à la valeur color reçue en paramètre, et qui sera par défaut égale à la couleur noire ;
+    une fonction membre void ColorImage::rectangle(x,y,w,h,color) qui trace dans l'image un cadre rectangulaire (d'un pixel d'épaisseur) de la couleur color dont le coin supérieur gauche est à la coordonnée (x,y) et dont la largeur et la hauteur sont respectivement w et h.
+    une fonction void ColorImage::fillRectangle(x,y,w,h,color) qui trace un rectangle plein sur le même principe que la précédente.
+
+Lecture et écriture d'images au format PPM
+En tenant compte de la définition du format PPM [PPM.txt], de ce que vous avez vu au TP n°1 au sujet du PGM, et de ce que vous avez vu en TD, écrire les méthodes static ColorImage* ColorImage::readPPM(istream&) et void ColorImage::writePPM(ostream&) const de la classe ColorImage. La norme pour le format PPM est la même que pour le PGM à ceci près que :
+
+    l'en-tête contient le magic number "P6" au lieu de "P5", et que
+    contrairement au PGM où un seul octet donnait l'intensité du gris de chaque pixel, dans un fichier PPM, la couleur est définie par trois octets successifs donnant les valeurs respectives de rouge, vert et bleu (dans cet ordre).
+
+Dans un premier temps, ne considérer que le cas des fichiers ASCII+binaire correspondant au magic number "P6".
+ 
+Pour des points supplémentaires, implanter la lecture des fichiers ASCII purs, c'est-à-dire correspondant au format dont le magic number est "P3".
+ 
+Comme au TP précédent, tester ces fonctions en lisant l'image en couleur chat.ppm, puis en traçant quelques rectangles colorés, et en écrivant le résultat au format PPM sous le nom tp2_chat.ppm. Comparez attentivement les deux images pour repérer une éventuelle différence imprévue signalant un problème dans vos fonctions.
+Réchantillonnage simpliste
+Dans la définition de la classe ColorImage, implanter grâce à ce qui a été vu en TD, la fonction membre ColorImage* ColorImage::simpleScale(uint16_t w,uint16_t h) const permettant de calculer une mise à l'échelle de l'image courante à la dimension w×h.
+
+Écrire ensuite un programme tp2.cpp permettant de tester la fonction simpleScale() :
+
+    Récupérer à partir de la liste d'image d'exemple, l'image [chat_petit.ppm].
+    Dans votre programme, lire l'image "chat_petit.ppm" en mémoire.
+    Utiliser SimpleScale() pour agrandir cette image à la taille 823×400.
+    Écrire le résultat au format PPM sous le nom "tp2_simple.ppm".
+
+Si vous souhaitez tester sur GrayImage, vous pouvez utiliser [chat_petit.pgm].
+Vous devriez obtenir ceci :
+	donne 	
+Le résultat n'est pas très esthétique : on n'a fait qu'agrandir chaque pixel de l'image originale pour faire un bloc uniforme dans la destination... L'aspect aplati de l'image est dû au choix de la taille d'arrivée : le rapport largeur sur hauteur (appelé aspect) dans les deux images est différent.
+Réchantillonnage bilinéaire
+En tenant compte de ce qui a été vu en TD, écrire la fonction membre ColorImage* ColorImage::bilinearScale(uint16_t w,uint16_t h) const réalisant l'interpolation bilinéaire de l'image courante dans l'image destination aux dimensions spécifiées en paramètres. Pour effectuer le calcul de proportion, je vous demande de munir votre classe Color des opérateurs C++ nécessaires (addition de deux Color et produit d'un réel et d'un Color) pour ne pas avoir à changer la formule vue en TD sur des niveaux de gris.
+
+Reprendre le programme tp2.cpp pour y rajouter le deuxième rééchantillonnage toujours à la même dimension. Écrire le résultat dans le fichier PPM « tp2_bilinear.ppm ». Vous obtenez :
+	donne 	
+qui est plus agréable à regarder. L'aspect de flou est obtenu par la dégradation progressive de la couleur dans chacun des blocs de pixels entre ses quatre sommets. Évidement, l'image obtenue n'est pas aussi belle que si on avait pu obtenir une véritable image du chat avec une caméra numérique à cette résolution : la quantité d'information présente dans les deux images (gauche et droite) est la même ! Le crénelage est toujours présent mais seulement un peu moins visible à cause du flou.
+
+Autre remarque d'importance : si vous faites alterner les deux images (simple et bilinéaire), vous constaterez qu'un décalage se produit. Il est dû à la multiplication par 823/80 sur x et 400/60 sur y, soit une multiplication par environ 7-10 fois de la demi-largeur (ou demi-hauteur) d'un pixel de l'image de départ, ce qui rend le décalage parfaitement visible ! Corriger le calcul n'est pas très difficile (il faut compenser par -0,5 dans un sens et par +0,5 dans l'autre sens, avant et après le changement de repère). Si vous choisissez de ne pas le faire, vous aurez quand même pratiquement tous les points attachés à cette question.
+
+Enfin, gardez en tête que nous avons poussé la méthode un peu "à ses limites" : il n'existe aucun moyen de retrouver un chat "parfait" en 823 x 400 à partir d'un chat seulement en 80 x 60 ! Oubliez ce que vous avez vu dans les films ou les séries : ce n'est tout simplement pas possible !
+Autre point à prendre en compte
+
+Utiliser le mécanisme des exceptions C++ pour la gestion d'erreur de vos fonctions, en particulier de lecture et d'écriture.
