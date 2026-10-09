@@ -1,0 +1,397 @@
+<section class="slide titre">
+  <div class="bandeau">
+    <h1>TP2 &amp; TD2 : ColorImage, format PPM et rééchantillonnage</h1>
+    <p>R3.L01 — Représentations et codages des images</p>
+  </div>
+  <div class="infos">
+    <p>Fiche d'explication du TP, écrite à partir du cours (CM diapos 29 à 39), du TD2 (exercice 1), du corrigé de rééchantillonnage pris en TD et du sujet du TP2.</p>
+    <p class="note">Code complet et testé : <code>PROJET_FINAL/Image.hpp</code>, <code>Image.cpp</code>, <code>tp2.cpp</code> — l'exercice 2 et 3 du TD2 (endianness, tailles) est dans la fiche de révision.</p>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>Ce qu'il faut rendre</h2>
+  <div class="cols">
+    <div class="w3">
+      <div class="block"><h3>Dans les MÊMES fichiers Image.hpp et Image.cpp que GrayImage (sujet du TP2)</h3><div>
+<pre class="cpp">class Color { public: uint8_t r, g, b; ... };      // + ==, double * Color, Color + Color
+class ColorImage {
+  ...                                                // même base que GrayImage
+  void clear(Color color = Color());                 // noir par défaut
+  void rectangle    (x, y, w, h, Color color);
+  void fillRectangle(x, y, w, h, Color color);
+  void writePPM(std::ostream&amp;) const;
+  static ColorImage* readPPM(std::istream&amp;);
+  ColorImage* simpleScale  (uint16_t w, uint16_t h) const;
+  ColorImage* bilinearScale(uint16_t w, uint16_t h) const;
+};</pre>
+      </div></div>
+      <p class="petit">Le TD3 corrigé en classe fait <code>simpleScale</code> sur <b>GrayImage</b> : notre code fournit donc les deux rééchantillonnages pour les deux classes.</p>
+    </div>
+    <div class="w2">
+      <div class="alert"><h3>Tests demandés par le sujet</h3><div class="petit">
+        <ol>
+          <li>Lire <code>chat.ppm</code>, tracer des rectangles colorés, écrire <code>tp2_chat.ppm</code>.</li>
+          <li>Lire <code>chat_petit.ppm</code> (80 × 60), l'agrandir en 823 × 400 :
+            <code>tp2_simple.ppm</code> puis <code>tp2_bilinear.ppm</code>.</li>
+          <li>Bonus : lire un PPM « P3 » (texte).</li>
+        </ol>
+      </div></div>
+<pre>cd PROJET_FINAL
+make tp2 &amp;&amp; ./tp2
+eog tp2_simple.ppm tp2_bilinear.ppm</pre>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>La classe Color et ses opérateurs <small>CM diapo 38</small></h2>
+  <div class="cols">
+    <div class="w3">
+<pre class="cpp">class Color {
+public:
+  uint8_t r, g, b;   // Gardez « public » ces trois données.
+  inline Color(uint8_t _r = 0, uint8_t _g = 0, uint8_t _b = 0)
+    : r(_r), g(_g), b(_b) {}
+  friend bool  operator==(const Color&amp; c1, const Color&amp; c2);
+  friend Color operator* (double alpha, const Color&amp; color);
+  friend Color operator+ (const Color&amp; c1, const Color&amp; c2);
+};
+
+// Ramène un réel dans [0;255] puis l'arrondit à l'entier le plus proche.
+static uint8_t to_byte(double v)
+{
+  if (v &lt;= 0)   return 0;
+  if (v &gt;= 255) return 255;
+  return uint8_t(v + 0.5);
+}
+Color operator*(double alpha, const Color&amp; color)
+{ return Color(to_byte(alpha * color.r), to_byte(alpha * color.g), to_byte(alpha * color.b)); }
+Color operator+(const Color&amp; c1, const Color&amp; c2)   // addition « saturée »
+{ return Color(to_byte(c1.r + c2.r), to_byte(c1.g + c2.g), to_byte(c1.b + c2.b)); }</pre>
+    </div>
+    <div class="w2 petit">
+      <ul>
+        <li><b>Pourquoi ces opérateurs ?</b> Pour écrire la formule bilinéaire <i>exactement</i> comme en niveaux de gris : <code>(1-a)*c1 + a*c2</code>, avec des <code>Color</code>.</li>
+        <li><b><code>friend</code></b> : l'opérateur n'est pas une méthode (le <code>double</code> est à gauche du <code>*</code>), mais on le déclare dans la classe.</li>
+        <li><code>==</code> est indispensable pour la correction automatique (CM).</li>
+      </ul>
+      <div class="exemple"><h3>Pourquoi saturer et arrondir ?</h3><div>
+        <p><code>uint8_t</code> va de 0 à 255 : 200 + 100 = 300 deviendrait <b>44</b> (300 − 256). On bloque à 255.</p>
+        <p>0,5 × 255 = 127,5 : tronqué, ça donne 127 et l'image s'assombrit un peu à chaque calcul ; arrondi, ça donne 128.</p>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>ColorImage : le même code que GrayImage <small>CM diapo 39</small></h2>
+  <div class="cols">
+    <div>
+<pre class="cpp">class ColorImage {          // Remplacer Gray par Color
+  const uint16_t width, height;
+         Color    *array;   // Remplacer uint8_t par Color
+  ColorImage() = delete;
+public:
+  ColorImage(uint16_t w, uint16_t h);
+  ColorImage(const ColorImage&amp; orig);
+  ~ColorImage();
+  inline Color&amp; pixel(uint16_t x, uint16_t y) { ... }
+  ...
+};</pre>
+      <p class="petit">Le CM le dit : dupliquer le code est mauvais pour la maintenance. Une classe modèle <code>Image&lt;T&gt;</code> serait plus propre, mais le prof demande de ne la tenter que si on est à l'aise en C++. On garde donc la duplication, plus simple à relire.</p>
+    </div>
+    <div>
+      <p class="petit"><b>En mémoire</b>, un tableau de <code>Color</code> est une suite d'octets r, g, b, r, g, b... soit <b>exactement</b> l'ordre des pixels d'un fichier PPM :</p>
+      <svg width="68mm" height="14mm" viewBox="0 0 272 56" class="mono">
+        <g font-size="10" text-anchor="middle" class="mono">
+          <rect x="0" y="4" width="30" height="20" fill="#ffd2d2" stroke="#999"/><text x="15" y="18">r</text>
+          <rect x="30" y="4" width="30" height="20" fill="#d4f0d4" stroke="#999"/><text x="45" y="18">g</text>
+          <rect x="60" y="4" width="30" height="20" fill="#cfd8ff" stroke="#999"/><text x="75" y="18">b</text>
+          <rect x="90" y="4" width="30" height="20" fill="#ffd2d2" stroke="#999"/><text x="105" y="18">r</text>
+          <rect x="120" y="4" width="30" height="20" fill="#d4f0d4" stroke="#999"/><text x="135" y="18">g</text>
+          <rect x="150" y="4" width="30" height="20" fill="#cfd8ff" stroke="#999"/><text x="165" y="18">b</text>
+          <text x="200" y="18">...</text>
+        </g>
+        <text x="45" y="42" font-size="9.5" text-anchor="middle">array[0]</text><text x="135" y="42" font-size="9.5" text-anchor="middle">array[1]</text>
+      </svg>
+      <p class="petit">C'est ce qui permet d'écrire tous les pixels d'un seul <code>write</code>. Mais seulement si une <code>Color</code> fait 3 octets, sans octet de remplissage (<i>padding</i>, CM diapo 14). C'est le cas ici (trois <code>uint8_t</code>, alignement sur 1 octet) et on le fait vérifier au compilateur :</p>
+<pre class="cpp">static_assert(sizeof(Color) == 3, "Color doit faire exactement 3 octets (r,g,b)");</pre>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>Le format PPM « P6 » : l'exemple du TD2, octet par octet</h2>
+  <svg width="148mm" height="27mm" viewBox="0 0 592 108" class="mono">
+    <g font-size="10.5" class="mono">
+      <text x="0" y="14" fill="#666">00000000</text><text x="0" y="32" fill="#666">00000010</text><text x="0" y="50" fill="#666">00000020</text><text x="0" y="68" fill="#666">00000030</text>
+      <text x="72" y="14"><tspan fill="#b31a1a">50 36 0a</tspan> <tspan fill="#7a3c99">23 20 4d 61 64 65 20 62 79 20 45 2e 20</tspan></text>
+      <text x="72" y="32"><tspan fill="#7a3c99">52 65 6d 79 0a</tspan> <tspan fill="#0b6f73">33 20 33 0a</tspan> <tspan fill="#a36a00">32 35 35 0a</tspan> <tspan fill="#1a7a1a" font-weight="bold">00 00 00</tspan></text>
+      <text x="72" y="50"><tspan fill="#1a7a1a" font-weight="bold">80 80 80 ff ff ff ff 00 00 00 ff 00 00 00 ff 00</tspan></text>
+      <text x="72" y="68"><tspan fill="#1a7a1a" font-weight="bold">ff ff ff 00 ff ff ff 00</tspan></text>
+    </g>
+    <g font-size="10">
+      <text x="440" y="14" fill="#b31a1a">"P6" + LF</text>
+      <text x="440" y="30" fill="#7a3c99">"# Made by E. Remy" + LF</text>
+      <text x="440" y="46" fill="#0b6f73">"3 3" + LF</text>
+      <text x="440" y="62" fill="#a36a00">"255" + LF</text>
+      <text x="440" y="78" fill="#1a7a1a">3 × 3 × 3 = 27 octets</text>
+    </g>
+    <text x="0" y="98" font-size="10">29 octets d'en-tête + 27 octets de pixels = 56 = 0x38 octets.</text>
+  </svg>
+  <div class="cols">
+    <div>
+      <table class="petit">
+        <tr><th></th><th>x=0</th><th>x=1</th><th>x=2</th></tr>
+        <tr><th>y=0</th><td><span class="hex">00 00 00</span> noir</td><td><span class="hex">80 80 80</span> gris</td><td><span class="hex">ff ff ff</span> blanc</td></tr>
+        <tr><th>y=1</th><td><span class="hex">ff 00 00</span> rouge</td><td><span class="hex">00 ff 00</span> vert</td><td><span class="hex">00 00 ff</span> bleu</td></tr>
+        <tr><th>y=2</th><td><span class="hex">00 ff ff</span> cyan</td><td><span class="hex">ff 00 ff</span> magenta</td><td><span class="hex">ff ff 00</span> jaune</td></tr>
+      </table>
+    </div>
+    <div class="petit">
+      <ul>
+        <li>Même structure que PGM, avec <b>"P6"</b> au lieu de "P5".</li>
+        <li><b>3 octets par pixel</b>, dans l'ordre <b>rouge, vert, bleu</b>.</li>
+        <li>Ligne 3 : cyan = vert + bleu, etc. : les couleurs secondaires de RGB sont les primaires de CMY (CM diapo 31).</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>writePPM et readPPM <small>TD2 exercice 1</small></h2>
+  <div class="cols">
+    <div>
+<pre class="cpp">void ColorImage::writePPM(std::ostream&amp; os) const
+{
+  os &lt;&lt; "P6\n"
+     &lt;&lt; "# Image sauvegardée par " &lt;&lt; AUTEUR
+     &lt;&lt; " pour les TP de RepCod.\n"
+     &lt;&lt; width &lt;&lt; " " &lt;&lt; height &lt;&lt; "\n"
+     &lt;&lt; 255 &lt;&lt; "\n";
+  // 3 octets par pixel, dans l'ordre r, g, b :
+  // c'est exactement l'ordre en mémoire.
+  os.write((const char*)array, size_t(width) * height * 3);
+  if (!os)
+    throw std::runtime_error("writePPM : erreur d'écriture");
+}</pre>
+      <p class="tres-petit"><code>skip_line</code> et <code>skip_comments</code> sont des fonctions libres : PGM et PPM les partagent (<code>chat.ppm</code> a lui aussi des commentaires après les dimensions).</p>
+    </div>
+    <div>
+      <p class="petit"><code>readPPM</code> est <b>la copie de <code>readPGM</code></b> avec trois différences :</p>
+<pre class="cpp petit">if (magic != "P6" &amp;&amp; magic != "P3")      // 1. magic number
+  throw std::runtime_error("readPPM : ...");
+...
+ColorImage* res = new ColorImage(uint16_t(w), uint16_t(h));
+if (magic == "P6") {
+  is.get();                              // un seul blanc après 255
+  is.read((char*)res-&gt;array, size_t(w) * h * 3);  // 2. × 3
+} else {                                 // 3. "P3" : r g b en texte
+  for (size_t t = 0; t &lt; size_t(w) * h &amp;&amp; is; t++) {
+    unsigned int r = 0, g = 0, b = 0;
+    if (is &gt;&gt; r &gt;&gt; g &gt;&gt; b &amp;&amp; (r &gt; 255 || g &gt; 255 || b &gt; 255))
+      is.setstate(std::ios::failbit);
+    res-&gt;array[t] = Color(uint8_t(r), uint8_t(g), uint8_t(b));
+  }
+}
+if (!is) { delete res; throw std::runtime_error("..."); }</pre>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>Rééchantillonnage « simple » : le plus proche voisin <small>TD3</small></h2>
+  <div class="cols">
+    <div>
+      <svg width="62mm" height="32mm" viewBox="0 0 280 144">
+        <text x="0" y="10" font-size="10">I : 3 × 2</text>
+        <g stroke="#333">
+          <rect x="0" y="16" width="30" height="30" fill="#e85d5d"/><rect x="30" y="16" width="30" height="30" fill="#5dbb5d"/><rect x="60" y="16" width="30" height="30" fill="#5d7de8"/>
+          <rect x="0" y="46" width="30" height="30" fill="#f2c94c"/><rect x="30" y="46" width="30" height="30" fill="#ddd"/><rect x="60" y="46" width="30" height="30" fill="#555"/>
+        </g>
+        <text x="130" y="10" font-size="10">I' : 6 × 4 (w = 6, h = 4)</text>
+        <g stroke="#333" stroke-width=".7">
+          <rect x="130" y="16" width="20" height="20" fill="#e85d5d"/><rect x="150" y="16" width="20" height="20" fill="#e85d5d"/><rect x="170" y="16" width="20" height="20" fill="#5dbb5d"/><rect x="190" y="16" width="20" height="20" fill="#5dbb5d"/><rect x="210" y="16" width="20" height="20" fill="#5d7de8"/><rect x="230" y="16" width="20" height="20" fill="#5d7de8"/>
+          <rect x="130" y="36" width="20" height="20" fill="#e85d5d"/><rect x="150" y="36" width="20" height="20" fill="#e85d5d"/><rect x="170" y="36" width="20" height="20" fill="#5dbb5d"/><rect x="190" y="36" width="20" height="20" fill="#5dbb5d" stroke-width="2.5"/><rect x="210" y="36" width="20" height="20" fill="#5d7de8"/><rect x="230" y="36" width="20" height="20" fill="#5d7de8"/>
+          <rect x="130" y="56" width="20" height="20" fill="#f2c94c"/><rect x="150" y="56" width="20" height="20" fill="#f2c94c"/><rect x="170" y="56" width="20" height="20" fill="#ddd"/><rect x="190" y="56" width="20" height="20" fill="#ddd"/><rect x="210" y="56" width="20" height="20" fill="#555"/><rect x="230" y="56" width="20" height="20" fill="#555"/>
+          <rect x="130" y="76" width="20" height="20" fill="#f2c94c"/><rect x="150" y="76" width="20" height="20" fill="#f2c94c"/><rect x="170" y="76" width="20" height="20" fill="#ddd"/><rect x="190" y="76" width="20" height="20" fill="#ddd"/><rect x="210" y="76" width="20" height="20" fill="#555"/><rect x="230" y="76" width="20" height="20" fill="#555"/>
+        </g>
+        <path d="M200 46 C 160 120, 70 120, 45 34" fill="none" stroke="#b31a1a" stroke-width="1.5" marker-end="url(#fs)"/>
+        <defs><marker id="fs" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="#b31a1a"/></marker></defs>
+        <text x="0" y="132" font-size="10" fill="#b31a1a">(x', y') = (3, 1) → x = 3 × 3 / 6 = 1, y = 1 × 2 / 4 = 0</text>
+      </svg>
+      <div class="block"><h3>Le principe</h3><div class="petit">
+        <p>On parcourt <b>l'image d'arrivée</b> I' et, pour chaque pixel (x', y'), on va chercher le pixel de départ correspondant :</p>
+        <p class="centre"><b>x = x' × width / w &nbsp;&nbsp; y = y' × height / h</b> (division entière)</p>
+      </div></div>
+    </div>
+    <div>
+<pre class="cpp petit">// Corrigé du TD3 (GrayImage ; idem pour ColorImage)
+GrayImage* GrayImage::simpleScale(uint16_t w, uint16_t h) const
+{
+  GrayImage* res = new GrayImage(w, h);
+  for (uint16_t y_prime = 0; y_prime &lt; h; y_prime++) {
+    uint16_t y = uint16_t(uint32_t(y_prime) * height / h);
+    for (uint16_t x_prime = 0; x_prime &lt; w; x_prime++) {
+      uint16_t x = uint16_t(uint32_t(x_prime) * width / w);
+      res-&gt;pixel(x_prime, y_prime) = pixel(x, y);
+    }
+  }
+  return res;
+}</pre>
+      <ul class="petit">
+        <li><b>Pourquoi parcourir I' et pas I ?</b> En parcourant I, on n'écrirait qu'un pixel de I' sur 2 (ou sur 10) : I' aurait des trous. En parcourant I', <b>chaque</b> pixel reçoit une valeur.</li>
+        <li><code>x' &lt; w</code> donc <code>x &lt; width</code> ; <code>uint32_t</code> car <code>x' × width</code> peut dépasser 65535.</li>
+        <li>Résultat : chaque pixel devient un <b>bloc uniforme</b> (effet « gros pixels »).</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>Rééchantillonnage bilinéaire : mélanger les 4 voisins</h2>
+  <div class="cols">
+    <div>
+      <svg width="62mm" height="42mm" viewBox="0 0 248 168">
+        <rect x="40" y="20" width="160" height="120" fill="none" stroke="#999" stroke-dasharray="4 3"/>
+        <circle cx="40" cy="20" r="7" fill="#555"/><text x="8" y="14" font-size="10">P00 = 10</text>
+        <circle cx="200" cy="20" r="7" fill="#999"/><text x="186" y="12" font-size="10">P10 = 20</text>
+        <circle cx="40" cy="140" r="7" fill="#999"/><text x="0" y="132" font-size="10">P01 = 30</text>
+        <circle cx="200" cy="140" r="7" fill="#ccc" stroke="#555"/><text x="180" y="160" font-size="10">P11 = 40</text>
+        <circle cx="80" cy="80" r="6" fill="#b31a1a"/><text x="88" y="84" font-size="10" fill="#b31a1a">point cherché</text>
+        <line x1="80" y1="20" x2="80" y2="140" stroke="#3333b3" stroke-dasharray="3 2"/>
+        <circle cx="80" cy="20" r="4" fill="#3333b3"/><text x="84" y="34" font-size="9.5" fill="#3333b3">haut = 12,5</text>
+        <circle cx="80" cy="140" r="4" fill="#3333b3"/><text x="84" y="134" font-size="9.5" fill="#3333b3">bas = 32,5</text>
+        <path d="M40 152 H80" stroke="#1a7a1a" stroke-width="2"/><text x="50" y="166" font-size="9.5" fill="#1a7a1a">ax = 0,25</text>
+        <path d="M218 20 V80" stroke="#1a7a1a" stroke-width="2"/><text x="208" y="100" font-size="9.5" fill="#1a7a1a">ay = 0,5</text>
+      </svg>
+    </div>
+    <div>
+      <p class="petit">Le point cherché tombe en général <b>entre</b> 4 pixels. Au lieu de prendre le plus proche, on mélange les 4, avec un poids d'autant plus grand que le pixel est proche :</p>
+      <div class="block"><h3>La formule (deux interpolations linéaires)</h3><div>
+        <p class="petit">haut = (1 − ax) × P00 + ax × P10<br>bas = (1 − ax) × P01 + ax × P11<br><b>valeur = (1 − ay) × haut + ay × bas</b></p>
+      </div></div>
+      <div class="exemple"><h3>Exemple (le schéma)</h3><div class="petit">
+        <p>haut = 0,75 × 10 + 0,25 × 20 = 12,5<br>bas = 0,75 × 30 + 0,25 × 40 = 32,5<br>valeur = 0,5 × 12,5 + 0,5 × 32,5 = <b>22,5 → 23</b></p>
+      </div></div>
+      <p class="tres-petit">ax et ay sont les parties fractionnaires de la position réelle (x, y) : si x = 7,25 alors x0 = 7, x1 = 8 et ax = 0,25. Le bord droit (x0 = width − 1) n'a pas de voisin : on prend x1 = x0.</p>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>Le décalage d'un demi-pixel (remarque du sujet)</h2>
+  <svg width="134mm" height="27.5mm" viewBox="0 0 584 120">
+    <text x="0" y="12" font-size="10">I : 4 pixels</text>
+    <g stroke="#333"><rect x="80" y="2" width="120" height="16" fill="#e85d5d"/><rect x="200" y="2" width="120" height="16" fill="#5dbb5d"/><rect x="320" y="2" width="120" height="16" fill="#5d7de8"/><rect x="440" y="2" width="120" height="16" fill="#f2c94c"/></g>
+    <g fill="#000"><circle cx="140" cy="10" r="3"/><circle cx="260" cy="10" r="3"/><circle cx="380" cy="10" r="3"/><circle cx="500" cy="10" r="3"/></g>
+    <text x="0" y="44" font-size="10">I' : 8 pixels</text>
+    <g stroke="#333" fill="#fff"><rect x="80" y="34" width="60" height="16"/><rect x="140" y="34" width="60" height="16"/><rect x="200" y="34" width="60" height="16"/><rect x="260" y="34" width="60" height="16"/><rect x="320" y="34" width="60" height="16"/><rect x="380" y="34" width="60" height="16"/><rect x="440" y="34" width="60" height="16"/><rect x="500" y="34" width="60" height="16"/></g>
+    <g fill="#b31a1a"><circle cx="110" cy="42" r="3"/><circle cx="170" cy="42" r="3"/><circle cx="230" cy="42" r="3"/><circle cx="290" cy="42" r="3"/><circle cx="350" cy="42" r="3"/><circle cx="410" cy="42" r="3"/><circle cx="470" cy="42" r="3"/><circle cx="530" cy="42" r="3"/></g>
+    <text x="0" y="66" font-size="9">x' =</text><text x="110" y="66" font-size="9" text-anchor="middle">0</text><text x="170" y="66" font-size="9" text-anchor="middle">1</text><text x="230" y="66" font-size="9" text-anchor="middle">2</text><text x="290" y="66" font-size="9" text-anchor="middle">3</text><text x="350" y="66" font-size="9" text-anchor="middle">4</text><text x="410" y="66" font-size="9" text-anchor="middle">5</text><text x="470" y="66" font-size="9" text-anchor="middle">6</text><text x="530" y="66" font-size="9" text-anchor="middle">7</text>
+    <text x="0" y="82" font-size="9">sans correction</text><text x="110" y="82" font-size="9" text-anchor="middle">0</text><text x="170" y="82" font-size="9" text-anchor="middle">0,5</text><text x="230" y="82" font-size="9" text-anchor="middle">1</text><text x="290" y="82" font-size="9" text-anchor="middle">1,5</text><text x="350" y="82" font-size="9" text-anchor="middle">2</text><text x="410" y="82" font-size="9" text-anchor="middle">2,5</text><text x="470" y="82" font-size="9" text-anchor="middle">3</text><text x="530" y="82" font-size="9" text-anchor="middle">3,5</text>
+    <text x="0" y="98" font-size="9" fill="#1a7a1a">avec correction</text><text x="110" y="98" font-size="9" text-anchor="middle" fill="#1a7a1a">−0,25</text><text x="170" y="98" font-size="9" text-anchor="middle" fill="#1a7a1a">0,25</text><text x="230" y="98" font-size="9" text-anchor="middle" fill="#1a7a1a">0,75</text><text x="290" y="98" font-size="9" text-anchor="middle" fill="#1a7a1a">1,25</text><text x="350" y="98" font-size="9" text-anchor="middle" fill="#1a7a1a">1,75</text><text x="410" y="98" font-size="9" text-anchor="middle" fill="#1a7a1a">2,25</text><text x="470" y="98" font-size="9" text-anchor="middle" fill="#1a7a1a">2,75</text><text x="530" y="98" font-size="9" text-anchor="middle" fill="#1a7a1a">3,25</text>
+    <text x="0" y="116" font-size="9.5">sans : x = x' × 4 / 8 ; avec : x = (x' + 0,5) × 4 / 8 − 0,5. Le centre du pixel 0 de I' est au quart du pixel 0 de I.</text>
+  </svg>
+  <div class="cols">
+    <div class="petit">
+      <p><b>Le problème</b> : un pixel est un carré, pas un point. <code>x = x' × W / w</code> fait correspondre les <b>bords gauches</b> des pixels : en bilinéaire, toutes les positions sont décalées vers la gauche et le haut.</p>
+      <p>Agrandi ≈ 10 fois (823 / 80), un demi-pixel source devient <b>≈ 5 pixels</b> : on le voit en faisant alterner les deux images. Sans correction, on a quand même « pratiquement tous les points » (sujet).</p>
+    </div>
+    <div>
+<pre class="cpp">// -0,5 / +0,5 avant et après le changement de repère
+static void bilinear_coord(uint16_t p, uint16_t dst, uint16_t src,
+                           uint16_t&amp; p0, uint16_t&amp; p1, double&amp; a)
+{
+  double s = (p + 0.5) * src / dst - 0.5;
+  if (s &lt; 0)       s = 0;        // bords : on reste dans l'image
+  if (s &gt; src - 1) s = src - 1;
+  p0 = uint16_t(s);
+  p1 = (p0 + 1 &lt; src) ? uint16_t(p0 + 1) : p0;
+  a  = s - p0;                   // dans [0;1[
+}</pre>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>bilinearScale : le code</h2>
+  <div class="cols">
+    <div>
+<pre class="cpp">ColorImage* ColorImage::bilinearScale(uint16_t w, uint16_t h) const
+{
+  ColorImage* res = new ColorImage(w, h);
+  for (uint16_t y_prime = 0; y_prime &lt; h; y_prime++) {
+    uint16_t y0, y1; double ay;
+    bilinear_coord(y_prime, h, height, y0, y1, ay);
+    for (uint16_t x_prime = 0; x_prime &lt; w; x_prime++) {
+      uint16_t x0, x1; double ax;
+      bilinear_coord(x_prime, w, width, x0, x1, ax);
+      Color haut = (1 - ax) * pixel(x0, y0) + ax * pixel(x1, y0);
+      Color bas  = (1 - ax) * pixel(x0, y1) + ax * pixel(x1, y1);
+      res-&gt;pixel(x_prime, y_prime) = (1 - ay) * haut + ay * bas;
+    }
+  }
+  return res;
+}</pre>
+      <p class="petit">Pour <code>GrayImage</code>, c'est la même chose avec des <code>double</code>, et on arrondit à la fin : <code>uint8_t(v + 0.5)</code>.</p>
+    </div>
+    <div>
+      <p class="petit">Grâce aux opérateurs de <code>Color</code>, la formule est <b>identique</b> à celle des niveaux de gris : c'est exactement ce que demande le sujet (« pour ne pas avoir à changer la formule vue en TD »).</p>
+      <div class="alert"><h3>Ce que le bilinéaire ne fait pas</h3><div class="petit">
+        <p>Il n'ajoute <b>aucune information</b> : l'image 823 × 400 contient autant de détails que l'image 80 × 60. Il remplace les marches d'escalier par un dégradé, donc l'image est plus agréable mais floue.</p>
+        <p>Remarquez aussi l'aspect « aplati » : 823 / 400 ≠ 80 / 60, le <b>rapport d'aspect</b> change.</p>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>Résultats : 80 × 60 agrandi en 823 × 400</h2>
+  <div class="cols">
+    <div class="centre">
+      <img src="file://IMG/tp2_simple.png" style="width:100%"><p class="petit">simpleScale : <code>tp2_simple.ppm</code></p>
+      <img src="file://IMG/zoom_simple.png" style="width:42%"><p class="tres-petit">zoom : blocs uniformes</p>
+    </div>
+    <div class="centre">
+      <img src="file://IMG/tp2_bilinear.png" style="width:100%"><p class="petit">bilinearScale : <code>tp2_bilinear.ppm</code></p>
+      <img src="file://IMG/zoom_bil.png" style="width:42%"><p class="tres-petit">zoom : dégradés entre les pixels d'origine</p>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>Ce qui a été corrigé par rapport à la version de Gemini</h2>
+  <table class="petit">
+    <tr><th>Point</th><th>Version Gemini</th><th>Correction</th></tr>
+    <tr><td>Fichiers</td><td><code>ColorImage.hpp/.cpp</code>, et <b>GrayImage a disparu</b> du TP2 (chaque dossier de TP avait sa propre copie, différente).</td><td>Un seul <code>Image.hpp/.cpp</code> avec GrayImage, Color et ColorImage, comme le demande le sujet.</td></tr>
+    <tr><td><code>Color + Color</code></td><td>200 + 100 donnait 44 (débordement).</td><td>Addition saturée à 255.</td></tr>
+    <tr><td><code>double * Color</code></td><td>Troncature (l'image s'assombrit).</td><td>Arrondi au plus proche.</td></tr>
+    <tr><td>Rééchantillonnage</td><td>Seulement pour ColorImage ; pas de correction du demi-pixel.</td><td>Les deux classes (le corrigé du TD est sur GrayImage) ; correction ±0,5.</td></tr>
+    <tr><td><code>writePPM</code></td><td>Écrit le tableau en bloc sans vérifier que <code>sizeof(Color) == 3</code>.</td><td><code>static_assert</code> : le compilateur refuse si ce n'est pas le cas.</td></tr>
+    <tr><td>Commentaire PPM</td><td>Sans nom.</td><td>« Image sauvegardée par <i>nom</i> ... » (TD2 question 2).</td></tr>
+  </table>
+</section>
+
+<section class="slide">
+  <h2>Questions possibles au contrôle</h2>
+  <div class="cols">
+    <div class="petit">
+      <ol>
+        <li><b>Taille des pixels d'un PPM 320 × 240 ?</b> 320 × 240 × 3 = 230 400 octets (+ l'en-tête).</li>
+        <li><b>Différences PGM / PPM ?</b> "P6" au lieu de "P5", 3 octets (r, g, b) par pixel au lieu de 1.</li>
+        <li><b>Pourquoi parcourir l'image d'arrivée ?</b> Pour donner une valeur à chacun de ses pixels (sinon des trous en agrandissant).</li>
+        <li><b>simpleScale de 80 à 823 colonnes : quel x pour x' = 500 ?</b> 500 × 80 / 823 = 48 (division entière).</li>
+      </ol>
+    </div>
+    <div class="petit">
+      <ol start="5">
+        <li><b>Calculer un pixel bilinéaire</b> à partir de 4 voisins et de (ax, ay) : voir l'exemple 10, 20, 30, 40 → 22,5.</li>
+        <li><b>Pourquoi des opérateurs dans Color ?</b> Pour garder la formule du TD sans la réécrire composante par composante.</li>
+        <li><b>Pourquoi une image floue ?</b> Le bilinéaire fait des dégradés entre pixels d'origine ; il n'invente pas de détails.</li>
+        <li><b>Pourquoi l'image paraît aplatie ?</b> Le rapport largeur / hauteur n'est pas conservé (823/400 ≈ 2,06 contre 80/60 ≈ 1,33).</li>
+      </ol>
+    </div>
+  </div>
+</section>

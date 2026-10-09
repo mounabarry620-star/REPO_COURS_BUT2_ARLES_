@@ -1,0 +1,813 @@
+<section class="slide titre">
+  <div class="bandeau">
+    <h1>Révisions du contrôle de TD — R3.L01</h1>
+    <p>Représentations et codages des images : tout le cours, les TD1, TD2 et TD3 corrigés, des exercices</p>
+  </div>
+  <div class="infos">
+    <p>Contrôle théorique (TD) : <b>14/10/2026</b> — contrôle pratique (TP) : 06/11/2026 (ou 21/10).</p>
+    <p class="note">Fiche écrite à partir du CM d'E. Remy (version du 27 août 2026), des sujets de TD et des corrigés pris en TD. Les numéros « CM diapo n » renvoient au PDF du cours.</p>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>Ce qui peut tomber, et comment réviser</h2>
+  <div class="cols">
+    <div style="flex:1.35">
+      <div class="block"><h3>Le programme</h3><div class="petit">
+        <ol>
+          <li><b>Texte et binaire</b> : ASCII, UTF-8, fins de ligne, <code>ios::binary</code>, <code>put/get/write/read</code>.</li>
+          <li><b>Données en mémoire</b> : tailles des types, <code>&lt;cstdint&gt;</code>, alignement et padding, <b>endianness</b>.</li>
+          <li><b>Images bitmap</b> : tableau à plat, GrayImage, Color, ColorImage.</li>
+          <li><b>PGM / PPM</b> : lire un dump hexadécimal, écrire <code>writePGM</code>, <code>skip_comments</code>, <code>readPGM</code> (TD1, TD2).</li>
+          <li><b>TD2</b> : <code>swap_bytes</code>, lecture de données big endian, version portable, tailles mémoire, débits.</li>
+          <li><b>TD3</b> : rééchantillonnage simple et bilinéaire.</li>
+          <li><b>Culture du cours</b> : couleurs, palette, aliasing, quantification, compression (RLE, Huffman, LZW), formats, vectoriel.</li>
+        </ol>
+      </div></div>
+    </div>
+    <div>
+      <div class="exemple"><h3>Méthode</h3><div class="petit">
+        <ul>
+          <li>Refaire <b>à la main</b> les TD1 et TD2 (code sur papier, sans compilateur).</li>
+          <li>Savoir <b>justifier</b> chaque choix (« pourquoi <code>static</code> ? », « pourquoi <code>ios::binary</code> ? »).</li>
+          <li>S'entraîner aux <b>calculs</b> : tailles, débits, taux de compression, conversions hexadécimales.</li>
+          <li>Faire les exercices de la fin, puis vérifier avec le corrigé.</li>
+        </ul>
+      </div></div>
+      <div class="alert"><h3>Rappels hexadécimal</h3><div class="petit">
+        <p>1 chiffre hexa = 4 bits, 1 octet = 2 chiffres. <code>0x0a</code> = 10 (LF), <code>0x20</code> = espace, <code>0x30</code>-<code>0x39</code> = '0'-'9', <code>0x41</code> = 'A', <code>0x61</code> = 'a', <code>0xff</code> = 255, <code>0x80</code> = 128.</p>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>Fichiers « texte » et fichiers binaires <small>CM diapos 3 à 8</small></h2>
+  <div class="cols">
+    <div class="petit">
+      <ul>
+        <li><b>Fichier texte</b> : chaque octet est un caractère (code ASCII). ASCII = <b>7 bits</b>, 128 codes, aucun accent. Les 128 codes restants ont servi à des jeux incompatibles : d'où les « problèmes d'accents ».</li>
+        <li><b>UTF-8</b> : 1 à 4 octets par symbole ; les 128 premiers codes sont l'ASCII (compatibilité). Défaut : la taille en octets ne donne pas le nombre de caractères.</li>
+        <li><b>Fin de ligne</b> : LF (10) sous Unix, Linux, macOS ; CR (13) sur les anciens Mac ; <b>CR LF (13, 10)</b> sous Windows. <span class="note">(La diapo 4 écrit « (10,13) » : c'est bien CR = 13 puis LF = 10.)</span></li>
+        <li><b>Fichier binaire</b> : tout le reste. On l'examine avec un <b>éditeur hexadécimal</b>, pas un éditeur de texte.</li>
+        <li>Texte : portable (XML, JSON...). Binaire : plus <b>compact</b> et plus <b>rapide</b>.</li>
+      </ul>
+    </div>
+    <div>
+      <div class="exemple"><h3>Le même nombre, deux codages (CM diapo 8)</h3><div>
+        <p class="petit">4779 = 0x12AB</p>
+        <table class="petit">
+          <tr><th>codage</th><th>octets</th><th class="n">taille</th></tr>
+          <tr><td>entier 32 bits little endian</td><td class="hex">AB 12 00 00</td><td class="n">4</td></tr>
+          <tr><td>chaîne "4779" (avec le '\0')</td><td class="hex">34 37 37 39 00</td><td class="n">5</td></tr>
+        </table>
+      </div></div>
+      <div class="alert"><h3>Pourquoi pas &lt;&lt; et &gt;&gt; en binaire ?</h3><div class="petit">
+        <ul>
+          <li><code>&gt;&gt;</code> <b>saute les blancs</b> : un octet 10 ou 32 dans les données disparaîtrait.</li>
+          <li><code>&lt;&lt;</code> écrit du <b>texte</b> (320 → "320").</li>
+          <li><code>endl</code> n'écrit pas les mêmes octets partout.</li>
+        </ul>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>Lire et écrire en binaire en C++ <small>CM diapos 9 et 18 à 22</small></h2>
+  <div class="cols">
+    <div>
+<pre class="cpp">std::ofstream ofs("f.dat", std::ios::binary); // 2e argument OBLIGATOIRE
+std::ifstream ifs("f.dat", std::ios::binary); // sinon : conversions de fin de ligne</pre>
+      <table class="petit">
+        <tr><th>méthode</th><th>rôle</th></tr>
+        <tr><td><code>os.put(char c)</code></td><td>écrit 1 octet</td></tr>
+        <tr><td><code>is.get(char&amp; c)</code></td><td>lit 1 octet (même un blanc)</td></tr>
+        <tr><td><code>os.write(const char* p, n)</code></td><td>écrit n octets d'un coup</td></tr>
+        <tr><td><code>is.read(char* p, n)</code></td><td>lit n octets d'un coup</td></tr>
+        <tr><td><code>is.putback(char c)</code></td><td>remet c dans le flux</td></tr>
+        <tr><td><code>is.ignore(n)</code></td><td>saute n octets</td></tr>
+      </table>
+      <p class="tres-petit">Fermeture automatique par le <b>destructeur</b> du flux, en fin de bloc <code>{ }</code>.</p>
+    </div>
+    <div>
+      <div class="block"><h3>Octet par octet ou par bloc ?</h3><div class="petit">
+        <p><b>Octet par octet</b> (<code>put</code>/<code>get</code>) : simple, on choisit l'ordre des octets (donc l'endianness) à la main ; mais <b>lent</b>.</p>
+        <p><b>Par bloc</b> (<code>write</code>/<code>read</code>) : très rapide ; mais recopie la mémoire <b>telle quelle</b>, padding et endianness compris.</p>
+      </div></div>
+      <div class="exemple"><h3>En pratique (CM diapo 22)</h3><div class="petit">
+        <p>Soit du texte (souvent XML) compressé en ZIP : .docx, .odt...</p>
+        <p>Soit du binaire lu/écrit par blocs, en <b>respectant le format</b> et l'endianness qu'il impose : JPEG, TGA, .doc...</p>
+      </div></div>
+<pre class="cpp">// cast obligatoire : write attend un const char*
+os.write((const char*)&amp;db, sizeof(DataBlock));</pre>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>Tailles des types et pièges <small>CM diapos 10 à 13</small></h2>
+  <div class="cols">
+    <div>
+      <table class="tres-petit">
+        <tr><th>type</th><th class="n">Win 32</th><th class="n">Win 64</th><th class="n">Linux 32</th><th class="n">Linux 64</th></tr>
+        <tr><td>char</td><td class="n">1</td><td class="n">1</td><td class="n">1</td><td class="n">1</td></tr>
+        <tr><td>short</td><td class="n">2</td><td class="n">2</td><td class="n">2</td><td class="n">2</td></tr>
+        <tr><td>int</td><td class="n">4</td><td class="n">4</td><td class="n">4</td><td class="n">4</td></tr>
+        <tr><td><b>long</b></td><td class="n">4</td><td class="n"><b>4</b></td><td class="n">4</td><td class="n"><b>8</b></td></tr>
+        <tr><td>long long</td><td class="n">8</td><td class="n">8</td><td class="n">8</td><td class="n">8</td></tr>
+        <tr><td><b>void*, size_t</b></td><td class="n">4</td><td class="n"><b>8</b></td><td class="n">4</td><td class="n"><b>8</b></td></tr>
+        <tr><td>float / double</td><td class="n" colspan="4">4 / 8 partout (norme IEEE 754)</td></tr>
+        <tr><td>long double</td><td class="n" colspan="4">dépend de la machine (8, 12, 16...)</td></tr>
+      </table>
+      <p class="petit">Comme les tailles varient, on utilise les types de <b><code>&lt;cstdint&gt;</code></b> (C++11) : <code>int8_t</code> à <code>int64_t</code>, <code>uint8_t</code> à <code>uint64_t</code>. <code>uint8_t</code> : [0 ; 255], <code>uint16_t</code> : [0 ; 65535], <code>int16_t</code> : [−32768 ; 32767].</p>
+    </div>
+    <div>
+      <div class="alert"><h3>Les 3 pièges (CM diapo 13)</h3><div class="petit">
+        <ol>
+          <li><code>uint8_t u = 65; cout &lt;&lt; u;</code> affiche <b>'A'</b> (c'est un <code>unsigned char</code>). Écrire <code>cout &lt;&lt; (unsigned int)u;</code></li>
+          <li>Comparer un <code>signed</code> et un <code>unsigned</code> : −1 &lt; 1u est <b>faux</b> (−1 devient 4 294 967 295). Utiliser le même type des deux côtés.</li>
+          <li>Boucle infinie :
+<pre class="cpp">for (uint8_t i = 0; i &lt;= 255; i++) truc();</pre>
+            après 255, i++ donne 0 : la condition est toujours vraie.</li>
+        </ol>
+      </div></div>
+      <p class="tres-petit"><code>signed</code> et <code>unsigned</code> ont la même taille ; seule l'interprétation des bits change.</p>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>Alignement et remplissage (padding) <small>CM diapos 14, 20</small></h2>
+  <div class="cols">
+    <div>
+      <p class="petit">Une donnée de 2, 4 ou 8 octets doit être à une adresse <b>multiple de sa taille</b>. Le compilateur ajoute des octets vides ; une structure est alignée sur son membre le plus exigeant et sa taille est un multiple de cet alignement.</p>
+      <svg width="74mm" height="34mm" viewBox="0 0 296 136">
+        <text x="0" y="10" font-size="9.5">noalign { char c; double d; int i; char c2[3]; } → 24 octets</text>
+        <g stroke="#333" stroke-width=".6">
+          <rect x="0" y="16" width="12" height="18" fill="#ffd2d2"/><rect x="12" y="16" width="84" height="18" fill="#eee"/>
+          <rect x="96" y="16" width="96" height="18" fill="#cfd8ff"/>
+          <rect x="192" y="16" width="48" height="18" fill="#d4f0d4"/><rect x="240" y="16" width="36" height="18" fill="#ffe2b8"/><rect x="276" y="16" width="12" height="18" fill="#eee"/>
+        </g>
+        <g font-size="8.5" text-anchor="middle"><text x="6" y="46">c</text><text x="54" y="29">7 vides</text><text x="144" y="29">d</text><text x="216" y="29">i</text><text x="258" y="29">c2</text><text x="282" y="46">1</text></g>
+        <text x="0" y="74" font-size="9.5">align { double d; int i; char c2[3]; char c; } → 16 octets</text>
+        <g stroke="#333" stroke-width=".6">
+          <rect x="0" y="80" width="96" height="18" fill="#cfd8ff"/><rect x="96" y="80" width="48" height="18" fill="#d4f0d4"/><rect x="144" y="80" width="36" height="18" fill="#ffe2b8"/><rect x="180" y="80" width="12" height="18" fill="#ffd2d2"/>
+        </g>
+        <g font-size="8.5" text-anchor="middle"><text x="48" y="93">d</text><text x="120" y="93">i</text><text x="162" y="93">c2</text><text x="186" y="110">c</text></g>
+        <text x="0" y="130" font-size="9">1 case = 1 octet ; gris = remplissage</text>
+      </svg>
+    </div>
+    <div>
+      <div class="exemple"><h3>Exemple du CM : DataBlock (diapo 20)</h3><div class="petit">
+<pre class="cpp">struct DataBlock {      // alignement : 4
+  uint8_t  alpha[5];    // 5 octets + 3 de padding
+  uint32_t bravo[2];    // 2 × 4 = 8 octets
+  uint16_t charlie;     // 2 octets + 2 de padding
+};                      // 5+3+8+2+2 = 20 octets</pre>
+      </div></div>
+      <div class="alert"><h3>Conséquences</h3><div class="petit">
+        <ul>
+          <li>L'<b>ordre</b> des membres change la taille (24 contre 16).</li>
+          <li>Écrire une structure d'un bloc écrit aussi le padding : le fichier ne respecte pas un format qui n'en a pas. Il faut alors lire/écrire <b>champ par champ</b>.</li>
+          <li>C'est pourquoi on vérifie <code>sizeof(Color) == 3</code> avant d'écrire un tableau de <code>Color</code> d'un bloc.</li>
+        </ul>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>Little endian et big endian <small>CM diapos 15 à 19</small></h2>
+  <div class="cols">
+    <div>
+      <svg width="74mm" height="30mm" viewBox="0 0 296 120" class="mono">
+        <text x="0" y="12" font-size="10" font-family="DejaVu Sans">l'entier 32 bits 0x12345678</text>
+        <g font-size="9" font-family="DejaVu Sans"><text x="0" y="40">little endian</text><text x="0" y="80">big endian</text></g>
+        <g font-size="11" text-anchor="middle">
+          <rect x="90" y="26" width="46" height="22" fill="#ffe2b8" stroke="#333"/><text x="113" y="41">78</text>
+          <rect x="136" y="26" width="46" height="22" fill="#fff" stroke="#333"/><text x="159" y="41">56</text>
+          <rect x="182" y="26" width="46" height="22" fill="#fff" stroke="#333"/><text x="205" y="41">34</text>
+          <rect x="228" y="26" width="46" height="22" fill="#cfd8ff" stroke="#333"/><text x="251" y="41">12</text>
+          <rect x="90" y="66" width="46" height="22" fill="#cfd8ff" stroke="#333"/><text x="113" y="81">12</text>
+          <rect x="136" y="66" width="46" height="22" fill="#fff" stroke="#333"/><text x="159" y="81">34</text>
+          <rect x="182" y="66" width="46" height="22" fill="#fff" stroke="#333"/><text x="205" y="81">56</text>
+          <rect x="228" y="66" width="46" height="22" fill="#ffe2b8" stroke="#333"/><text x="251" y="81">78</text>
+        </g>
+        <g font-size="8.5" text-anchor="middle" font-family="DejaVu Sans"><text x="113" y="106">adresse a</text><text x="159" y="106">a+1</text><text x="205" y="106">a+2</text><text x="251" y="106">a+3</text></g>
+      </svg>
+      <ul class="petit">
+        <li><b>Little endian</b> (« petit-boutiste ») : poids <b>faible</b> en premier. PC Intel/AMD (Windows, Linux, macOS Intel), iOS sur ARM.</li>
+        <li><b>Big endian</b> : poids <b>fort</b> en premier. PowerPC, 680x0... et le <b>réseau</b> (IP).</li>
+        <li><b>Bi-endian</b> : ARM, MIPS (choisi au démarrage).</li>
+      </ul>
+    </div>
+    <div>
+      <p class="petit">Le danger : échanger des données entre deux machines différentes sans convertir. L'important n'est pas l'ordre choisi, mais <b>se mettre d'accord</b> : chaque format de fichier fixe le sien (TGA : little ; JPEG : big).</p>
+      <div class="exemple"><h3>CM diapo 18 : écrire en big endian depuis un PC</h3><div>
+<pre class="cpp">int32_t data = 0x12345678;
+const char* ptr = (const char*)&amp;data; // ptr[0] = 0x78 sur PC
+std::ofstream os("filename.dat", std::ios::binary);
+os.put(*(ptr + 3));   // 0x12 : poids fort d'abord
+os.put(*(ptr + 2));   // 0x34
+os.put(*(ptr + 1));   // 0x56
+os.put(*ptr);         // 0x78</pre>
+        <p class="tres-petit">On regarde l'entier comme un tableau de 4 octets grâce au pointeur <code>char*</code>, puis on les écrit dans l'ordre voulu. La lecture (diapo 19) fait <code>is.get(*(ptr + 3))</code>... dans le même ordre.</p>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>TD2 exercice 2, question 1 : swap_bytes</h2>
+  <div class="cols">
+    <div>
+<pre class="cpp">#include &lt;cstdint&gt;
+#include &lt;cstddef&gt;   // size_t
+
+template &lt;typename T&gt;
+void swap_bytes(T&amp; t)
+{
+  // On regarde t comme un tableau de sizeof(T) octets.
+  uint8_t* ptr = reinterpret_cast&lt;uint8_t*&gt;(&amp;t);
+  for (size_t i = 0; i &lt; sizeof(T) / 2; i++) {
+    uint8_t tmp              = ptr[i];
+    ptr[i]                   = ptr[sizeof(T) - 1 - i];
+    ptr[sizeof(T) - 1 - i]   = tmp;
+  }
+}</pre>
+      <p class="petit">On échange le 1<sup>er</sup> et le dernier octet, le 2<sup>e</sup> et l'avant-dernier... jusqu'au milieu : <code>sizeof(T) / 2</code> échanges. Ça marche pour <code>int16_t</code>, <code>int32_t</code>, <code>double</code>...</p>
+    </div>
+    <div>
+      <div class="exemple"><h3>Trace sur un double (8 octets)</h3><div class="petit">
+        <p>i = 0 : échange ptr[0] et ptr[7] ; i = 1 : ptr[1] et ptr[6] ; i = 2 : ptr[2] et ptr[5] ; i = 3 : ptr[3] et ptr[4]. Fin (4 = 8 / 2).</p>
+        <p>Sur un <code>int16_t</code> valant 0x1234, en mémoire PC <span class="hex">34 12</span> → <span class="hex">12 34</span> : il vaut maintenant 0x3412.</p>
+      </div></div>
+      <div class="alert"><h3>Erreurs à éviter (vues dans les notes de TD)</h3><div class="petit">
+        <ul>
+          <li><code>reinterpret_cast&lt;uint8_t&gt;(&amp;var)</code> : il faut un type <b>pointeur</b>, <code>&lt;uint8_t*&gt;</code>.</li>
+          <li><code>if (*ptr = 0x34)</code> : <code>=</code> est une affectation, il faut <code>==</code>.</li>
+          <li>Préférer <code>uint8_t</code> à <code>int8_t</code> pour manipuler des octets bruts (pas de valeurs négatives).</li>
+          <li><code>struct</code> : tout est <b>public</b> par défaut ; <code>class</code> : <b>private</b>.</li>
+        </ul>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>TD2 exercice 2, question 2 : lire data.dat (big endian) sur un PC</h2>
+  <div class="cols">
+    <div style="flex:1.3">
+<pre class="cpp">struct Data {
+  int16_t     a;          // entier signé 16 bits
+  double      b;          // réel IEEE 754 double précision
+  char        fourcc[4];  // exactement 4 caractères, pas de '\0'
+  std::string d;          // chaîne de 0 à 255 caractères
+};
+
+void read_Data(Data&amp; data, std::istream&amp; is)
+{
+  is.read((char*)&amp;data.a, 2);
+  is.read((char*)&amp;data.b, 8);
+  is.read(data.fourcc, 4);
+  uint8_t taille = 0;                    // l'octet de préfixe
+  is.read((char*)&amp;taille, 1);
+  data.d = std::string(taille, ' ');     // (nombre, caractère) !
+  is.read(&amp;data.d[0], taille);
+  if (!is)
+    throw std::runtime_error("read_Data : fichier tronqué");
+  swap_bytes(data.a);                    // big -&gt; little endian
+  swap_bytes(data.b);                    // (sur un PC little endian)
+}</pre>
+    </div>
+    <div class="petit">
+      <ul>
+        <li><b>Champ par champ</b>, pas <code>is.read((char*)&amp;data, sizeof(Data))</code> : il y a du padding après <code>a</code>, et un <code>std::string</code> contient un pointeur, pas les caractères.</li>
+        <li><b>On ne permute pas</b> <code>fourcc</code> ni la chaîne : ce sont des octets isolés, l'endianness ne concerne que les nombres de plus d'un octet.</li>
+        <li>Correction des notes : <code>std::string(taille, ' ')</code>, le <b>nombre d'abord</b>. <code>string('X', taille)</code> inverse les arguments : 'X' (code 88) serait pris comme longueur.</li>
+        <li><code>d.data()</code> renvoie un <code>const char*</code> avant C++17 : on écrit dans <code>&amp;data.d[0]</code>.</li>
+        <li>Si <code>taille</code> vaut 0, on ne lit rien (et <code>&amp;d[0]</code> reste valide).</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>TD2 exercice 2, question 3 : une version portable</h2>
+  <div class="cols">
+    <div>
+      <div class="block"><h3>Méthode 1 : tester la machine, puis permuter si besoin</h3><div>
+<pre class="cpp">bool machine_little_endian()
+{
+  uint16_t v = 0x1234;
+  uint8_t* ptr = reinterpret_cast&lt;uint8_t*&gt;(&amp;v);
+  return *ptr == 0x34;   // le 1er octet est le poids faible ?
+}
+...
+if (machine_little_endian()) {  // le fichier est big endian
+  swap_bytes(data.a);
+  swap_bytes(data.b);
+}</pre>
+        <p class="tres-petit">C'est le <code>if (doit_permuter)</code> des notes de TD : sur une machine big endian, on ne touche à rien.</p>
+      </div></div>
+    </div>
+    <div>
+      <div class="block"><h3>Méthode 2 : reconstruire avec des décalages</h3><div>
+<pre class="cpp">uint8_t o[2];
+is.read((char*)o, 2);
+data.a = int16_t((o[0] &lt;&lt; 8) | o[1]); // o[0] = poids fort
+
+uint8_t p[8];
+is.read((char*)p, 8);
+uint64_t bits = 0;
+for (int i = 0; i &lt; 8; i++)
+  bits = (bits &lt;&lt; 8) | p[i];             // poids forts d'abord
+std::memcpy(&amp;data.b, &amp;bits, 8);        // &lt;cstring&gt;</pre>
+        <p class="tres-petit">Les décalages travaillent sur des <b>valeurs</b>, pas sur la mémoire : le résultat est le même quel que soit le processeur. Il n'y a même plus de test à faire. Le <code>memcpy</code> suppose seulement que le <code>double</code> est IEEE 754 des deux côtés (garanti, CM diapo 11).</p>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>TD2 exercice 3 : place en mémoire des images</h2>
+  <div class="cols">
+    <div style="flex:1.4">
+      <table class="tres-petit">
+        <tr><th>imageur</th><th>calcul des pixels</th><th class="n">octets</th><th class="n">Mio</th></tr>
+        <tr><td>a. smartphone 4032 × 3024, 24 bits</td><td>4032 × 3024 × 3</td><td class="n">36 578 304</td><td class="n">34,9</td></tr>
+        <tr><td>b. reflex 7360 × 4912, 24 bits</td><td>7360 × 4912 × 3</td><td class="n">108 456 960</td><td class="n">103,4</td></tr>
+        <tr><td>c. scanner 512 × 512 × 512, 16 bits</td><td>512<sup>3</sup> × 2</td><td class="n">268 435 456</td><td class="n">256</td></tr>
+      </table>
+      <p class="petit">À cela s'ajoute l'objet lui-même (<code>sizeof</code>), négligeable :</p>
+      <table class="tres-petit">
+        <tr><th>objet</th><th>PC 32 bits</th><th>PC 64 bits</th></tr>
+        <tr><td>ColorImage : 2 × uint16_t + 1 pointeur</td><td>2 + 2 + 4 = <b>8</b></td><td>2 + 2 + 4 (padding) + 8 = <b>16</b></td></tr>
+        <tr><td>volume : 3 × uint16_t + 1 pointeur</td><td>6 + 2 (pad.) + 4 = <b>12</b></td><td>6 + 2 (pad.) + 8 = <b>16</b></td></tr>
+      </table>
+      <p class="tres-petit">1 Mio = 1024 × 1024 octets (= 1 048 576) ; 1 Mo = 1 000 000 octets. Les notes de TD divisent par 1024 deux fois : ce sont des Mio. Le pointeur fait 4 octets en 32 bits, 8 en 64 bits (CM diapo 10).</p>
+    </div>
+    <div class="petit">
+      <div class="alert"><h3>Le cas du scanner</h3><div>
+        <p>Nos classes ne conviennent pas : GrayImage est en <b>2D</b> et en <b>8 bits</b>. Il faut une classe « volume » avec 3 dimensions et des pixels <code>uint16_t</code>, indice <b>t = (z × height + y) × width + x</b> (CM diapo 25).</p>
+        <p>Les dimensions (512) tiennent bien dans un <code>uint16_t</code>.</p>
+      </div></div>
+      <p>En pratique, le smartphone enregistre un JPEG bien plus petit que ces 34,9 Mio : la photo est compressée avec perte.</p>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>TD2 exercice 3 : le débit d'une caméra Ultra HD</h2>
+  <div class="cols">
+    <div>
+      <div class="exemple"><h3>Calcul</h3><div class="petit">
+        <p>1 image : 3840 × 2160 pixels × 3 octets = 24 883 200 octets<br>
+        60 images/s : 24 883 200 × 60 = <b>1 492 992 000 octets/s</b><br>
+        ≈ 1,49 Go/s ≈ <b>11,9 Gbit/s</b> (× 8 pour passer en bits)</p>
+      </div></div>
+      <p class="petit">Attention aux unités : les débits réseau sont en <b>bits</b> par seconde, les tailles de fichier en <b>octets</b>. 1 octet = 8 bits.</p>
+    </div>
+    <div>
+      <table class="petit">
+        <tr><th>liaison</th><th class="n">débit</th><th class="n">trop lente de</th></tr>
+        <tr><td>5G (théorique)</td><td class="n">2,1 Gbit/s</td><td class="n">× 5,7</td></tr>
+        <tr><td>4G/5G (théorique)</td><td class="n">615 Mbit/s</td><td class="n">× 19</td></tr>
+        <tr><td>4G/5G (mesuré)</td><td class="n">80 à 114 Mbit/s</td><td class="n">× 105 à 150</td></tr>
+        <tr><td>fibre FTTH</td><td class="n">100 Mbit/s</td><td class="n">× 119</td></tr>
+        <tr><td>TNT</td><td class="n">25 Mbit/s</td><td class="n">× 478</td></tr>
+        <tr><td>ADSL</td><td class="n">20 Mbit/s</td><td class="n">× 597</td></tr>
+      </table>
+      <p class="petit"><b>Conclusion</b> : aucune liaison grand public ne transporte une vidéo UHD brute. La vidéo est toujours <b>compressée avec perte</b> (même principe que JPEG, plus la ressemblance entre images successives).</p>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>Images bitmap et classes du cours <small>CM diapos 23 à 28, 38-39</small></h2>
+  <div class="cols">
+    <div class="petit" style="flex:.8">
+      <ul>
+        <li>Image bitmap (raster) = grille de <b>pixels</b> ; intensité de 0 (noir) à 255 (blanc), parfois un réel dans [0 ; 1].</li>
+        <li>Taille ∝ largeur × hauteur : en <b>O(n<sup>d</sup>)</b> pour une image de côté n en dimension d.</li>
+        <li><b>Tableau à plat</b> : pixel (x, y) à l'indice <b>t = y × width + x</b> ; en 3D, <b>t = (z × height + y) × width + x</b>.</li>
+        <li><b>Color</b> = r, g, b en <code>uint8_t</code> publics : « TrueColor », 24 bits.</li>
+        <li><b>ColorImage</b> = GrayImage avec <code>Color</code> au lieu de <code>uint8_t</code>. Mieux (mais plus dur) : un modèle <code>Image&lt;T&gt;</code> et l'héritage.</li>
+      </ul>
+    </div>
+    <div>
+      <table class="tres-petit">
+        <tr><th>élément de GrayImage</th><th>pourquoi</th></tr>
+        <tr><td><code>const uint16_t width, height</code></td><td>la taille ne change jamais : pas de réallocation</td></tr>
+        <tr><td><code>GrayImage() = delete</code></td><td>une image sans taille n'a pas de sens</td></tr>
+        <tr><td><code>operator=(...) = delete</code></td><td>l'affectation changerait la taille</td></tr>
+        <tr><td>constructeur de copie</td><td>copie <b>profonde</b> (nouveau tableau), sinon double <code>delete[]</code></td></tr>
+        <tr><td><code>new uint8_t[w*h]</code></td><td>taille connue à l'exécution, trop gros pour la pile</td></tr>
+        <tr><td>pixels non initialisés</td><td><code>clear()</code> ou la lecture le feront</td></tr>
+        <tr><td><code>inline</code></td><td>éviter le coût d'un appel pour chaque pixel</td></tr>
+        <tr><td><code>uint8_t&amp; pixel(x, y)</code></td><td>référence : utilisable à gauche de <code>=</code></td></tr>
+        <tr><td>version <code>const</code> de <code>pixel</code></td><td>consulter une image constante</td></tr>
+        <tr><td><code>static readPGM</code></td><td>crée l'image : pas besoin d'une image avant</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>PGM et PPM : la méthode pour lire un dump hexadécimal <small>TD1, TD2</small></h2>
+  <div class="cols">
+    <div class="petit">
+      <ol>
+        <li>Repérer le <b>magic number</b> : <span class="hex">50 35</span> = "P5" (gris), <span class="hex">50 36</span> = "P6" (couleur), suivi de <span class="hex">0a</span>.</li>
+        <li>Une ligne qui commence par <span class="hex">23</span> ('#') est un <b>commentaire</b> jusqu'au <span class="hex">0a</span> suivant.</li>
+        <li>Les dimensions sont écrites en <b>caractères</b> : <span class="hex">33 32 30 20 32 34 30 0a</span> = "320 240".</li>
+        <li><span class="hex">32 35 35 0a</span> = "255" puis LF : <b>tout ce qui suit est binaire</b>.</li>
+        <li>Pixels : 1 octet (P5) ou 3 octets r, g, b (P6), de gauche à droite puis de haut en bas.</li>
+        <li>Vérifier : taille totale = en-tête + w × h (× 3).</li>
+      </ol>
+      <p>Pour P2/P3, tout est en texte (pixels compris, séparés par des blancs) : plus lisible, plus gros, plus lent.</p>
+    </div>
+    <div>
+<pre class="cpp">// TD1 : les trois fonctions de lecture
+void skip_line(std::istream&amp; is)
+{
+  char c;
+  while (is.get(c) &amp;&amp; c != '\n') {}
+}
+void skip_comments(std::istream&amp; is)
+{
+  char c;
+  while (is.get(c) &amp;&amp; c == '#')
+    skip_line(is);
+  if (is) is.putback(c);
+}
+// readPGM : is &gt;&gt; magic ; is &gt;&gt; std::ws ; skip_comments ;
+// is &gt;&gt; w &gt;&gt; h ; is &gt;&gt; std::ws ; skip_comments ;
+// is &gt;&gt; maxval (255) ; new GrayImage(w, h) ;
+// is.get() (UN seul blanc) ; is.read(array, w*h)</pre>
+      <p class="tres-petit">Le détail et les justifications sont dans <code>TP1_explications.pdf</code> (pourquoi <code>static</code>, pourquoi un seul <code>get()</code>, le piège des commentaires après les dimensions).</p>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>TD3 : rééchantillonnage, l'essentiel</h2>
+  <div class="cols">
+    <div>
+      <div class="block"><h3>Plus proche voisin (simpleScale, corrigé du TD3)</h3><div class="petit">
+        <p>On parcourt l'image <b>d'arrivée</b> (w × h). Pour chaque (x', y') :</p>
+        <p class="centre"><b>x = x' × width / w &nbsp;&nbsp; y = y' × height / h</b> (division entière)</p>
+        <p>et on recopie <code>pixel(x, y)</code>. Résultat : des blocs uniformes.</p>
+      </div></div>
+      <div class="exemple"><h3>Exemple</h3><div class="petit">
+        <p>80 × 60 → 823 × 400. Pixel d'arrivée (500, 200) : x = 500 × 80 / 823 = 48, y = 200 × 60 / 400 = 30.</p>
+      </div></div>
+    </div>
+    <div>
+      <div class="block"><h3>Bilinéaire</h3><div class="petit">
+        <p>Position réelle (x, y) ; x0 = partie entière, ax = x − x0 (idem en y) :</p>
+        <p>haut = (1 − ax) P(x0, y0) + ax P(x0+1, y0)<br>bas = (1 − ax) P(x0, y0+1) + ax P(x0+1, y0+1)<br><b>valeur = (1 − ay) haut + ay bas</b></p>
+        <p>Exemple : P = 10, 20 (haut) et 30, 40 (bas), ax = 0,25, ay = 0,5 → haut 12,5, bas 32,5, valeur <b>22,5</b>.</p>
+      </div></div>
+      <ul class="tres-petit">
+        <li>Aucune information n'est créée : l'image est plus douce, mais floue.</li>
+        <li>Correction du demi-pixel : x = (x' + 0,5) × width / w − 0,5.</li>
+        <li>Pour une Color : il faut <code>double * Color</code> et <code>Color + Color</code>.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>Les modèles de couleur <small>CM diapos 29 à 37</small></h2>
+  <div class="cols">
+    <div>
+      <svg width="54mm" height="22.6mm" viewBox="0 0 248 104">
+        <rect x="0" y="4" width="118" height="84" fill="#000"/><g style="isolation:isolate"><circle cx="46" cy="36" r="24" fill="#f00" style="mix-blend-mode:screen"/><circle cx="72" cy="36" r="24" fill="#0f0" style="mix-blend-mode:screen"/><circle cx="59" cy="58" r="24" fill="#00f" style="mix-blend-mode:screen"/></g>
+        <rect x="130" y="4" width="118" height="84" fill="#fff" stroke="#ccc"/>
+        <g style="isolation:isolate"><circle cx="176" cy="36" r="24" fill="#0ff" style="mix-blend-mode:multiply"/><circle cx="202" cy="36" r="24" fill="#f0f" style="mix-blend-mode:multiply"/><circle cx="189" cy="58" r="24" fill="#ff0" style="mix-blend-mode:multiply"/></g>
+        <text x="4" y="100" font-size="9">RGB : additif (écrans)</text><text x="138" y="100" font-size="9">CMY : soustractif (encres)</text>
+      </svg>
+      <ul class="petit">
+        <li><b>RGB</b> : on ajoute des lumières ; R + G + B = blanc. Le plus répandu dans les fichiers.</li>
+        <li><b>CMY(K)</b> : des encres filtrent la lumière du papier blanc. <b>C = 1 − R, M = 1 − G, Y = 1 − B</b> (valeurs dans [0 ; 1]). K (noir) est ajouté car le mélange des encres ne donne pas un vrai noir.</li>
+        <li>Les secondaires de RGB (cyan, magenta, jaune) sont les primaires de CMY et inversement.</li>
+        <li>Modélisation <b>par pixel</b> (tableau de Color, notre choix) ou <b>par canal</b> (3 tableaux).</li>
+      </ul>
+    </div>
+    <div class="petit">
+      <ul>
+        <li><b>YUV</b> (TV PAL) : Y = <b>luminance</b>, U et V = chrominance. <b>Y = 0,299 R + 0,587 G + 0,114 B</b>. L'œil distingue mieux les formes en luminance qu'en couleur : intéressant pour compresser (JPEG, MPEG).</li>
+        <li><b>YIQ</b> (TV NTSC) : même Y, autre chrominance.</li>
+        <li><b>HSV</b> (teinte, saturation, valeur) : proche de la pratique du peintre ; conversion <b>non linéaire</b>. HSL : double cône.</li>
+        <li>Pros : sRGB, AdobeRGB, CIE XYZ, L*a*b*, plus proches de la perception.</li>
+        <li><b>Canal alpha</b> : transparence, de 0 (transparent) à 255 (opaque) ; RGBA ; superposition de calques = alpha-blending.</li>
+      </ul>
+      <div class="exemple"><h3>Exemple : couleur → gris</h3><div>
+        <p>(200, 100, 50) : Y = 0,299 × 200 + 0,587 × 100 + 0,114 × 50 = 59,8 + 58,7 + 5,7 = <b>124,2 → 124</b>.</p>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>Palette, pavages, densité <small>CM diapos 40 à 45</small></h2>
+  <div class="cols">
+    <div class="petit">
+      <div class="block"><h3>Image à palette (codage indirect)</h3><div>
+        <p>Le pixel ne contient pas la couleur mais un <b>indice</b> dans une table de n couleurs RGB. Utilisé quand la mémoire était chère (CGA, VGA 256 couleurs...), et dans GIF, TGA type 1, BMP, PNG.</p>
+        <p><b>320 × 240, 256 couleurs</b> : 320 × 240 × 1 + 256 × 3 = 76 800 + 768 = <b>77 568 o</b>, contre 230 400 o en 24 bits (≈ 3 fois moins).</p>
+        <p>16 couleurs : 4 bits par pixel (2 pixels par octet).</p>
+      </div></div>
+      <p><b>Pavages</b> : triangulaire, <b>carré</b> (2 sortes de voisins : par un côté, ou par un coin, √2 fois plus loin), hexagonal (tous les voisins à la même distance)... En 3D, le cubique a 3 sortes de voisins.</p>
+    </div>
+    <div class="petit">
+      <ul>
+        <li><b>Capteur</b> : surface perdue entre les photosites, et en général <b>2 fois plus de sites verts</b> que de rouges ou de bleus. On fait « comme si » les pixels étaient carrés et complets (99 % du temps).</li>
+        <li><b>Densité</b> en ppp (dpi) : pixels par pouce, 1 pouce = 2,54 cm. Écran ≈ 120, imprimante jet d'encre 600 à 1200, laser 2400, scanner 4800.</li>
+        <li><b>Rapport d'aspect du pixel</b> = largeur / hauteur d'un pixel (à ne pas confondre avec celui de l'écran, 16:9...). On ne peut pas le deviner à partir de la résolution.</li>
+      </ul>
+      <div class="exemple"><h3>Exemple</h3><div>
+        <p>Une feuille A4 (21 × 29,7 cm) scannée à 300 ppp : 21 / 2,54 × 300 ≈ <b>2480</b> pixels sur 29,7 / 2,54 × 300 ≈ <b>3508</b> pixels.</p>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>Échantillonnage et quantification <small>CM diapos 46 à 53</small></h2>
+  <div class="cols">
+    <div class="petit">
+      <ul>
+        <li><b>Échantillonnage</b> (spatial) : combien de pixels ? Moins il y en a, moins on voit de détails.</li>
+        <li><b>Aliasing spatial</b> : détails plus fins que les pixels → marches d'escalier. Règle : échantillonner au moins au <b>double de la fréquence</b> du signal (un pixel au plus tous les demi-détails).</li>
+        <li><b>Quantification</b> : combien de niveaux par pixel ? Cela fixe la taille du codage.</li>
+        <li><b>Bandes de Mach</b> : un dégradé trop peu quantifié montre des bandes uniformes, renforcées par notre vision (aliasing colorimétrique).</li>
+        <li><b>Tramage</b> (Floyd-Steinberg) : on répartit l'erreur sur les voisins, l'image paraît avoir plus de couleurs.</li>
+        <li>Trop de niveaux pour l'œil (astronomie : des milliers contre une vingtaine perçus) : <b>fausses couleurs</b> ou <b>fenêtrage</b>.</li>
+        <li><b>Z-buffer</b> (OpenGL, souvent 16 bits) : précision insuffisante → <b>Z-fighting</b> (hachures).</li>
+      </ul>
+    </div>
+    <div>
+      <table class="petit">
+        <tr><th>apparence</th><th class="n">bits / pixel</th><th class="n">niveaux</th></tr>
+        <tr><td>noir et blanc</td><td class="n">1</td><td class="n">2</td></tr>
+        <tr><td>4 gris</td><td class="n">2</td><td class="n">4</td></tr>
+        <tr><td>16 gris</td><td class="n">4</td><td class="n">16</td></tr>
+        <tr><td>256 gris ou 256 couleurs (palette)</td><td class="n">8</td><td class="n">256</td></tr>
+        <tr><td>TrueColor</td><td class="n">3 × 8 = 24</td><td class="n">16,7 millions</td></tr>
+      </table>
+      <div class="exemple"><h3>Formule à connaître</h3><div class="petit">
+        <p>n bits → 2<sup>n</sup> valeurs. Taille brute = largeur × hauteur × bits par pixel / 8 octets.</p>
+        <p>800 × 600 en 4 bits : 800 × 600 × 4 / 8 = <b>240 000 octets</b>.</p>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>Les formats d'image <small>CM diapos 54 à 57, 60</small></h2>
+  <div class="cols">
+    <div class="petit">
+      <div class="block"><h3>Ce qu'on attend d'un format</h3><div>
+        <p>Échanger entre machines (à l'identique ou avec une perte contrôlée), <b>indépendamment de l'architecture</b> (endianness...), lecture rapide, plusieurs quantifications, éventuellement plusieurs images et des métadonnées (auteur, date).</p>
+      </div></div>
+      <div class="block"><h3>Structure générale</h3><div>
+        <ol>
+          <li><b>En-tête</b> : magic number, largeur, hauteur, quantification, compression, présence d'une palette...</li>
+          <li><b>Palette</b> éventuelle : nombre de couleurs, quantification, liste.</li>
+          <li><b>Corps</b> : les pixels, éventuellement compressés.</li>
+          <li>Autres informations éventuelles.</li>
+        </ol>
+      </div></div>
+    </div>
+    <div>
+      <table class="tres-petit">
+        <tr><th>famille</th><th>formats</th></tr>
+        <tr><td>non compressés</td><td>gris : PGM, TGA, BMP, TIFF ; couleur : PPM, TGA, BMP, TIFF</td></tr>
+        <tr><td>sans perte : RLE</td><td>TGA, BMP, TIFF</td></tr>
+        <tr><td>sans perte : Huffman / LZW</td><td>GIF, TIFF</td></tr>
+        <tr><td>sans perte : deflate</td><td>PNG</td></tr>
+        <tr><td>avec perte</td><td>JPEG (JFIF), JPEG 2000, TIFF</td></tr>
+      </table>
+      <ul class="petit">
+        <li><b>PNM</b> (PBM, PGM, PPM) : très simple, peu performant, pas de palette ; variante tout texte (P2, P3) ou en-tête texte + pixels binaires (P5, P6).</li>
+        <li><b>BMP</b> (Windows, OS/2, aussi pour les icônes) : comparable à TGA ; N&amp;B, gris, couleur, avec ou sans palette, avec ou sans RLE.</li>
+        <li><b>TIFF</b> (Adobe) : « méta-format » très général (plusieurs images, couches, JPEG dedans...) : impossible de lire toutes les variantes.</li>
+        <li><b>Exif / IPTC</b> : métadonnées (date, ouverture, GPS...) dans JPEG ou TIFF.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>Compression sans perte : RLE <small>CM diapos 55 et 59</small></h2>
+  <div class="cols">
+    <div class="petit">
+      <ul>
+        <li><b>Sans perte</b> : on retrouve exactement l'image ; on supprime les redondances ; coûte du calcul.</li>
+        <li><b>Avec perte</b> : on abîme volontairement (et de façon contrôlée) pour gagner beaucoup.</li>
+      </ul>
+      <div class="block"><h3>Taux de compression</h3><div>
+        <p class="centre"><b>taux = taille originale / taille compressée</b></p>
+        <p>100 Ko → 20 Ko : taux de <b>5 : 1</b>.</p>
+      </div></div>
+      <div class="block"><h3>RLE : Run Length Encoding</h3><div>
+        <ul>
+          <li>Suite de valeurs <b>identiques</b> → (nombre, valeur) : on gagne.</li>
+          <li>Suite de valeurs <b>différentes</b> → (nombre négatif, valeurs) : on perd un peu.</li>
+          <li>Efficace quand il y a <b>peu de couleurs</b> ; simple mais peu efficace en général (photos).</li>
+        </ul>
+      </div></div>
+    </div>
+    <div>
+      <div class="exemple"><h3>L'exemple du CM</h3><div class="petit">
+        <p class="hex">A B C D D D D D E E E E F G (14 symboles)</p>
+        <p class="hex">−3 A B C | 5 D | 4 E | −2 F G (11 symboles)</p>
+        <p>−3 : « 3 valeurs différentes suivent » ; 5 D : « D répété 5 fois ».</p>
+      </div></div>
+      <div class="exemple"><h3>La version TGA (TP4)</h3><div class="petit">
+        <p>Un octet d'en-tête par paquet : bit 7 = 1 → paquet répété, bit 7 = 0 → paquet brut ; les 7 autres bits = nombre − 1 (au plus 128 pixels).</p>
+        <p>R R R R V B B → <span class="hex">83</span> R, <span class="hex">00</span> V, <span class="hex">81</span> B : 3 + 3 × 3 = 12 octets au lieu de 21.</p>
+      </div></div>
+      <p class="tres-petit">Chiffres réels du TP4 : une photo passe de 230 418 à 207 106 octets (1,1 : 1) ; une image de texte sur fond uni de 242 208 à 11 985 octets (20 : 1).</p>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>Compression sans perte : Huffman, LZW <small>CM diapos 61 à 65</small></h2>
+  <div class="cols">
+    <div>
+      <p class="petit"><b>Huffman</b> : les couleurs fréquentes reçoivent des codes <b>courts</b>, les rares des codes longs. Exemple : 20 pixels, blanc × 9, noir × 6, rouge × 3, bleu × 2.</p>
+      <svg width="70mm" height="36mm" viewBox="0 0 280 144">
+        <g stroke="#333" stroke-width="1.2" fill="none">
+          <path d="M140 16 L60 52"/><path d="M140 16 L200 52"/><path d="M200 52 L150 88"/><path d="M200 52 L250 88"/><path d="M150 88 L110 124"/><path d="M150 88 L190 124"/>
+        </g>
+        <g font-size="9" fill="#b31a1a"><text x="88" y="30">0</text><text x="176" y="30">1</text><text x="164" y="68">0</text><text x="230" y="68">1</text><text x="120" y="104">0</text><text x="176" y="104">1</text></g>
+        <g font-size="9.5" text-anchor="middle">
+          <circle cx="140" cy="14" r="11" fill="#ebebf7" stroke="#3333b3"/><text x="140" y="18">20</text>
+          <rect x="30" y="44" width="60" height="18" rx="3" fill="#fff" stroke="#333"/><text x="60" y="57">blanc 9</text>
+          <circle cx="200" cy="52" r="11" fill="#ebebf7" stroke="#3333b3"/><text x="200" y="56">11</text>
+          <circle cx="150" cy="88" r="11" fill="#ebebf7" stroke="#3333b3"/><text x="150" y="92">5</text>
+          <rect x="222" y="80" width="56" height="18" rx="3" fill="#fff" stroke="#333"/><text x="250" y="93">noir 6</text>
+          <rect x="82" y="116" width="56" height="18" rx="3" fill="#fff" stroke="#333"/><text x="110" y="129">bleu 2</text>
+          <rect x="160" y="116" width="60" height="18" rx="3" fill="#fff" stroke="#333"/><text x="190" y="129">rouge 3</text>
+        </g>
+      </svg>
+    </div>
+    <div class="petit">
+      <ol>
+        <li>Histogramme (fréquences ci-contre).</li>
+        <li>On regroupe les <b>deux moins fréquents</b> : bleu 2 + rouge 3 = 5.</li>
+        <li>On recommence : 5 + noir 6 = 11, puis blanc 9 + 11 = 20 (la racine = nombre de pixels).</li>
+        <li>Branche gauche = 0, droite = 1 ; code = chemin depuis la racine.</li>
+      </ol>
+      <table class="tres-petit">
+        <tr><th>couleur</th><th>code</th><th class="n">bits</th></tr>
+        <tr><td>blanc</td><td class="hex">0</td><td class="n">9 × 1</td></tr>
+        <tr><td>noir</td><td class="hex">11</td><td class="n">6 × 2</td></tr>
+        <tr><td>bleu</td><td class="hex">100</td><td class="n">2 × 3</td></tr>
+        <tr><td>rouge</td><td class="hex">101</td><td class="n">3 × 3</td></tr>
+      </table>
+      <p><b>36 bits</b>, contre 40 avec un code fixe de 2 bits. Aucun code n'est le début d'un autre : le décodage est sans ambiguïté.</p>
+      <p><b>LZW</b> (Lempel-Ziv-Welch) : cherche des <b>motifs</b> qui se répètent (efficace même sur des images tramées) ; utilisé par <b>GIF</b> (brevet UNISYS jusqu'en 2004).</p>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>GIF, PNG, JPEG, JPEG 2000 <small>CM diapos 63 à 78</small></h2>
+  <div class="cols">
+    <div class="petit">
+      <ul>
+        <li><b>GIF (89a)</b> : LZW ; gris 8 bits ou <b>palette de 256 couleurs</b> parmi 16,7 M ; animations ; transparence tout ou rien (une couleur sacrifiée). Pour logos, schémas.</li>
+        <li><b>PNG</b> (1995, ouvert) : remplace GIF ; compression sans perte <b>deflate</b> (zlib) ; gris, couleurs, palette, <b>canal alpha</b>, affichage progressif. Animations : MNG, APNG.</li>
+        <li><b>Entrelacement Adam7</b> : les pixels sont envoyés en passes de résolution croissante ; on affiche une image grossière qui s'affine pendant le téléchargement.</li>
+        <li><b>JPEG 2000</b> : bien meilleur à forte compression, pas de blocs, moins d'artefacts... mais peu utilisé. Les pros préfèrent le <b>RAW</b> sans perte.</li>
+      </ul>
+    </div>
+    <div class="petit">
+      <div class="block"><h3>JPEG (ISO 10918-1, 1994)</h3><div>
+        <p>Pour les <b>photos</b> ; mal adapté aux schémas nets et aux images à peu de couleurs. Perte réglée par la qualité. Bibliothèque libjpeg (TP3).</p>
+        <ol>
+          <li>RGB → <b>YCbCr</b> ;</li>
+          <li><b>sous-échantillonnage</b> de Cb, Cr (perte) ;</li>
+          <li>blocs <b>8 × 8</b>, puis <b>DCT</b> ;</li>
+          <li><b>quantification</b> des coefficients (perte, réglée par la qualité) ;</li>
+          <li>parcours en <b>zigzag</b>, <b>RLE des 0</b> avec marque de fin ;</li>
+          <li><b>Huffman</b>.</li>
+        </ol>
+        <p>Chiffres du CM : 769 Ko → 200 Ko à 99 % (4 : 1), 52 Ko à 75 % (15 : 1), 6 Ko à 1 % (128 : 1).</p>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>Images vectorielles <small>CM diapos 81 à 86</small></h2>
+  <div class="cols">
+    <div class="petit">
+      <ul>
+        <li>On stocke <b>la façon de dessiner</b> (segments, courbes, formes), pas des pixels.</li>
+        <li>Qualité <b>indépendante de la résolution</b> (on peut zoomer), souvent très compact (PDF 37 Ko contre PNG 156 Ko dans le CM).</li>
+        <li>Il faut retracer toutes les primitives à chaque affichage.</li>
+        <li>Parfait pour le symbolique (texte, schémas) ; <b>inadapté aux photos</b>.</li>
+      </ul>
+      <table class="tres-petit">
+        <tr><th></th><th>bitmap</th><th>vectoriel</th></tr>
+        <tr><td>contenu</td><td>grille de pixels</td><td>primitives</td></tr>
+        <tr><td>zoom</td><td>pixels visibles</td><td>net</td></tr>
+        <tr><td>photo</td><td>oui</td><td>non</td></tr>
+        <tr><td>exemples</td><td>PNG, JPEG, TGA</td><td>SVG, PDF, PostScript</td></tr>
+      </table>
+    </div>
+    <div class="petit">
+      <ul>
+        <li><b>Polices</b> : PostScript type 1 (courbes de Bézier <b>cubiques</b>) ; TrueType (courbes <b>quadratiques</b>). TTF → PS1 sans perte, pas l'inverse. Polices bitmap (.FON) pour l'écran.</li>
+        <li><b>SVG</b> : XML (arbre), norme du W3C, alpha, dégradés, animation en JavaScript ; icônes Gnome/KDE ; Inkscape.</li>
+        <li><b>PostScript</b> : langage de description de page en notation polonaise inversée, interprété par les imprimantes laser.</li>
+        <li><b>PDF</b> : successeur pour les documents ; norme ISO (2008), polices incorporées, compression, formulaires, liens, chiffrement.</li>
+        <li><b>TeX/LaTeX</b> : composition typographique (le CM est fait avec Beamer).</li>
+        <li><b>3D</b> : surfaces triangulées, NURBS... (.obj, .dxf, VRML, X3D).</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>Exercices d'entraînement (1/2)</h2>
+  <div class="cols">
+    <div class="petit">
+      <ol>
+        <li>Combien d'octets occupe en mémoire <code>struct S { char a; int b; char c; };</code> ? Et <code>struct T { int b; char a; char c; };</code> ?</li>
+        <li>Écrire les octets de l'entier 16 bits 0x0A0B en little endian puis en big endian.</li>
+        <li>Sur un PC, après <code>uint32_t v = 0x11223344; uint8_t* p = (uint8_t*)&amp;v;</code>, que vaut <code>p[0]</code> ? <code>p[3]</code> ?</li>
+        <li>Que vaut <code>v</code> après <code>swap_bytes(v)</code> ?</li>
+        <li>Combien de tours fait <code>for (uint8_t i = 250; i &lt; 255; i++)</code> ? Et avec <code>i &lt;= 255</code> ?</li>
+        <li>Quelle est la taille d'un fichier PPM P6 de 640 × 480 dont l'en-tête fait 15 octets ?</li>
+      </ol>
+    </div>
+    <div class="petit">
+      <ol start="7">
+        <li>Décoder ce début de fichier :<br><span class="hex">50 35 0a 32 20 33 0a 32 35 35 0a 00 ff 80 80 ff 00</span></li>
+        <li>Dans <code>chat.pgm</code> (320 × 240), à quel indice de <code>array</code> se trouve le pixel (10, 2) ?</li>
+        <li>Image 100 × 100 en 16 couleurs avec palette 24 bits : taille des pixels et de la palette ?</li>
+        <li>Taux de compression d'une image de 1,2 Mo devenue 80 Ko ?</li>
+        <li>Coder en RLE (notation du CM) : <span class="hex">X X X X Y Z Z Z</span>.</li>
+        <li>Construire les codes de Huffman pour : A × 8, B × 4, C × 2, D × 2. Combien de bits au total ?</li>
+        <li>Agrandir une image 4 × 4 en 10 × 10 par plus proche voisin : quel pixel source pour (x', y') = (7, 3) ?</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>Exercices d'entraînement (2/2) : corrigés</h2>
+  <div class="cols">
+    <div class="petit">
+      <ol>
+        <li>S : 1 + 3 (pad.) + 4 + 1 + 3 (pad. final) = <b>12</b>. T : 4 + 1 + 1 + 2 = <b>8</b>.</li>
+        <li>Little : <span class="hex">0B 0A</span> ; big : <span class="hex">0A 0B</span>.</li>
+        <li><code>p[0]</code> = 0x44 (poids faible en premier), <code>p[3]</code> = 0x11.</li>
+        <li>0x44332211.</li>
+        <li>5 tours (250 à 254). Avec <code>&lt;= 255</code> : boucle <b>infinie</b> (255 + 1 = 0).</li>
+        <li>15 + 640 × 480 × 3 = 15 + 921 600 = <b>921 615</b> octets.</li>
+        <li>"P5", largeur 2, hauteur 3, maxval 255, puis 6 pixels : (0, 255) / (128, 128) / (255, 0).</li>
+      </ol>
+    </div>
+    <div class="petit">
+      <ol start="8">
+        <li>2 × 320 + 10 = <b>650</b>.</li>
+        <li>16 couleurs = 4 bits : 100 × 100 × 4 / 8 = <b>5 000</b> octets ; palette 16 × 3 = <b>48</b> octets.</li>
+        <li>1 200 / 80 = <b>15 : 1</b> (en Ko des deux côtés).</li>
+        <li><b>4 X | −1 Y | 3 Z</b> : 8 symboles → 6 (le Y isolé coûte 2 symboles).</li>
+        <li>C + D = 4 ; 4 + B = 8 ; 8 + A = 16. Codes : A = 0, B = 11, C = 100, D = 101 (selon le côté choisi). Bits : 8 × 1 + 4 × 2 + 2 × 3 + 2 × 3 = <b>28</b> (contre 32 avec 2 bits fixes).</li>
+        <li>x = 7 × 4 / 10 = 2 (2,8 tronqué), y = 3 × 4 / 10 = 1 : pixel <b>(2, 1)</b>.</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>Ce que le prof n'a pas corrigé au tableau</h2>
+  <div class="cols">
+    <div class="petit">
+      <ul>
+        <li><b>TD3, partie bilinéaire</b> : le corrigé s'arrête au prototype (<code>TP3_TD3/corrige_prof.txt</code>), le prof a demandé de chercher à partir de ce qui a été vu. La formule de cette fiche et des explications du TP2 est la formule bilinéaire standard : deux interpolations horizontales puis une verticale. C'est aussi celle qu'attend le sujet du TP2 (« ne pas changer la formule vue en TD sur des niveaux de gris »).</li>
+        <li>La <b>correction du demi-pixel</b> est un plus proposé par le sujet du TP2 ; sans elle, on a « pratiquement tous les points ».</li>
+        <li>Les <b>figures du CM</b> (arbre de Huffman diapo 61, schémas JPEG) sont à relire directement dans le PDF du cours.</li>
+      </ul>
+    </div>
+    <div class="petit">
+      <div class="exemple"><h3>Où trouver quoi</h3><div>
+        <ul>
+          <li>Explications de chaque TP : <code>TPx/TPx_explications.pdf</code>.</li>
+          <li>Code testé : <code>PROJET_FINAL/</code> (<code>make test</code>).</li>
+          <li>Sujets et corrigés pris en TD : dans chaque dossier <code>TPx</code>.</li>
+        </ul>
+      </div></div>
+    </div>
+  </div>
+</section>

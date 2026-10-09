@@ -1,0 +1,303 @@
+<section class="slide titre">
+  <div class="bandeau">
+    <h1>TP3 : écrire du JPEG avec la bibliothèque libjpeg</h1>
+    <p>R3.L01 — Représentations et codages des images</p>
+  </div>
+  <div class="infos">
+    <p>Fiche d'explication du TP, écrite à partir du cours (CM diapos 55 à 74), du sujet du TP3, de <code>libjpeg.txt</code> et de <code>jpeg_example.c</code>.</p>
+    <p class="note">Code complet et testé : <code>PROJET_FINAL/Image.cpp</code> (writeJPEG, readJPEG), <code>tp3.cpp</code></p>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>Ce qu'il faut faire</h2>
+  <div class="cols">
+    <div class="w3">
+      <div class="block"><h3>La fonction demandée</h3><div>
+<pre class="cpp petit">void ColorImage::writeJPEG(const char* fname, unsigned int quality = 75) const;</pre>
+        <p class="petit">libjpeg est écrite <b>en C</b> : elle écrit dans un <code>FILE*</code>, pas dans un <code>ostream</code>, d'où le nom de fichier en <code>const char*</code>.</p>
+        <p class="petit">D'abord sans <code>quality</code>, puis avec <code>jpeg_set_quality(&amp;cinfo, quality, TRUE)</code> et la valeur par défaut 75 (dans le <code>.hpp</code> seulement).</p>
+      </div></div>
+      <ol class="petit">
+        <li>Lire un PPM, tracer des rectangles, écrire en JPEG, ouvrir le résultat avec un visualiseur.</li>
+        <li>Écrire 21 fichiers <code>out_000.jpg</code> ... <code>out_100.jpg</code> (qualité de 5 en 5) avec la boucle donnée par le sujet.</li>
+        <li>Comparer la qualité visuelle et la taille des fichiers.</li>
+      </ol>
+      <p class="petit">Le sujet précise : <b>pas de gestionnaire d'erreur comme dans l'exemple C</b> (<code>setjmp</code>), on utilise les <b>exceptions</b> C++.</p>
+    </div>
+    <div class="w2">
+      <div class="alert"><h3>Compilation</h3><div class="petit">
+        <p>Inclure l'en-tête C <b>dans un bloc <code>extern "C"</code></b> :</p>
+<pre class="cpp">#include &lt;cstdio&gt;   // FILE, avant jpeglib.h
+extern "C" {
+#include &lt;jpeglib.h&gt;
+}</pre>
+        <p>Et lier avec la bibliothèque :</p>
+<pre>g++ -Wall -c programme.cpp
+g++ -o programme programme.o -ljpeg</pre>
+        <p>Debian/Ubuntu : <code>apt install libjpeg-dev</code></p>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>Comment JPEG compresse <small>CM diapos 66 et 67</small></h2>
+  <svg width="148mm" height="30mm" viewBox="0 0 592 120">
+    <defs><marker id="f3" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0 0 L7 3.5 L0 7 z" fill="#1f1f6b"/></marker></defs>
+    <g font-size="9.5" text-anchor="middle">
+      <rect x="0" y="10" width="62" height="34" rx="4" fill="#ebebf7" stroke="#3333b3"/><text x="31" y="25">RGB</text><text x="31" y="38">→ YCbCr</text>
+      <rect x="76" y="10" width="70" height="34" rx="4" fill="#f7e9e9" stroke="#b31a1a"/><text x="111" y="25">sous-échant.</text><text x="111" y="38">de Cb et Cr</text>
+      <rect x="160" y="10" width="62" height="34" rx="4" fill="#ebebf7" stroke="#3333b3"/><text x="191" y="25">blocs</text><text x="191" y="38">8 × 8</text>
+      <rect x="236" y="10" width="62" height="34" rx="4" fill="#ebebf7" stroke="#3333b3"/><text x="267" y="25">DCT</text><text x="267" y="38">(fréquences)</text>
+      <rect x="312" y="10" width="78" height="34" rx="4" fill="#f7e9e9" stroke="#b31a1a"/><text x="351" y="25">quantification</text><text x="351" y="38">(qualité)</text>
+      <rect x="404" y="10" width="62" height="34" rx="4" fill="#ebebf7" stroke="#3333b3"/><text x="435" y="25">parcours</text><text x="435" y="38">en zigzag</text>
+      <rect x="480" y="10" width="50" height="34" rx="4" fill="#ebebf7" stroke="#3333b3"/><text x="505" y="25">RLE</text><text x="505" y="38">des 0</text>
+      <rect x="540" y="10" width="52" height="34" rx="4" fill="#ebebf7" stroke="#3333b3"/><text x="566" y="31">Huffman</text>
+    </g>
+    <g stroke="#1f1f6b" stroke-width="1.4"><path d="M62 27 H74" marker-end="url(#f3)"/><path d="M146 27 H158" marker-end="url(#f3)"/><path d="M222 27 H234" marker-end="url(#f3)"/><path d="M298 27 H310" marker-end="url(#f3)"/><path d="M390 27 H402" marker-end="url(#f3)"/><path d="M466 27 H478" marker-end="url(#f3)"/><path d="M530 27 H538" marker-end="url(#f3)"/></g>
+    <text x="0" y="70" font-size="10" fill="#b31a1a">En rouge : les deux étapes où l'on PERD de l'information (c'est voulu).</text>
+    <text x="0" y="88" font-size="10">Toutes les autres étapes sont réversibles (ou presque) : RLE et Huffman sont des compressions sans perte.</text>
+    <text x="0" y="106" font-size="10">Le paramètre « qualité » règle la quantification : plus il est bas, plus on arrondit fort, plus il y a de 0.</text>
+  </svg>
+  <div class="cols petit">
+    <div>
+      <ul>
+        <li><b>YCbCr</b> : on sépare la luminance Y (le noir et blanc) des deux chrominances. L'œil voit mieux les formes en luminance qu'en couleur (CM diapo 32).</li>
+        <li><b>Sous-échantillonnage</b> : on garde moins de points de couleur (souvent 1 pour 2 × 2 pixels).</li>
+      </ul>
+    </div>
+    <div>
+      <ul>
+        <li><b>DCT</b> sur chaque bloc 8 × 8 : on passe des pixels à des coefficients de fréquence. Les détails fins (hautes fréquences) sont peu visibles : on les arrondit fort.</li>
+        <li>Après quantification, beaucoup de coefficients valent 0 : <b>RLE</b> des zéros avec une marque de fin de bloc, puis <b>Huffman</b>.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>writeJPEG : les étapes de libjpeg.txt</h2>
+  <div class="cols">
+    <div style="flex:1.25">
+<pre class="cpp petit">void ColorImage::writeJPEG(const char* fname, unsigned int quality) const
+{
+  if (quality &gt; 100)
+    throw std::invalid_argument("writeJPEG : qualité hors de [0;100]");
+  FILE* outfile = std::fopen(fname, "wb"); // "b" : binaire !
+  if (outfile == nullptr)
+    throw std::runtime_error(std::string("writeJPEG : impossible de créer ") + fname);
+  // 1. Allocation et initialisation de l'objet de compression
+  jpeg_compress_struct cinfo;
+  jpeg_error_mgr       jerr;
+  cinfo.err = jpeg_std_error(&amp;jerr);
+  jerr.error_exit = jpeg_error_to_exception; // voir plus loin
+  jpeg_create_compress(&amp;cinfo);
+  try {
+    // 2. Destination des données compressées
+    jpeg_stdio_dest(&amp;cinfo, outfile);
+    // 3. Description de l'image et paramètres
+    cinfo.image_width      = width;
+    cinfo.image_height     = height;
+    cinfo.input_components = 3;        // r, g, b
+    cinfo.in_color_space   = JCS_RGB;
+    jpeg_set_defaults(&amp;cinfo);         // APRÈS in_color_space !
+    jpeg_set_quality(&amp;cinfo, int(quality), TRUE);</pre>
+    </div>
+    <div>
+<pre class="cpp petit">    // 4. Compression, une ligne (scanline) à la fois
+    jpeg_start_compress(&amp;cinfo, TRUE);
+    while (cinfo.next_scanline &lt; cinfo.image_height) {
+      JSAMPROW row_pointer[1];  // pointeur vers une ligne
+      row_pointer[0] = (JSAMPROW)(array
+                 + size_t(cinfo.next_scanline) * width);
+      jpeg_write_scanlines(&amp;cinfo, row_pointer, 1);
+    }
+    // 5. Fin de la compression
+    jpeg_finish_compress(&amp;cinfo);
+  } catch (...) {     // erreur : on libère puis on relance
+    jpeg_destroy_compress(&amp;cinfo);
+    std::fclose(outfile);
+    throw;
+  }
+  // 6. Libération de l'objet et fermeture du fichier
+  jpeg_destroy_compress(&amp;cinfo);
+  std::fclose(outfile);
+}</pre>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>Donner les lignes de pixels à libjpeg</h2>
+  <div class="cols">
+    <div>
+      <svg width="70mm" height="36mm" viewBox="0 0 280 144">
+        <text x="0" y="12" font-size="10">array (ColorImage, width = 4)</text>
+        <g stroke="#333" stroke-width=".7">
+          <rect x="0" y="20" width="240" height="18" fill="#cfd8ff"/><rect x="0" y="38" width="240" height="18" fill="#ffe2b8"/><rect x="0" y="56" width="240" height="18" fill="#d4f0d4"/>
+        </g>
+        <g font-size="8.5" class="mono" fill="#333">
+          <text x="4" y="33">r g b | r g b | r g b | r g b   ← ligne 0</text>
+          <text x="4" y="51">r g b | r g b | r g b | r g b   ← ligne 1</text>
+          <text x="4" y="69">r g b | r g b | r g b | r g b   ← ligne 2</text>
+        </g>
+        <rect x="0" y="96" width="70" height="20" fill="#f7e9e9" stroke="#b31a1a"/><text x="35" y="110" font-size="9.5" text-anchor="middle">row_pointer[0]</text>
+        <path d="M70 106 C 120 106, 140 80, 2 49" fill="none" stroke="#b31a1a" stroke-width="1.4" marker-end="url(#f4)"/>
+        <defs><marker id="f4" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0 0 L7 3.5 L0 7 z" fill="#b31a1a"/></marker></defs>
+        <text x="0" y="136" font-size="9.5">array + next_scanline × width  (ici next_scanline = 1)</text>
+      </svg>
+    </div>
+    <div class="petit">
+      <p>libjpeg attend, pour chaque ligne, un pointeur vers <b>3 × width octets</b> r, g, b à la suite : <code>JSAMPROW</code> = <code>unsigned char*</code>.</p>
+      <p>Notre tableau de <code>Color</code> a exactement cette forme (3 octets par <code>Color</code>, garanti par le <code>static_assert</code>). Il suffit donc de pointer sur le début de la ligne :</p>
+<pre class="cpp">row_pointer[0] = (JSAMPROW)(array + size_t(cinfo.next_scanline) * width);</pre>
+      <ul>
+        <li><code>array + n</code> sur un <code>Color*</code> avance de <code>n</code> <b>Color</b>, soit 3n octets.</li>
+        <li>Le cast <code>(JSAMPROW)</code> enlève le <code>const</code> : sans danger, la compression ne modifie pas les pixels.</li>
+        <li>On envoie les lignes de haut en bas, l'ordre attendu par JPEG.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>Les erreurs de libjpeg deviennent des exceptions</h2>
+  <div class="cols">
+    <div>
+      <p class="petit">En cas d'erreur grave (fichier qui n'est pas un JPEG, disque plein...), libjpeg appelle <code>cinfo.err-&gt;error_exit</code>. Celle par défaut <b>affiche un message puis appelle <code>exit()</code></b> : le programme s'arrête net, l'appelant ne peut pas réagir.</p>
+      <p class="petit">On la remplace par une fonction à nous qui lève une exception :</p>
+<pre class="cpp">static void jpeg_error_to_exception(j_common_ptr cinfo)
+{
+  char message[JMSG_LENGTH_MAX];
+  (*cinfo-&gt;err-&gt;format_message)(cinfo, message);
+  throw std::runtime_error(std::string("libjpeg : ") + message);
+}
+...
+cinfo.err = jpeg_std_error(&amp;jerr);
+jerr.error_exit = jpeg_error_to_exception;</pre>
+    </div>
+    <div>
+      <div class="block"><h3>Le try / catch(...) / throw;</h3><div class="petit">
+        <p>Si une exception part en pleine compression, il faut quand même <b>détruire l'objet libjpeg et fermer le fichier</b>. On attrape tout (<code>catch (...)</code>), on libère, puis <code>throw;</code> relance <b>la même</b> exception vers l'appelant.</p>
+      </div></div>
+      <div class="exemple"><h3>Testé dans tp3.cpp</h3><div class="petit">
+<pre class="cpp">try {
+  ColorImage* p = ColorImage::readJPEG("images/chat.ppm");
+  delete p;
+} catch (const std::runtime_error&amp; e) {
+  std::cout &lt;&lt; e.what() &lt;&lt; std::endl;
+}</pre>
+        <p>affiche : <code>libjpeg : Not a JPEG file: starts with 0x50 0x36</code> (0x50 0x36 = "P6" !).</p>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>Qualité contre taille (chat 320 × 240 avec les 3 cadres)</h2>
+  <div class="cols">
+    <div class="w2">
+      <table class="tres-petit">
+        <tr><th>fichier</th><th class="n">taille</th><th class="n">taux</th></tr>
+        <tr><td>tp3_chat.ppm (brut)</td><td class="n">230 483 o</td><td class="n">1 : 1</td></tr>
+        <tr><td>out_100.jpg</td><td class="n">73 468 o</td><td class="n">3 : 1</td></tr>
+        <tr><td>out_090.jpg</td><td class="n">29 368 o</td><td class="n">8 : 1</td></tr>
+        <tr><td><b>out_075.jpg</b> = défaut</td><td class="n">18 908 o</td><td class="n">12 : 1</td></tr>
+        <tr><td>out_050.jpg</td><td class="n">13 334 o</td><td class="n">17 : 1</td></tr>
+        <tr><td>out_025.jpg</td><td class="n">9 358 o</td><td class="n">25 : 1</td></tr>
+        <tr><td>out_005.jpg</td><td class="n">3 955 o</td><td class="n">58 : 1</td></tr>
+        <tr><td>out_000.jpg</td><td class="n">3 005 o</td><td class="n">77 : 1</td></tr>
+      </table>
+      <p class="tres-petit">taux = taille originale / taille compressée (CM diapo 55). <code>tp3_chat.jpg</code> (sans qualité donnée) fait aussi 18 908 octets : le défaut est bien 75.</p>
+    </div>
+    <div class="w2">
+      <div class="cols" style="gap:2mm">
+        <div class="centre"><img src="file://IMG/qppm.png" style="width:100%"><p class="tres-petit">PPM</p></div>
+        <div class="centre"><img src="file://IMG/q100.png" style="width:100%"><p class="tres-petit">100</p></div>
+        <div class="centre"><img src="file://IMG/q075.png" style="width:100%"><p class="tres-petit">75</p></div>
+      </div>
+      <div class="cols" style="gap:2mm">
+        <div class="centre"><img src="file://IMG/q050.png" style="width:100%"><p class="tres-petit">50</p></div>
+        <div class="centre"><img src="file://IMG/q025.png" style="width:100%"><p class="tres-petit">25</p></div>
+        <div class="centre"><img src="file://IMG/q005.png" style="width:100%"><p class="tres-petit">5</p></div>
+      </div>
+      <p class="tres-petit">Même à 100 %, les cadres sont plus ternes et baveux (sujet) : la couleur est sous-échantillonnée, et un trait d'1 pixel est un détail très fin, le pire cas pour JPEG.</p>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>Bonus : readJPEG</h2>
+  <div class="cols">
+    <div>
+<pre class="cpp petit">ColorImage* ColorImage::readJPEG(const char* fname)
+{
+  FILE* infile = std::fopen(fname, "rb");
+  if (infile == nullptr)
+    throw std::runtime_error(std::string("readJPEG : impossible d'ouvrir ") + fname);
+  jpeg_decompress_struct cinfo;
+  jpeg_error_mgr         jerr;
+  cinfo.err = jpeg_std_error(&amp;jerr);
+  jerr.error_exit = jpeg_error_to_exception;
+  jpeg_create_decompress(&amp;cinfo);
+  ColorImage* res = nullptr;
+  try {
+    jpeg_stdio_src(&amp;cinfo, infile);
+    jpeg_read_header(&amp;cinfo, TRUE);  // taille, composantes...
+    cinfo.out_color_space = JCS_RGB;  // toujours r, g, b
+    jpeg_start_decompress(&amp;cinfo);
+    if (cinfo.output_width &gt; 65535 || cinfo.output_height &gt; 65535)
+      throw std::runtime_error("readJPEG : image trop grande");
+    res = new ColorImage(uint16_t(cinfo.output_width),
+                         uint16_t(cinfo.output_height));</pre>
+    </div>
+    <div>
+<pre class="cpp petit">    while (cinfo.output_scanline &lt; cinfo.output_height) {
+      JSAMPROW row_pointer[1];
+      row_pointer[0] = (JSAMPROW)(res-&gt;array
+             + size_t(cinfo.output_scanline) * res-&gt;width);
+      jpeg_read_scanlines(&amp;cinfo, row_pointer, 1);
+    }
+    jpeg_finish_decompress(&amp;cinfo);
+  } catch (...) {
+    delete res;           // delete nullptr ne fait rien
+    jpeg_destroy_decompress(&amp;cinfo);
+    std::fclose(infile);
+    throw;
+  }
+  jpeg_destroy_decompress(&amp;cinfo);
+  std::fclose(infile);
+  return res;
+}</pre>
+      <ul class="tres-petit">
+        <li>Même structure à l'envers. La taille n'est connue qu'après <code>jpeg_read_header</code> : on crée l'image à ce moment-là.</li>
+        <li>Test : dans <code>out_075.jpg</code>, le pixel (10, 120) du cadre vert (0, 255, 0) vaut <b>(89, 189, 93)</b> : c'est la perte JPEG.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>Ce qui a été corrigé, et questions possibles</h2>
+  <div class="cols">
+    <div>
+      <table class="tres-petit">
+        <tr><th>Version Gemini</th><th>Correction</th></tr>
+        <tr><td>Gestionnaire d'erreur par défaut : la moindre erreur libjpeg arrête tout le programme avec <code>exit()</code>.</td><td><code>error_exit</code> remplacé par une fonction qui lève une exception (demandé par le sujet) + libération dans un <code>catch</code>.</td></tr>
+        <tr><td>Qualité non vérifiée.</td><td><code>invalid_argument</code> si &gt; 100.</td></tr>
+        <tr><td>GrayImage absente du dossier TP3.</td><td>Un seul projet avec tout.</td></tr>
+        <tr><td>Cadres à 10, 14 et 18 pixels.</td><td>5, 10 et 15 pixels comme sur la figure du sujet.</td></tr>
+      </table>
+    </div>
+    <div class="petit">
+      <ol>
+        <li><b>Pourquoi <code>extern "C"</code> ?</b> Les fonctions sont compilées en C : sans ce bloc, le compilateur C++ chercherait des noms « décorés » (surcharge) et l'édition de liens échouerait.</li>
+        <li><b>À quoi sert <code>-ljpeg</code> ?</b> À lier le programme avec la bibliothèque, à l'édition de liens.</li>
+        <li><b>JPEG est-il adapté à un schéma, un logo ?</b> Non (CM diapo 66) : contours nets et peu de couleurs → PNG ou GIF.</li>
+        <li><b>Où est la perte ?</b> Sous-échantillonnage des couleurs et quantification des coefficients de la DCT.</li>
+        <li><b>Taux de compression de 230 Ko vers 19 Ko ?</b> ≈ 12 : 1.</li>
+      </ol>
+    </div>
+  </div>
+</section>

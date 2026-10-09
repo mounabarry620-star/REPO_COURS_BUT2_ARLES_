@@ -1,0 +1,215 @@
+<section class="slide titre">
+  <div class="bandeau">
+    <h1>TP5 : tracer des segments, l'algorithme de Bresenham</h1>
+    <p>R3.L01 — Représentations et codages des images</p>
+  </div>
+  <div class="infos">
+    <p>Fiche d'explication du TP, écrite à partir du sujet du TP5 (algorithmes donnés par le sujet) et du cours (CM diapos 42 et 47 : grille carrée, aliasing).</p>
+    <p class="note">Code complet et testé : <code>PROJET_FINAL/Image.cpp</code> (ColorImage::line), <code>tp5.cpp</code></p>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>Le problème : un segment sur une grille de pixels</h2>
+  <div class="cols">
+    <div>
+      <svg width="66mm" height="30mm" viewBox="0 0 264 120">
+        <g stroke="#ccc" stroke-width=".6">
+          <path d="M0 10 H252 M0 38 H252 M0 66 H252 M0 94 H252"/>
+          <path d="M0 10 V122 M28 10 V122 M56 10 V122 M84 10 V122 M112 10 V122 M140 10 V122 M168 10 V122 M196 10 V122 M224 10 V122 M252 10 V122"/>
+        </g>
+        <g fill="#3333b3" opacity=".75">
+          <rect x="0" y="10" width="28" height="28"/><rect x="28" y="10" width="28" height="28"/><rect x="56" y="38" width="28" height="28"/><rect x="84" y="38" width="28" height="28"/><rect x="112" y="66" width="28" height="28"/><rect x="140" y="66" width="28" height="28"/><rect x="168" y="66" width="28" height="28"/><rect x="196" y="94" width="28" height="28"/><rect x="224" y="94" width="28" height="28"/>
+        </g>
+        <line x1="14" y1="24" x2="238" y2="108" stroke="#b31a1a" stroke-width="2"/>
+      </svg>
+      <p class="petit">Segment de (0, 0) à (8, 3) : la droite idéale (en rouge) passe entre les pixels. On doit choisir, <b>pour chaque colonne</b>, le pixel le plus proche de la droite.</p>
+      <p class="tres-petit">Résultat inévitable : des « marches d'escalier ». C'est l'aliasing spatial du CM (diapo 47).</p>
+    </div>
+    <div>
+      <svg width="52mm" height="44mm" viewBox="0 0 208 176">
+        <defs><marker id="f7" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0 0 L7 3.5 L0 7 z" fill="#333"/></marker></defs>
+        <path d="M104 88 H200" stroke="#333" marker-end="url(#f7)"/><path d="M104 88 V172" stroke="#333" marker-end="url(#f7)"/>
+        <path d="M104 88 H8 M104 88 V4" stroke="#333"/>
+        <path d="M104 88 L184 168 M104 88 L24 168 M104 88 L24 8 M104 88 L184 8" stroke="#999" stroke-dasharray="3 2"/>
+        <text x="196" y="82" font-size="10">x</text><text x="110" y="172" font-size="10">y</text>
+        <g font-size="10" fill="#1f1f6b" font-weight="bold">
+          <text x="160" y="112">1</text><text x="124" y="150">2</text><text x="72" y="150">3</text><text x="34" y="112">4</text>
+          <text x="34" y="72">5</text><text x="72" y="34">6</text><text x="124" y="34">7</text><text x="160" y="72">8</text>
+        </g>
+      </svg>
+      <p class="petit">Les 8 <b>octants</b>. L'axe y est <b>vers le bas</b> dans une image : l'octant 1 (0 ≤ dy ≤ dx) descend donc doucement vers la droite.</p>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>Premier octant : l'algorithme du sujet</h2>
+  <div class="cols">
+    <div>
+<pre class="cpp">// 0 &lt;= (y2-y1) &lt;= (x2-x1)
+const int c2 = 2 * (y2 - y1);
+const int c1 = c2 - 2 * (x2 - x1);
+int critere  = c2 - (x2 - x1);
+int x = x1, y = y1;
+while (x &lt;= x2) {
+  pixel(x, y) = couleur;
+  if (critere &gt;= 0) {   // changement de ligne horizontale
+    y++;
+    critere += c1;
+  } else                // toujours la même ligne
+    critere += c2;
+  x++;                  // colonne suivante
+}</pre>
+      <ul class="petit">
+        <li>Pente entre 0 et 1 : <b>x avance de 1</b> à chaque colonne, y de 0 ou 1. Le <b>critère</b> dit si la droite idéale a dépassé le milieu entre les deux pixels possibles.</li>
+        <li>Tout est <b>entier</b> : que des additions, ni division ni réel. D'où sa rapidité (1962 !).</li>
+      </ul>
+    </div>
+    <div style="flex:1.2">
+      <div class="exemple"><h3>Déroulé de (0, 0) à (8, 3)</h3><div>
+        <p class="tres-petit">dx = 8, dy = 3 ; c2 = 6 ; c1 = 6 − 16 = −10 ; départ : 6 − 8 = −2. Si critère &lt; 0 on ajoute c2, sinon c1.</p>
+        <table class="tres-petit">
+          <tr><th>x</th><th>y</th><th>critère</th><th>décision</th><th>critère suivant</th></tr>
+          <tr><td>0</td><td>0</td><td>−2</td><td>même ligne</td><td>4</td></tr>
+          <tr><td>1</td><td>0</td><td>4</td><td>≥ 0 : y++</td><td>−6</td></tr>
+          <tr><td>2</td><td>1</td><td>−6</td><td>même ligne</td><td>0</td></tr>
+          <tr><td>3</td><td>1</td><td>0</td><td>y++</td><td>−10</td></tr>
+          <tr><td>4</td><td>2</td><td>−10</td><td>même ligne</td><td>−4</td></tr>
+          <tr><td>5</td><td>2</td><td>−4</td><td>même ligne</td><td>2</td></tr>
+          <tr><td>6</td><td>2</td><td>2</td><td>y++</td><td>−8</td></tr>
+          <tr><td>7</td><td>3</td><td>−8</td><td>même ligne</td><td>−2</td></tr>
+          <tr><td>8</td><td>3</td><td>−2</td><td>(fin)</td><td></td></tr>
+        </table>
+        <p class="tres-petit">Ce sont les pixels de la page précédente. Les « 2 × » : on compare à un <b>demi</b>-pixel ; tout multiplier par 2 dx supprime le 0,5 et la fraction dy/dx.</p>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>Deuxième octant, puis les 8 octants</h2>
+  <div class="cols">
+    <div class="petit">
+      <div class="block"><h3>Octant 2 : échanger les rôles de x et y</h3><div>
+        <p>Si la pente est plus forte que 1 (longY ≥ longX), avancer d'une colonne à la fois laisserait des trous. On avance donc <b>d'une ligne à la fois</b> : <code>y++</code> à chaque tour, et <code>x++</code> seulement quand le critère est ≥ 0. Dans les formules, longX et longY échangent leur place.</p>
+      </div></div>
+      <div class="block"><h3>Octants 3 à 8 (sujet)</h3><div>
+        <ul>
+          <li>Remplacer <code>x++</code> par <code>x += incX</code>, avec <code>incX</code> = +1 ou −1 (idem pour y).</li>
+          <li>longX et longY doivent rester <b>positives</b> : on prend leur valeur absolue.</li>
+          <li>On ne peut plus tester <code>x &lt;= x2</code> (x peut décroître) : on <b>compte les points</b>, de 0 à longX (ou longY).</li>
+        </ul>
+      </div></div>
+    </div>
+    <div>
+      <svg width="60mm" height="50mm" viewBox="0 0 240 200">
+        <g stroke="#ccc" stroke-width=".6">
+          <path d="M20 10 H220 M20 30 H220 M20 50 H220 M20 70 H220 M20 90 H220 M20 110 H220 M20 130 H220 M20 150 H220 M20 170 H220 M20 190 H220"/>
+          <path d="M20 10 V190 M40 10 V190 M60 10 V190 M80 10 V190 M100 10 V190 M120 10 V190 M140 10 V190 M160 10 V190 M180 10 V190 M200 10 V190 M220 10 V190"/>
+        </g>
+        <g fill="#5dbb5d"><rect x="100" y="90" width="20" height="20"/><rect x="120" y="110" width="20" height="20"/><rect x="120" y="130" width="20" height="20"/><rect x="140" y="150" width="20" height="20"/><rect x="140" y="170" width="20" height="20"/></g>
+        <g fill="#e85d5d"><rect x="80" y="90" width="20" height="20"/><rect x="60" y="70" width="20" height="20"/><rect x="40" y="70" width="20" height="20"/><rect x="20" y="50" width="20" height="20"/></g>
+        <rect x="100" y="90" width="20" height="20" fill="#1f1f6b"/>
+        <text x="146" y="104" font-size="10" fill="#1a7a1a">octant 2 :</text><text x="146" y="116" font-size="10" fill="#1a7a1a">1 point par ligne</text>
+        <text x="22" y="122" font-size="10" fill="#b31a1a">octant 5 :</text><text x="22" y="134" font-size="10" fill="#b31a1a">incX = incY = −1</text>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>ColorImage::line : la version généralisée</h2>
+  <div class="cols">
+    <div>
+<pre class="cpp">void ColorImage::line(uint16_t x1, uint16_t y1,
+                      uint16_t x2, uint16_t y2,
+                      const Color pixel_value)
+{
+  if (x1 &gt;= width || x2 &gt;= width || y1 &gt;= height || y2 &gt;= height)
+    throw std::out_of_range("line : extrémité hors de l'image");
+  int x = x1, y = y1;  // int : uint16_t ne sait pas valoir -1
+  int longX = x2 - x1;
+  int longY = y2 - y1;
+  const int incX = (longX &gt;= 0) ? 1 : -1;
+  const int incY = (longY &gt;= 0) ? 1 : -1;
+  if (longX &lt; 0) longX = -longX;
+  if (longY &lt; 0) longY = -longY;</pre>
+      <p class="petit">Le prototype est celui du sujet (<code>ushort</code> = <code>uint16_t</code>) ; on travaille ensuite en <code>int</code>, où x peut décroître.</p>
+    </div>
+    <div>
+<pre class="cpp">  if (longY &lt; longX) {          // un point par colonne
+    const int c1 = 2 * (longY - longX);
+    const int c2 = 2 * longY;
+    int critere  = c2 - longX;
+    for (int i = 0; i &lt;= longX; i++) {
+      pixel(uint16_t(x), uint16_t(y)) = pixel_value;
+      if (critere &gt;= 0) { y += incY; critere += c1; }
+      else                critere += c2;
+      x += incX;
+    }
+  } else {                      // un point par ligne
+    const int c1 = 2 * (longX - longY);
+    const int c2 = 2 * longX;
+    int critere  = c2 - longY;
+    for (int i = 0; i &lt;= longY; i++) {
+      pixel(uint16_t(x), uint16_t(y)) = pixel_value;
+      if (critere &gt;= 0) { x += incX; critere += c1; }
+      else                critere += c2;
+      y += incY;
+    }
+  }
+}</pre>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>Les trois tests du sujet</h2>
+  <div class="cols">
+    <div class="centre">
+      <img src="file://IMG/tp5_octant1.png" style="width:66%">
+      <p class="tres-petit"><b>Octant 1</b> : 400 × 400, fond rouge, de (0, 0) vers (399, y), y de 10 en 10.<br><span class="ok">identique à l'image du sujet</span></p>
+    </div>
+    <div class="centre">
+      <img src="file://IMG/tp5_octants12.png" style="width:66%">
+      <p class="tres-petit"><b>Octants 1 et 2</b> : on ajoute (0, 0) → (x, 399).<br><span class="ok">identique à l'image du sujet</span></p>
+    </div>
+    <div class="centre">
+      <img src="file://IMG/tp5_cercle.png" style="width:66%">
+      <p class="tres-petit"><b>8 octants</b> : 500 × 500, du centre (250, 250) vers le cercle de rayon 200, tous les 5°.<br>Écart d'au plus 1 pixel sur quelques extrémités (arrondi de cos/sin).</p>
+    </div>
+  </div>
+<pre class="cpp">for (int degres = 0; degres &lt; 360; degres += 5) {
+  double angle = degres * M_PI / 180.0;          // cos et sin attendent des RADIANS (&lt;cmath&gt;)
+  uint16_t x = uint16_t(std::lround(250 + 200 * std::cos(angle)));
+  uint16_t y = uint16_t(std::lround(250 + 200 * std::sin(angle)));
+  im3.line(250, 250, x, y, bleu);
+  im3.pixel(x, y) = blanc;                       // le point visé, en blanc comme sur la figure
+}</pre>
+</section>
+
+<section class="slide">
+  <h2>Ce qui a été corrigé, et questions possibles</h2>
+  <div class="cols">
+    <div>
+      <table class="tres-petit">
+        <tr><th>Version Gemini</th><th>Correction</th></tr>
+        <tr><td><code>line(int16_t, int16_t, ...)</code> : <b>ce n'est pas le prototype du sujet</b> (<code>ushort</code>), alors que les noms et prototypes sont vérifiés.</td><td><code>line(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, const Color)</code>, calculs internes en <code>int</code>.</td></tr>
+        <tr><td>Points hors de l'image ignorés en silence.</td><td>Exception <code>out_of_range</code>, comme partout ailleurs.</td></tr>
+        <tr><td>Commentaire PPM « TP5 Bresenham - Eric Remy ».</td><td>Le nom de l'étudiant (c'est lui qui écrit l'image).</td></tr>
+        <tr><td>TGA, JPEG et rééchantillonnage absents du dossier TP5.</td><td>Un seul projet complet.</td></tr>
+        <tr><td>Points du cercle non dessinés en blanc.</td><td>Ajoutés, comme sur la figure.</td></tr>
+      </table>
+    </div>
+    <div class="petit">
+      <ol>
+        <li><b>Pourquoi Bresenham est rapide ?</b> Uniquement des additions et des comparaisons d'entiers.</li>
+        <li><b>Combien de pixels pour (0, 0) → (8, 3) ?</b> 9 : un par colonne, longX + 1.</li>
+        <li><b>Et pour (0, 0) → (2, 7) ?</b> Octant 2 : un par ligne, 8 pixels.</li>
+        <li><b>Pourquoi les variables internes en <code>int</code> ?</b> x peut décroître (incX = −1) et longX peut être négatif avant la valeur absolue : un <code>uint16_t</code> passerait à 65535.</li>
+        <li><b>Piège classique</b> : <code>std::cos(5)</code> prend 5 <b>radians</b>, pas 5 degrés.</li>
+      </ol>
+    </div>
+  </div>
+</section>

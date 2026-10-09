@@ -1,0 +1,433 @@
+<section class="slide titre">
+  <div class="bandeau">
+    <h1>TP4 : le format Targa (TGA) et la compression RLE</h1>
+    <p>R3.L01 — Représentations et codages des images</p>
+  </div>
+  <div class="infos">
+    <p>Fiche d'explication du TP, écrite à partir du cours (CM diapos 15 à 21, 40, 57 et 59), du sujet du TP4, de <code>TGA.pdf</code>, <code>tgaffs.pdf</code> et de la fiche « Manipulations des nombres entiers binaires ».</p>
+    <p class="note">Code complet et testé : <code>PROJET_FINAL/Image.cpp</code> (writeTGA, readTGA), <code>tp4.cpp</code></p>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>Ce qu'il faut faire</h2>
+  <div class="cols">
+    <div class="w3">
+      <div class="block"><h3>Les deux fonctions demandées</h3><div>
+<pre class="cpp">void ColorImage::writeTGA(std::ostream&amp; f, bool rle = true) const;
+static ColorImage* ColorImage::readTGA(std::istream&amp; f);</pre>
+      </div></div>
+      <ol class="petit">
+        <li>Écriture puis lecture du <b>sous-format 2</b> : RGB 24 bits non compressé.</li>
+        <li>Lecture du <b>sous-format 1</b> : image avec palette 24 bits, non compressée. L'image est convertie en RGB (notre <code>ColorImage</code> ne garde pas de palette).</li>
+        <li>Écriture du <b>sous-format 10</b> : RGB compressé en RLE, quand <code>rle</code> vaut vrai (par défaut).</li>
+      </ol>
+      <p class="petit">On ne gère que les couleurs 24 bits. Tout autre cas (16 ou 32 bits, sous-format inconnu...) doit lever une <b>exception dérivée de <code>std::exception</code></b> : « il n'est pas acceptable que votre programme ne fasse rien » (sujet).</p>
+    </div>
+    <div class="w2">
+      <table class="petit">
+        <tr><th>type</th><th>contenu (TGA.pdf)</th></tr>
+        <tr><td>0</td><td>pas d'image</td></tr>
+        <tr><td><b>1</b></td><td><b>palette, non compressé</b></td></tr>
+        <tr><td><b>2</b></td><td><b>RGB, non compressé</b></td></tr>
+        <tr><td>3</td><td>noir et blanc, non compressé</td></tr>
+        <tr><td>9</td><td>palette, RLE</td></tr>
+        <tr><td><b>10</b></td><td><b>RGB, RLE</b></td></tr>
+        <tr><td>11</td><td>noir et blanc, compressé</td></tr>
+      </table>
+<pre>cd PROJET_FINAL
+make tp4 &amp;&amp; ./tp4</pre>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>L'en-tête : 18 octets binaires (et plus de texte !)</h2>
+  <div class="cols">
+    <div class="w3">
+      <table class="tres-petit">
+        <tr><th class="n">octet</th><th class="n">taille</th><th>champ</th><th>chat.tga</th></tr>
+        <tr><td class="n">0</td><td class="n">1</td><td>longueur du champ d'identification</td><td class="hex">00</td></tr>
+        <tr><td class="n">1</td><td class="n">1</td><td>type de palette (0 : aucune, 1 : présente)</td><td class="hex">00</td></tr>
+        <tr><td class="n">2</td><td class="n">1</td><td><b>sous-format</b> (1, 2, 10...)</td><td class="hex"><b>02</b></td></tr>
+        <tr><td class="n">3</td><td class="n">2</td><td>palette : indice de la 1<sup>re</sup> entrée</td><td class="hex">00 00</td></tr>
+        <tr><td class="n">5</td><td class="n">2</td><td>palette : nombre d'entrées</td><td class="hex">00 00</td></tr>
+        <tr><td class="n">7</td><td class="n">1</td><td>palette : bits par entrée (24)</td><td class="hex">00</td></tr>
+        <tr><td class="n">8</td><td class="n">2</td><td>X origine</td><td class="hex">00 00</td></tr>
+        <tr><td class="n">10</td><td class="n">2</td><td>Y origine</td><td class="hex">00 00</td></tr>
+        <tr><td class="n">12</td><td class="n">2</td><td><b>largeur</b></td><td class="hex"><b>40 01</b> = 0x0140 = 320</td></tr>
+        <tr><td class="n">14</td><td class="n">2</td><td><b>hauteur</b></td><td class="hex"><b>f0 00</b> = 0x00f0 = 240</td></tr>
+        <tr><td class="n">16</td><td class="n">1</td><td><b>bits par pixel</b></td><td class="hex">18 = 24</td></tr>
+        <tr><td class="n">17</td><td class="n">1</td><td><b>descripteur</b> (bit 5 : origine en haut)</td><td class="hex">20</td></tr>
+      </table>
+    </div>
+    <div class="w2 petit">
+      <p>Ensuite : le champ d'identification (sa longueur est l'octet 0, souvent 0), la palette s'il y en a une, puis les pixels.</p>
+      <p>Contrairement à PGM/PPM, <b>rien n'est en texte</b> : 320 est stocké sur 2 octets binaires. Pas de magic number non plus : il faut vérifier chaque champ.</p>
+      <p>TGA brut 320 × 240 : 18 + 320 × 240 × 3 = <b>230 418</b> octets.</p>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>Les entiers de 16 bits : little endian (« lo-hi ») <small>CM diapos 15 à 19</small></h2>
+  <div class="cols">
+    <div>
+      <svg width="68mm" height="22mm" viewBox="0 0 272 88">
+        <text x="0" y="14" font-size="10">largeur = 320 = 0x0140</text>
+        <g class="mono" font-size="11" text-anchor="middle">
+          <rect x="0" y="24" width="56" height="22" fill="#cfd8ff" stroke="#333"/><text x="28" y="39">01</text>
+          <rect x="56" y="24" width="56" height="22" fill="#ffe2b8" stroke="#333"/><text x="84" y="39">40</text>
+          <text x="28" y="60" font-size="9">poids fort</text><text x="84" y="60" font-size="9">poids faible</text>
+          <rect x="160" y="24" width="56" height="22" fill="#ffe2b8" stroke="#333"/><text x="188" y="39">40</text>
+          <rect x="216" y="24" width="56" height="22" fill="#cfd8ff" stroke="#333"/><text x="244" y="39">01</text>
+          <text x="188" y="60" font-size="9">octet 12</text><text x="244" y="60" font-size="9">octet 13</text>
+        </g>
+        <path d="M118 35 H154" stroke="#1f1f6b" stroke-width="1.5" marker-end="url(#f5)"/>
+        <defs><marker id="f5" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0 0 L7 3.5 L0 7 z" fill="#1f1f6b"/></marker></defs>
+        <text x="160" y="80" font-size="9.5">dans le fichier : poids faible d'abord</text>
+      </svg>
+      <p class="petit">On pourrait écrire <code>os.write((const char*)&amp;width, 2)</code> : ça marche sur un PC Intel (little endian)... et donne un fichier faux sur une machine big endian. Avec des <b>décalages et des masques</b>, le code est correct sur toutes les machines (TD2, exercice 2, question 3).</p>
+    </div>
+    <div>
+<pre class="cpp">// Écrit un entier 16 bits en little endian,
+// quel que soit le processeur.
+static void write_uint16_le(std::ostream&amp; os, uint16_t v)
+{
+  os.put(char(v &amp; 0xFF)); // octet de poids faible d'abord
+  os.put(char(v &gt;&gt; 8));   // puis octet de poids fort
+}
+
+// Relit un entier 16 bits little endian.
+static uint16_t read_uint16_le(const uint8_t* p)
+{ return uint16_t(p[0] | (p[1] &lt;&lt; 8)); }</pre>
+      <div class="exemple"><h3>Les opérateurs bit à bit (fiche du prof)</h3><div class="tres-petit">
+        <p><code>0x0140 &amp; 0xFF</code> = 0x40 : le masque garde les 8 bits de droite.<br>
+        <code>0x0140 &gt;&gt; 8</code> = 0x01 : décaler de 8 rangs à droite = diviser par 2<sup>8</sup>.<br>
+        <code>0x40 | (0x01 &lt;&lt; 8)</code> = 0x40 | 0x100 = 0x140 : on recolle les deux octets.</p>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>Le descripteur (octet 17) : dans quel sens sont les lignes ?</h2>
+  <div class="cols">
+    <div>
+      <svg width="70mm" height="28mm" viewBox="0 0 280 112" class="mono">
+        <g font-size="11" text-anchor="middle">
+          <text x="18" y="12">7</text><text x="48" y="12">6</text><text x="78" y="12">5</text><text x="108" y="12">4</text><text x="138" y="12">3</text><text x="168" y="12">2</text><text x="198" y="12">1</text><text x="228" y="12">0</text>
+          <rect x="4" y="18" width="30" height="22" fill="#eee" stroke="#333"/><rect x="34" y="18" width="30" height="22" fill="#eee" stroke="#333"/>
+          <rect x="64" y="18" width="30" height="22" fill="#ffe2b8" stroke="#333"/><rect x="94" y="18" width="30" height="22" fill="#eee" stroke="#333"/>
+          <rect x="124" y="18" width="120" height="22" fill="#f6f6fb" stroke="#333"/>
+          <text x="18" y="34">0</text><text x="48" y="34">0</text><text x="78" y="34">1</text><text x="108" y="34">0</text><text x="184" y="34">0 0 0 0</text>
+        </g>
+        <g font-size="9" font-family="DejaVu Sans">
+          <text x="4" y="58">7-6 : entrelacement (00 = non)</text>
+          <text x="4" y="72" fill="#a36a00">5 : 1 = 1re ligne écrite = ligne du HAUT</text>
+          <text x="4" y="86">4 : 1 = pixels de droite à gauche</text>
+          <text x="4" y="100">3-0 : bits d'attribut (alpha), 0 en 24 bits</text>
+        </g>
+        <text x="252" y="34" font-size="10" font-family="DejaVu Sans">= 0x20</text>
+      </svg>
+<pre class="cpp">const bool topToBottom = (descriptor &amp; 0x20) != 0; // bit 5
+if (descriptor &amp; 0x10)    // bit 4
+  throw std::runtime_error("readTGA : ordre de droite à gauche non géré");
+if (descriptor &amp; 0xC0)    // bits 7 et 6
+  throw std::runtime_error("readTGA : images entrelacées non gérées");</pre>
+    </div>
+    <div>
+      <svg width="62mm" height="30mm" viewBox="0 0 248 120">
+        <text x="0" y="10" font-size="10">bit 5 = 0 (palette_bl.tga, chanel.tga)</text>
+        <g stroke="#333" stroke-width=".7"><rect x="0" y="16" width="100" height="14" fill="#d4f0d4"/><rect x="0" y="30" width="100" height="14" fill="#ffe2b8"/><rect x="0" y="44" width="100" height="14" fill="#cfd8ff"/></g>
+        <g font-size="9"><text x="106" y="27">3e ligne lue</text><text x="106" y="41">2e ligne lue</text><text x="106" y="55">1re ligne lue</text></g>
+        <text x="0" y="76" font-size="10">bit 5 = 1 (chat.tga, nos fichiers)</text>
+        <g stroke="#333" stroke-width=".7"><rect x="0" y="82" width="100" height="12" fill="#cfd8ff"/><rect x="0" y="94" width="100" height="12" fill="#ffe2b8"/><rect x="0" y="106" width="100" height="12" fill="#d4f0d4"/></g>
+        <g font-size="9"><text x="106" y="92">1re ligne lue</text><text x="106" y="104">2e ligne lue</text><text x="106" y="116">3e ligne lue</text></g>
+      </svg>
+      <p class="petit">Par défaut, TGA range les lignes <b>de bas en haut</b> (comme un repère de maths). Le <i>n</i>-ième pixel lu va donc en :</p>
+<pre class="cpp">x   = n % width;
+row = n / width;              // rang de la ligne dans le fichier
+y   = topToBottom ? row : height - 1 - row;</pre>
+      <p class="tres-petit">Nous écrivons avec le bit 5 à 1 (de haut en bas, comme notre tableau). <code>palette_bl.tga</code> et <code>palette_tl.tga</code> donnent bien la même image à l'endroit.</p>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>Les pixels : BGR, et la palette du sous-format 1 <small>CM diapos 40-41</small></h2>
+  <div class="cols">
+    <div>
+      <div class="alert"><h3>Attention à l'ordre des composantes</h3><div class="petit">
+        <p>Un pixel 24 bits TGA est stocké <b>bleu, vert, rouge</b> (« 1 byte each of blue, green and red »), l'inverse du PPM. On ne peut donc pas écrire le tableau de <code>Color</code> d'un seul bloc.</p>
+<pre class="cpp">static void write_bgr(std::ostream&amp; os, const Color&amp; c)
+{
+  os.put(char(c.b));
+  os.put(char(c.g));
+  os.put(char(c.r));
+}
+// lecture : Color(bgr[2], bgr[1], bgr[0])</pre>
+      </div></div>
+      <p class="tres-petit">L'octet 16 vaut 24 (pixels RGB) ou 8 (indices de palette). Les cas 16 et 32 bits lèvent une exception.</p>
+    </div>
+    <div>
+      <svg width="64mm" height="34mm" viewBox="0 0 256 136">
+        <text x="0" y="12" font-size="10">pixels (1 octet = un indice)</text>
+        <g stroke="#333" class="mono" font-size="10" text-anchor="middle">
+          <rect x="0" y="18" width="26" height="20" fill="#fff"/><text x="13" y="32" stroke="none">0</text>
+          <rect x="26" y="18" width="26" height="20" fill="#fff"/><text x="39" y="32" stroke="none">0</text>
+          <rect x="52" y="18" width="26" height="20" fill="#fff"/><text x="65" y="32" stroke="none">2</text>
+          <rect x="78" y="18" width="26" height="20" fill="#fff"/><text x="91" y="32" stroke="none">1</text>
+        </g>
+        <text x="140" y="12" font-size="10">palette (b, g, r)</text>
+        <g stroke="#333" font-size="9" class="mono">
+          <rect x="140" y="18" width="20" height="18" fill="#e85d5d"/><text x="166" y="31" stroke="none">0 : 00 00 ff</text>
+          <rect x="140" y="38" width="20" height="18" fill="#5dbb5d"/><text x="166" y="51" stroke="none">1 : 00 ff 00</text>
+          <rect x="140" y="58" width="20" height="18" fill="#5d7de8"/><text x="166" y="71" stroke="none">2 : ff 00 00</text>
+        </g>
+        <path d="M65 40 C 70 90, 110 70, 138 67" fill="none" stroke="#b31a1a" stroke-width="1.3" marker-end="url(#f6)"/>
+        <defs><marker id="f6" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0 0 L7 3.5 L0 7 z" fill="#b31a1a"/></marker></defs>
+        <g stroke="#333"><rect x="0" y="96" width="26" height="20" fill="#e85d5d"/><rect x="26" y="96" width="26" height="20" fill="#e85d5d"/><rect x="52" y="96" width="26" height="20" fill="#5d7de8"/><rect x="78" y="96" width="26" height="20" fill="#5dbb5d"/></g>
+        <text x="0" y="130" font-size="9.5">image RGB obtenue après lecture</text>
+      </svg>
+      <ul class="tres-petit">
+        <li>La palette suit l'en-tête : <i>nombre d'entrées</i> × 3 octets b, g, r.</li>
+        <li>Un indice <code>v</code> désigne l'entrée <code>v − origine</code> (octets 3-4, souvent 0).</li>
+        <li>Indice hors de la palette = fichier invalide → exception.</li>
+        <li><code>chat010couleurs.tga</code> : palette de 10 couleurs, 1 octet par pixel.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>La compression RLE de TGA (sous-format 10) <small>CM diapo 59</small></h2>
+  <div class="cols">
+    <div>
+      <p class="petit"><b>Principe (CM)</b> : une suite de pixels identiques est remplacée par (nombre, valeur) ; une suite de pixels différents par (nombre, valeurs).</p>
+      <p class="petit">Dans TGA, chaque <b>paquet</b> commence par un octet d'en-tête :</p>
+      <svg width="70mm" height="22mm" viewBox="0 0 280 88" class="mono">
+        <g font-size="10" text-anchor="middle">
+          <rect x="0" y="4" width="34" height="22" fill="#ffe2b8" stroke="#333"/><text x="17" y="19">1</text>
+          <rect x="34" y="4" width="150" height="22" fill="#f6f6fb" stroke="#333"/><text x="109" y="19">nombre − 1 (7 bits)</text>
+          <text x="236" y="19" font-family="DejaVu Sans" font-size="9">+ 1 pixel répété</text>
+          <rect x="0" y="48" width="34" height="22" fill="#cfd8ff" stroke="#333"/><text x="17" y="63">0</text>
+          <rect x="34" y="48" width="150" height="22" fill="#f6f6fb" stroke="#333"/><text x="109" y="63">nombre − 1 (7 bits)</text>
+          <text x="236" y="63" font-family="DejaVu Sans" font-size="9">+ n pixels bruts</text>
+        </g>
+        <text x="0" y="84" font-size="9" font-family="DejaVu Sans">bit 7 : type du paquet ; 7 bits → au plus 127 + 1 = 128 pixels</text>
+      </svg>
+<pre class="cpp">int packet = is.get();
+size_t count = (packet &amp; 0x7F) + 1;   // 7 bits de droite, + 1
+if (packet &amp; 0x80)  { /* 1 couleur, répétée count fois */ }
+else                { /* count couleurs différentes   */ }</pre>
+    </div>
+    <div>
+      <div class="exemple"><h3>Exemple : une ligne de 7 pixels</h3><div class="petit">
+        <p>R R R R V B B (R = rouge, V = vert, B = bleu)</p>
+        <table class="tres-petit">
+          <tr><th>paquet</th><th>octets écrits</th></tr>
+          <tr><td>4 × R répété</td><td class="hex">83 | 00 00 ff</td></tr>
+          <tr><td>1 pixel brut</td><td class="hex">00 | 00 ff 00</td></tr>
+          <tr><td>2 × B répété</td><td class="hex">81 | ff 00 00</td></tr>
+        </table>
+        <p>12 octets au lieu de 7 × 3 = 21. <code>0x83</code> = 1000 0011 : bit 7 à 1, 3 + 1 = 4 pixels.</p>
+      </div></div>
+      <p class="tres-petit"><b>Cas défavorable</b> : une photo où les pixels voisins sont presque tous différents. Les paquets bruts ajoutent 1 octet tous les 128 pixels au plus : le fichier peut même grossir un peu. RLE est efficace « lorsque le nombre de couleurs est limité » (CM).</p>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>writeTGA : le code</h2>
+  <div class="cols">
+    <div>
+<pre class="cpp petit">void ColorImage::writeTGA(std::ostream&amp; os, bool rle) const
+{
+  os.put(0);                   // 0 : pas d'identification
+  os.put(0);                   // 1 : pas de palette
+  os.put(char(rle ? 10 : 2));  // 2 : sous-format
+  write_uint16_le(os, 0);      // 3-4 : palette (origine)
+  write_uint16_le(os, 0);      // 5-6 : palette (longueur)
+  os.put(0);                   // 7 : palette (bits)
+  write_uint16_le(os, 0);      // 8-9 : X origine
+  write_uint16_le(os, 0);      // 10-11 : Y origine
+  write_uint16_le(os, width);  // 12-13 : largeur
+  write_uint16_le(os, height); // 14-15 : hauteur
+  os.put(24);                  // 16 : bits par pixel
+  os.put(0x20);                // 17 : ligne du haut d'abord
+  for (uint16_t y = 0; y &lt; height; y++) {
+    if (!rle) {
+      for (uint16_t x = 0; x &lt; width; x++)
+        write_bgr(os, pixel(x, y));
+      continue;
+    }
+    ...   // paquets RLE de la ligne y (à droite)
+  }
+  if (!os)
+    throw std::runtime_error("writeTGA : erreur d'écriture");
+}</pre>
+    </div>
+    <div>
+<pre class="cpp petit">// Les paquets restent dans la ligne y.
+uint16_t x = 0;
+while (x &lt; width) {
+  // pixels identiques à pixel(x,y) ? (au plus 128)
+  uint16_t run = 1;
+  while (x + run &lt; width &amp;&amp; run &lt; 128
+         &amp;&amp; pixel(x + run, y) == pixel(x, y))
+    run++;
+  if (run &gt;= 2) {    // paquet répété
+    os.put(char(0x80 | (run - 1)));  // bit 7 à 1
+    write_bgr(os, pixel(x, y));
+    x += run;
+  } else {           // paquet brut : on avance tant
+    uint16_t n = 1;  // qu'aucune répétition ne commence
+    while (x + n &lt; width &amp;&amp; n &lt; 128 &amp;&amp;
+           !(x + n + 1 &lt; width &amp;&amp;
+             pixel(x + n, y) == pixel(x + n + 1, y)))
+      n++;
+    os.put(char(n - 1));             // bit 7 à 0
+    for (uint16_t k = 0; k &lt; n; k++)
+      write_bgr(os, pixel(x + k, y));
+    x += n;
+  }
+}</pre>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>readTGA (1/2) : lire et vérifier l'en-tête</h2>
+<pre class="cpp">uint8_t header[18];
+if (!is.read((char*)header, 18))
+  throw std::runtime_error("readTGA : en-tête incomplet");
+const uint8_t  idLength   = header[0];
+const uint8_t  cmapType   = header[1];
+const uint8_t  imageType  = header[2];
+const uint16_t cmapOrigin = read_uint16_le(header + 3);
+const uint16_t cmapLength = read_uint16_le(header + 5);
+const uint8_t  cmapBits   = header[7];
+const uint16_t w          = read_uint16_le(header + 12);
+const uint16_t h          = read_uint16_le(header + 14);
+const uint8_t  pixelBits  = header[16];
+const uint8_t  descriptor = header[17];
+// Tous les cas que l'on ne sait pas traiter lèvent une exception (sujet du TP4).
+if (imageType != 1 &amp;&amp; imageType != 2 &amp;&amp; imageType != 10)
+  throw std::runtime_error("readTGA : sous-format non géré (seuls 1, 2 et 10 le sont)");
+if (imageType == 1 &amp;&amp; (cmapType != 1 || pixelBits != 8))
+  throw std::runtime_error("readTGA : sous-format 1 attendu avec palette et indices 8 bits");
+if (imageType != 1 &amp;&amp; pixelBits != 24)
+  throw std::runtime_error("readTGA : seules les couleurs 24 bits sont gérées");
+if (cmapType &gt; 1 || (cmapType == 1 &amp;&amp; cmapBits != 24))
+  throw std::runtime_error("readTGA : seules les palettes 24 bits sont gérées");
+// ... + bits 4, 6, 7 du descripteur (page « descripteur ») et dimensions nulles
+is.ignore(idLength);   // champ d'identification : on le saute</pre>
+</section>
+
+<section class="slide">
+  <h2>readTGA (2/2) : palette puis pixels</h2>
+  <div class="cols">
+    <div style="flex:2">
+<pre class="cpp petit">std::vector&lt;Color&gt; palette;            // cmapLength entrées b, g, r
+for (uint16_t i = 0; cmapType == 1 &amp;&amp; i &lt; cmapLength; i++)
+  palette.push_back(read_tga_color(is, false, palette, 0));
+ColorImage* res = new ColorImage(w, h);
+try {
+  size_t n = 0;                          // rang du pixel lu
+  if (imageType == 10) {                 // paquets RLE
+    while (n &lt; total) {
+      int packet = is.get();
+      if (packet == EOF)
+        throw std::runtime_error("readTGA : fichier tronqué");
+      size_t count = (packet &amp; 0x7F) + 1;
+      if (n + count &gt; total)
+        throw std::runtime_error("readTGA : paquet RLE qui dépasse");
+      if (packet &amp; 0x80) {               // 1 couleur répétée count fois
+        Color c = read_tga_color(is, false, palette, 0);
+        for (size_t k = 0; k &lt; count; k++)
+          store_tga_pixel(*res, n++, topToBottom, c);
+      } else {                           // count couleurs différentes
+        for (size_t k = 0; k &lt; count; k++)
+          store_tga_pixel(*res, n++, topToBottom,
+                          read_tga_color(is, false, palette, 0));
+      }
+    }
+  } else {                               // types 1 et 2 : non compressé
+    for (n = 0; n &lt; total; n++)
+      store_tga_pixel(*res, n, topToBottom,
+                      read_tga_color(is, indexed, palette, cmapOrigin));
+  }
+} catch (...) { delete res; throw; }     // pas de fuite mémoire
+return res;</pre>
+    </div>
+    <div class="petit">
+      <ul>
+        <li><code>read_tga_color</code> lit 3 octets b, g, r, ou 1 indice de palette (type 1), et lève une exception si le fichier est tronqué ou l'indice invalide.</li>
+        <li><code>store_tga_pixel</code> range le <i>n</i>-ième pixel lu en <code>(n % w, ligne)</code>, en retournant l'image si l'origine est en bas.</li>
+        <li><code>total</code> = w × h.</li>
+        <li>Le <code>catch (...)</code> libère l'image si quoi que ce soit échoue, puis relance l'exception.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>Résultats et taux de compression</h2>
+  <div class="cols">
+    <div class="w3">
+      <table class="petit">
+        <tr><th>image</th><th class="n">brut (type 2)</th><th class="n">RLE (type 10)</th><th class="n">taux</th></tr>
+        <tr><td>chat.tga (photo)</td><td class="n">230 418 o</td><td class="n">207 106 o</td><td class="n">1,1 : 1</td></tr>
+        <tr><td>chat + bandeau jaune de 100 lignes</td><td class="n">230 418 o</td><td class="n">122 672 o</td><td class="n">1,9 : 1</td></tr>
+        <tr><td>chat010couleurs.tga (10 couleurs)</td><td class="n">230 418 o</td><td class="n">104 396 o</td><td class="n">2,2 : 1</td></tr>
+        <tr><td>palette_bl.tga (texte sur fond uni)</td><td class="n">242 208 o</td><td class="n">11 985 o</td><td class="n">20 : 1</td></tr>
+      </table>
+      <ul class="petit">
+        <li>Sur une photo, RLE ne gagne presque rien : les voisins sont rarement identiques.</li>
+        <li>Sur une image à peu de couleurs, avec de grandes zones unies, c'est très efficace.</li>
+        <li>Vérifié : chaque fichier écrit est relu à l'identique par notre <code>readTGA</code> <b>et</b> par ImageMagick (0 pixel différent), et <code>chanel.tga</code> (fourni, en RLE et de bas en haut) se lit correctement.</li>
+      </ul>
+    </div>
+    <div class="w2 centre">
+      <img src="file://IMG/palette.png" style="width:80%;border:.2mm solid #999">
+      <p class="tres-petit">palette_bl.tga relu puis réécrit : à l'endroit.</p>
+      <img src="file://IMG/chat10.png" style="width:55%">
+      <p class="tres-petit">chat010couleurs.tga (palette de 10 couleurs)</p>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>Ce qui a été corrigé par rapport à la version de Gemini</h2>
+  <table class="petit">
+    <tr><th>Point</th><th>Version Gemini</th><th>Correction</th></tr>
+    <tr><td>Contenu du dossier TP4</td><td><b>simpleScale, bilinearScale, writeJPEG, readJPEG ont disparu</b>, et la lecture PPM a perdu ses contrôles d'erreur.</td><td>Un seul projet qui garde tout le travail des TP1 à TP5.</td></tr>
+    <tr><td>Lecture des pixels</td><td><code>f.get(...)</code> sans vérification : un fichier tronqué donne une image remplie de valeurs au hasard, sans erreur.</td><td>Chaque lecture est vérifiée → <code>runtime_error("fichier tronqué")</code>.</td></tr>
+    <tr><td>Fuite mémoire</td><td>Exception (indice de palette invalide) après le <code>new</code> : l'image n'est jamais libérée.</td><td><code>try { ... } catch (...) { delete res; throw; }</code></td></tr>
+    <tr><td>Paquet RLE trop long</td><td>Non vérifié (écriture hors de l'image... arrêtée par <code>pixel()</code>, mais avec fuite).</td><td>Vérifié avant de décoder.</td></tr>
+    <tr><td>Descripteur</td><td>Bits 4, 6 et 7 ignorés.</td><td>Exception si droite à gauche ou entrelacé.</td></tr>
+  </table>
+</section>
+
+<section class="slide">
+  <h2>Questions possibles au contrôle</h2>
+  <div class="cols">
+    <div class="petit">
+      <ol>
+        <li><b>Lire la largeur dans l'en-tête <span class="hex">... 40 01 f0 00 ...</span></b> : 0x0140 = 320 (little endian) ; hauteur 0x00f0 = 240.</li>
+        <li><b>Taille d'un TGA type 2 de 100 × 50 ?</b> 18 + 100 × 50 × 3 = 15 018 octets.</li>
+        <li><b>Que vaut l'octet d'en-tête d'un paquet de 10 pixels identiques ?</b> 0x80 | 9 = 0x89.</li>
+        <li><b>Et de 128 pixels bruts ?</b> 0x7F.</li>
+      </ol>
+    </div>
+    <div class="petit">
+      <ol start="5">
+        <li><b>Décoder <span class="hex">82 ff 00 00 | 01 00 00 00 ff ff ff</span></b> : 3 pixels bleus, puis 2 pixels bruts : noir, blanc.</li>
+        <li><b>Tester si l'origine est en haut</b> : <code>(descriptor &amp; 0x20) != 0</code>.</li>
+        <li><b>Pourquoi ne pas écrire <code>array</code> en bloc ?</b> TGA attend b, g, r et notre <code>Color</code> est r, g, b.</li>
+        <li><b>Taille d'une image 320 × 240 avec palette de 256 couleurs ?</b> 18 + 256 × 3 + 320 × 240 = 77 586 octets, ≈ 3 fois moins qu'en 24 bits.</li>
+      </ol>
+    </div>
+  </div>
+</section>

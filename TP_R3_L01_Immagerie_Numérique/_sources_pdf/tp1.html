@@ -1,0 +1,478 @@
+<section class="slide titre">
+  <div class="bandeau">
+    <h1>TP1 &amp; TD1 : la classe GrayImage et le format PGM</h1>
+    <p>R3.L01 — Représentations et codages des images</p>
+  </div>
+  <div class="infos">
+    <p>Fiche d'explication du TP, écrite à partir du cours (CM diapos 8 à 28), du sujet du TD1 et du corrigé pris en TD.</p>
+    <p class="note">Code complet et testé : <code>PROJET_FINAL/Image.hpp</code>, <code>Image.cpp</code>, <code>tp1.cpp</code></p>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>Ce qu'il faut rendre</h2>
+  <div class="cols">
+    <div class="w3">
+      <div class="block"><h3>Fonctions demandées (noms et prototypes à respecter exactement)</h3><div>
+<pre class="cpp">GrayImage(uint16_t w, uint16_t h);            // + copie, destructeur
+const uint16_t&amp; getWidth() const;   const uint16_t&amp; getHeight() const;
+uint8_t&amp; pixel(uint16_t x, uint16_t y);       // + version const
+void clear(uint8_t gray = 0);
+void rectangle    (x, y, w, h, gray);         // cadre de 1 pixel
+void fillRectangle(x, y, w, h, gray);         // rectangle plein
+void writePGM(std::ostream&amp;) const;
+static GrayImage* readPGM(std::istream&amp;);
+void skip_line(std::istream&amp;);                 // TD1 question 3
+void skip_comments(std::istream&amp;);             // TD1 question 4</pre>
+      </div></div>
+    </div>
+    <div class="w2">
+      <div class="alert"><h3>Rappel (note.txt)</h3><div>
+        <ul class="petit">
+          <li>TP noté à la 5<sup>e</sup> séance : on rend <b>tout</b> le code des 5 séances.</li>
+          <li>Les noms de fonctions comptent.</li>
+          <li>Contrôle de TD : <b>14/10/2026</b>.</li>
+          <li>Le sujet annonce aussi <code>writeTGA</code>, <code>writeJPEG</code>... pour GrayImage : faits (TGA 3 et 11, JPEG gris).</li>
+        </ul>
+      </div></div>
+      <p class="petit">Toutes les erreurs se signalent par des <b>exceptions</b> de <code>&lt;stdexcept&gt;</code> :</p>
+      <ul class="petit">
+        <li><code>invalid_argument</code> : dimension nulle ;</li>
+        <li><code>out_of_range</code> : pixel ou rectangle hors de l'image ;</li>
+        <li><code>runtime_error</code> : fichier illisible ou mal formé.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>Une image en mémoire : le tableau « à plat » <small>CM diapo 25</small></h2>
+  <svg width="140mm" height="34mm" viewBox="0 0 560 136">
+    <text x="62" y="12" font-size="11" fill="#1f1f6b">image 5 × 3 (width = 5, height = 3)</text>
+    <g font-size="11" text-anchor="middle">
+      <text x="14" y="43">y=0</text><text x="14" y="69">y=1</text><text x="14" y="95">y=2</text>
+      <text x="47" y="122">x=0</text><text x="73" y="122">1</text><text x="99" y="122">2</text><text x="125" y="122">3</text><text x="151" y="122">4</text>
+    </g>
+    <g stroke="#333" stroke-width="1">
+      <rect x="34" y="24" width="26" height="26" fill="#cfd8ff"/><rect x="60" y="24" width="26" height="26" fill="#cfd8ff"/><rect x="86" y="24" width="26" height="26" fill="#cfd8ff"/><rect x="112" y="24" width="26" height="26" fill="#cfd8ff"/><rect x="138" y="24" width="26" height="26" fill="#cfd8ff"/>
+      <rect x="34" y="50" width="26" height="26" fill="#ffe2b8"/><rect x="60" y="50" width="26" height="26" fill="#ffe2b8"/><rect x="86" y="50" width="26" height="26" fill="#ffe2b8"/><rect x="112" y="50" width="26" height="26" fill="#ff9d5c"/><rect x="138" y="50" width="26" height="26" fill="#ffe2b8"/>
+      <rect x="34" y="76" width="26" height="26" fill="#d4f0d4"/><rect x="60" y="76" width="26" height="26" fill="#d4f0d4"/><rect x="86" y="76" width="26" height="26" fill="#d4f0d4"/><rect x="112" y="76" width="26" height="26" fill="#d4f0d4"/><rect x="138" y="76" width="26" height="26" fill="#d4f0d4"/>
+    </g>
+    <text x="125" y="67" font-size="10" text-anchor="middle">(3,1)</text>
+    <path d="M180 63 L215 63" stroke="#1f1f6b" stroke-width="2" marker-end="url(#fl1)"/>
+    <defs><marker id="fl1" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="#1f1f6b"/></marker></defs>
+    <g stroke="#333" stroke-width="1">
+      <rect x="225" y="50" width="22" height="26" fill="#cfd8ff"/><rect x="247" y="50" width="22" height="26" fill="#cfd8ff"/><rect x="269" y="50" width="22" height="26" fill="#cfd8ff"/><rect x="291" y="50" width="22" height="26" fill="#cfd8ff"/><rect x="313" y="50" width="22" height="26" fill="#cfd8ff"/>
+      <rect x="335" y="50" width="22" height="26" fill="#ffe2b8"/><rect x="357" y="50" width="22" height="26" fill="#ffe2b8"/><rect x="379" y="50" width="22" height="26" fill="#ffe2b8"/><rect x="401" y="50" width="22" height="26" fill="#ff9d5c"/><rect x="423" y="50" width="22" height="26" fill="#ffe2b8"/>
+      <rect x="445" y="50" width="22" height="26" fill="#d4f0d4"/><rect x="467" y="50" width="22" height="26" fill="#d4f0d4"/><rect x="489" y="50" width="22" height="26" fill="#d4f0d4"/><rect x="511" y="50" width="22" height="26" fill="#d4f0d4"/><rect x="533" y="50" width="22" height="26" fill="#d4f0d4"/>
+    </g>
+    <g font-size="9" text-anchor="middle" class="mono">
+      <text x="236" y="90">0</text><text x="258" y="90">1</text><text x="280" y="90">2</text><text x="302" y="90">3</text><text x="324" y="90">4</text><text x="346" y="90">5</text><text x="368" y="90">6</text><text x="390" y="90">7</text><text x="412" y="90">8</text><text x="434" y="90">9</text><text x="456" y="90">10</text><text x="478" y="90">11</text><text x="500" y="90">12</text><text x="522" y="90">13</text><text x="544" y="90">14</text>
+    </g>
+    <text x="280" y="42" font-size="10" text-anchor="middle">ligne 0</text><text x="390" y="42" font-size="10" text-anchor="middle">ligne 1</text><text x="500" y="42" font-size="10" text-anchor="middle">ligne 2</text>
+    <text x="412" y="112" font-size="10.5" text-anchor="middle" fill="#b31a1a">t = y × width + x = 1 × 5 + 3 = 8</text>
+  </svg>
+  <div class="cols">
+    <div>
+      <p>On met les lignes <b>bout à bout</b> dans un seul tableau de <code>width × height</code> cases. Le pixel <code>(x, y)</code> est à l'indice <b><code>t = y × width + x</code></b> : on saute <code>y</code> lignes complètes, puis on avance de <code>x</code>.</p>
+    </div>
+    <div>
+      <p class="petit">Pourquoi un seul tableau ? Une seule allocation, un seul <code>delete[]</code>, et surtout on peut écrire ou lire <b>tous les pixels d'un coup</b> avec <code>write</code>/<code>read</code> (les pixels sont rangés dans le même ordre que dans le fichier PGM).</p>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>La classe GrayImage <small>CM diapos 26 et 28</small></h2>
+  <div class="cols">
+    <div class="w3">
+<pre class="cpp">class GrayImage { // N'oubliez pas &lt;cstdint&gt; !
+  const uint16_t width, height; // dans [0;65535]
+         uint8_t  *array;       // pixels dans [0;255]
+  GrayImage() = delete;         // pas d'image sans taille
+public:
+  GrayImage&amp; operator=(const GrayImage&amp; b) = delete;
+  GrayImage(uint16_t w, uint16_t h);
+  GrayImage(const GrayImage&amp; orig);
+  ~GrayImage();
+  inline const uint16_t&amp; getWidth()  const { return width;  }
+  inline const uint16_t&amp; getHeight() const { return height; }
+  inline uint8_t&amp; pixel(uint16_t x, uint16_t y) {
+    if (x &gt;= width || y &gt;= height)
+      throw std::out_of_range("GrayImage::pixel : hors de l'image");
+    return array[y * width + x];
+  }
+  inline const uint8_t&amp; pixel(uint16_t x, uint16_t y) const { /* idem */ }
+  ...
+};</pre>
+    </div>
+    <div class="w2 petit">
+      <ul>
+        <li><b><code>uint8_t</code></b> : un pixel = exactement 1 octet, de 0 (noir) à 255 (blanc).</li>
+        <li><b><code>const</code> sur les dimensions</b> : la taille ne change jamais, donc on ne réalloue jamais le tableau.</li>
+        <li><b><code>= delete</code></b> : une image sans taille n'a pas de sens ; et <code>a = b</code> changerait la taille de <code>a</code>, impossible car <code>width</code> est <code>const</code>.</li>
+        <li><b><code>pixel()</code> renvoie une référence</b> : on peut l'utiliser à gauche d'un <code>=</code>, ex. <code>im.pixel(10,20) = 255;</code></li>
+        <li>La version <b><code>const</code></b> sert quand l'image est constante (ex. dans <code>writePGM() const</code>).</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>Constructeurs et destructeur <small>CM diapo 27</small></h2>
+  <div class="cols">
+    <div class="w3">
+<pre class="cpp">GrayImage::GrayImage(uint16_t w, uint16_t h)
+  : width(w), height(h), array(nullptr) // liste d'initialisation
+{
+  if (w == 0 || h == 0)
+    throw std::invalid_argument("GrayImage : largeur et hauteur doivent être &gt; 0");
+  array = new uint8_t[size_t(width) * height];
+}
+
+GrayImage::GrayImage(const GrayImage&amp; o) // copie PROFONDE
+  : width(o.width), height(o.height), array(nullptr)
+{
+  array = new uint8_t[size_t(width) * height];
+  for (size_t t = 0; t &lt; size_t(width) * height; t++)
+    array[t] = o.array[t];
+}
+
+GrayImage::~GrayImage()
+{ delete[] array; }  // new[] -&gt; delete[]</pre>
+      <p class="tres-petit"><code>width</code> étant <code>const</code>, on doit l'initialiser dans la liste après les « : » (impossible de l'affecter dans le corps).</p>
+    </div>
+    <div class="w2">
+      <svg width="58mm" height="38mm" viewBox="0 0 232 152">
+        <text x="0" y="12" font-size="10" fill="#b31a1a">Sans constructeur de copie :</text>
+        <rect x="0" y="20" width="56" height="22" fill="#cfd8ff" stroke="#333"/><text x="28" y="35" font-size="10" text-anchor="middle">a.array</text>
+        <rect x="0" y="50" width="56" height="22" fill="#cfd8ff" stroke="#333"/><text x="28" y="65" font-size="10" text-anchor="middle">b.array</text>
+        <rect x="120" y="32" width="100" height="26" fill="#ffe2b8" stroke="#333"/><text x="170" y="49" font-size="10" text-anchor="middle">pixels</text>
+        <path d="M56 31 L118 40" stroke="#333" marker-end="url(#fl2)"/><path d="M56 61 L118 50" stroke="#333" marker-end="url(#fl2)"/>
+        <text x="0" y="88" font-size="9">2 objets, 1 tableau : 2 delete[] → plantage</text>
+        <text x="0" y="108" font-size="10" fill="#1a7a1a">Avec (copie profonde) :</text>
+        <rect x="0" y="116" width="56" height="18" fill="#cfd8ff" stroke="#333"/><text x="28" y="129" font-size="9" text-anchor="middle">a.array</text>
+        <rect x="0" y="136" width="56" height="16" fill="#cfd8ff" stroke="#333"/><text x="28" y="148" font-size="9" text-anchor="middle">b.array</text>
+        <rect x="120" y="116" width="100" height="16" fill="#ffe2b8" stroke="#333"/><rect x="120" y="136" width="100" height="16" fill="#ffe2b8" stroke="#333"/>
+        <path d="M56 125 L118 124" stroke="#333" marker-end="url(#fl2)"/><path d="M56 144 L118 144" stroke="#333" marker-end="url(#fl2)"/>
+        <defs><marker id="fl2" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0 0 L7 3.5 L0 7 z" fill="#333"/></marker></defs>
+      </svg>
+      <ul class="tres-petit">
+        <li><b>Pourquoi <code>new</code> ?</b> On ne connaît la taille qu'à l'exécution, et une image est trop grosse pour la pile (<i>stack</i>) : on la met sur le tas (<i>heap</i>).</li>
+        <li>On n'initialise pas les pixels : <code>clear()</code> ou <code>readPGM()</code> le feront.</li>
+        <li><code>size_t(width) * height</code> : avec deux <code>uint16_t</code>, le calcul se fait en <code>int</code> et 65535 × 65535 déborde.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>clear, rectangle et fillRectangle</h2>
+  <div class="cols">
+    <div class="w3">
+<pre class="cpp">void GrayImage::clear(uint8_t gray)  // gray = 0 par défaut (dans le .hpp)
+{
+  for (size_t t = 0; t &lt; size_t(width) * height; t++)
+    array[t] = gray;
+}
+
+void GrayImage::rectangle(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint8_t gray)
+{
+  if (w == 0 || h == 0) return;                  // rien à dessiner
+  if (x + w &gt; width || y + h &gt; height)
+    throw std::out_of_range("GrayImage::rectangle : le rectangle sort de l'image");
+  for (uint16_t i = 0; i &lt; w; i++) {
+    pixel(x + i, y)         = gray;   // bord haut
+    pixel(x + i, y + h - 1) = gray;   // bord bas
+  }
+  for (uint16_t j = 0; j &lt; h; j++) {
+    pixel(x,         y + j) = gray;   // bord gauche
+    pixel(x + w - 1, y + j) = gray;   // bord droit
+  }
+}
+// fillRectangle : même vérification, puis double boucle j (lignes), i (colonnes)</pre>
+    </div>
+    <div class="w2">
+      <svg width="52mm" height="40mm" viewBox="0 0 208 160">
+        <g stroke="#bbb" stroke-width=".6">
+          <path d="M20 20 H200 M20 40 H200 M20 60 H200 M20 80 H200 M20 100 H200 M20 120 H200 M20 140 H200"/>
+          <path d="M20 20 V140 M40 20 V140 M60 20 V140 M80 20 V140 M100 20 V140 M120 20 V140 M140 20 V140 M160 20 V140 M180 20 V140 M200 20 V140"/>
+        </g>
+        <g fill="#3333b3" opacity=".85">
+          <rect x="40" y="40" width="120" height="20"/><rect x="40" y="100" width="120" height="20"/>
+          <rect x="40" y="60" width="20" height="40"/><rect x="140" y="60" width="20" height="40"/>
+        </g>
+        <text x="40" y="34" font-size="10">(x, y)</text>
+        <text x="168" y="114" font-size="9.5">y+h-1</text>
+        <text x="122" y="152" font-size="9.5">x+w-1</text>
+        <text x="60" y="88" font-size="10">w = 6, h = 4</text>
+      </svg>
+      <ul class="tres-petit">
+        <li>Le cadre occupe les colonnes <code>x</code> à <code>x+w-1</code> : <b>w</b> pixels, pas w+1.</li>
+        <li>On vérifie avant de dessiner : on ne laisse pas un rectangle à moitié tracé.</li>
+        <li><code>x + w</code> est calculé en <code>int</code> : pas de débordement.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>Le format PGM « P5 » : l'exemple du TD1, octet par octet</h2>
+  <svg width="148mm" height="30mm" viewBox="0 0 592 120" class="mono">
+    <g font-size="10.5" class="mono">
+      <text x="0" y="14" fill="#666">00000000</text><text x="0" y="32" fill="#666">00000010</text><text x="0" y="50" fill="#666">00000020</text><text x="0" y="68" fill="#666">00000030</text>
+      <text x="72" y="14"><tspan fill="#b31a1a">50 35 0a</tspan> <tspan fill="#7a3c99">23 20 4d 61 64 65 20 62 79 20 45 2e 20</tspan></text>
+      <text x="72" y="32"><tspan fill="#7a3c99">52 65 6d 79 0a</tspan> <tspan fill="#0b6f73">35 20 34 0a</tspan> <tspan fill="#a36a00">32 35 35 0a</tspan> <tspan fill="#1a7a1a" font-weight="bold">00 ff 00</tspan></text>
+      <text x="72" y="50"><tspan fill="#1a7a1a" font-weight="bold">ff 00 10 20 40 80 ff 80 40 80 c0 80 80 80 80 80</tspan></text>
+      <text x="72" y="68"><tspan fill="#1a7a1a" font-weight="bold">80</tspan></text>
+    </g>
+    <g font-size="10">
+      <text x="440" y="14" fill="#b31a1a">"P5" + LF (magic number)</text>
+      <text x="440" y="30" fill="#7a3c99">"# Made by E. Remy" + LF</text>
+      <text x="440" y="46" fill="#0b6f73">"5 4" + LF  (largeur, hauteur)</text>
+      <text x="440" y="62" fill="#a36a00">"255" + LF (valeur maximale)</text>
+      <text x="440" y="78" fill="#1a7a1a">5 × 4 = 20 octets de pixels</text>
+    </g>
+    <text x="0" y="100" font-size="10">Total : 29 octets d'en-tête + 20 octets de pixels = 49 = 0x31 octets (la dernière adresse affichée).</text>
+  </svg>
+  <div class="cols">
+    <div>
+      <ul class="petit">
+        <li>L'<b>en-tête est du texte ASCII</b> : <code>0x50</code> = 'P', <code>0x35</code> = '5', <code>0x0a</code> = LF (10), <code>0x20</code> = espace, <code>0x23</code> = '#'.</li>
+        <li>La largeur 5 est écrite avec le <b>caractère</b> '5' (<code>0x35</code>), pas l'octet 5.</li>
+        <li>Les <b>pixels sont binaires</b> : un octet par pixel, ligne par ligne, en commençant en haut à gauche.</li>
+      </ul>
+    </div>
+    <div>
+      <table class="hex">
+        <tr><th></th><th>x=0</th><th>1</th><th>2</th><th>3</th><th>4</th></tr>
+        <tr><th>y=0</th><td>0</td><td>255</td><td>0</td><td>255</td><td>0</td></tr>
+        <tr><th>y=1</th><td>16</td><td>32</td><td>64</td><td>128</td><td>255</td></tr>
+        <tr><th>y=2</th><td>128</td><td>64</td><td>128</td><td>192</td><td>128</td></tr>
+        <tr><th>y=3</th><td>128</td><td>128</td><td>128</td><td>128</td><td>128</td></tr>
+      </table>
+      <p class="tres-petit">(Vérifié : notre <code>readPGM</code> relit exactement ces valeurs.)</p>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>Écrire un PGM : writePGM <small>TD1 question 2</small></h2>
+  <div class="cols">
+    <div class="w3">
+<pre class="cpp">void GrayImage::writePGM(std::ostream&amp; os) const
+{
+  // En-tête en texte ASCII (opérateur &lt;&lt;)...
+  os &lt;&lt; "P5\n"
+     &lt;&lt; "# Image sauvegardée par " &lt;&lt; AUTEUR &lt;&lt; " pour les TP de RepCod.\n"
+     &lt;&lt; width &lt;&lt; " " &lt;&lt; height &lt;&lt; "\n"
+     &lt;&lt; 255 &lt;&lt; "\n";
+  // ... puis les pixels en binaire, d'un seul bloc (CM diapo 20).
+  os.write((const char*)array, size_t(width) * height);
+  if (!os)
+    throw std::runtime_error("writePGM : erreur d'écriture");
+}</pre>
+<pre class="cpp">std::ofstream ofs("tp1_rectangles.pgm", std::ios::binary); // binary !
+im.writePGM(ofs);</pre>
+    </div>
+    <div class="w2 petit">
+      <ul>
+        <li><b><code>&lt;&lt;</code> pour l'en-tête</b> : il écrit le nombre 320 sous forme de texte « 320 » (3 caractères). C'est ce que veut l'en-tête.</li>
+        <li><b><code>write</code> pour les pixels</b> : il recopie les octets tels quels. Avec <code>&lt;&lt;</code>, un pixel 200 deviendrait le texte « 200 ».</li>
+        <li><code>write</code> attend un <code>const char*</code> et un nombre d'octets : on convertit le pointeur avec <code>(const char*)</code>.</li>
+        <li>Le paramètre est un <b><code>std::ostream&amp;</code></b> : la même fonction écrit dans un fichier, dans <code>std::cout</code> ou dans un <code>stringstream</code>.</li>
+        <li>Le fichier doit être ouvert avec <b><code>std::ios::binary</code></b> (CM diapo 9), sinon Windows transforme chaque octet 10 en 13,10.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>Lire l'en-tête : skip_line et skip_comments <small>TD1 questions 3 et 4</small></h2>
+  <div class="cols">
+    <div>
+<pre class="cpp">// Lit des caractères jusqu'au « Line Feed » (inclus).
+void skip_line(std::istream&amp; is)
+{
+  char c;
+  while (is.get(c) &amp;&amp; c != '\n') {}
+}
+
+// Lit un caractère : si c'est '#', on saute la ligne
+// et on recommence ; sinon on le remet sur le flux
+// avec putback(), comme s'il n'avait jamais été lu.
+void skip_comments(std::istream&amp; is)
+{
+  char c;
+  while (is.get(c) &amp;&amp; c == '#')
+    skip_line(is);
+  if (is)
+    is.putback(c);
+}</pre>
+      <p class="tres-petit"><code>is.get(c)</code> renvoie le flux : il vaut « faux » en fin de fichier, ce qui évite une boucle infinie (le <code>while (c != '\n')</code> des notes boucle pour toujours si le LF n'arrive jamais).</p>
+    </div>
+    <div>
+      <div class="alert"><h3>Le piège de chat.pgm</h3><div class="petit">
+        <p>L'en-tête de <code>chat.pgm</code> contient des commentaires <b>après</b> les dimensions :</p>
+<pre>320 240<span style="color:#b31a1a">⏎</span>
+# Encore du bordel⏎
+# après les dimensions⏎
+# de l'image.⏎
+255⏎</pre>
+        <p><code>is &gt;&gt; w &gt;&gt; h</code> s'arrête <b>juste avant</b> le <span style="color:#b31a1a">⏎</span> rouge. Appelée tout de suite, <code>skip_comments</code> lit ce ⏎, voit que ce n'est pas '#' et le remet : aucun commentaire sauté, et <code>is &gt;&gt; maxval</code> échoue sur '#'.</p>
+        <p><b>Solution</b> : <code>is &gt;&gt; std::ws</code> (saute espaces, tabulations, CR, LF) <i>avant</i> <code>skip_comments(is)</code>. Marche aussi avec les fins de ligne Windows et un en-tête sur une ligne (PGM.txt : « <i>be as lenient as possible</i> »).</p>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>Lire un PGM : readPGM <small>TD1 question 5</small></h2>
+  <div class="cols">
+    <div>
+<pre class="cpp">GrayImage* GrayImage::readPGM(std::istream&amp; is)
+{
+  std::string magic;
+  is &gt;&gt; magic;              // lit "P5"
+  if (magic != "P5" &amp;&amp; magic != "P2")
+    throw std::runtime_error("readPGM : ce n'est pas un fichier PGM");
+  is &gt;&gt; std::ws;            // saute les blancs (LF, CR, espaces)
+  skip_comments(is);
+  unsigned int w = 0, h = 0;
+  if (!(is &gt;&gt; w &gt;&gt; h))
+    throw std::runtime_error("readPGM : largeur et hauteur illisibles");
+  if (w == 0 || h == 0 || w &gt; 65535 || h &gt; 65535)
+    throw std::runtime_error("readPGM : dimensions invalides");
+  is &gt;&gt; std::ws;            // saute le LF laissé par &gt;&gt;
+  skip_comments(is);
+  unsigned int maxval = 0;
+  if (!(is &gt;&gt; maxval))
+    throw std::runtime_error("readPGM : valeur maximale illisible");
+  if (maxval != 255)
+    throw std::runtime_error("readPGM : seul 255 est géré");</pre>
+    </div>
+    <div>
+<pre class="cpp">  GrayImage* res = new GrayImage(uint16_t(w), uint16_t(h));
+  if (magic == "P5") {
+    is.get();   // UN SEUL caractère blanc après 255
+    is.read((char*)res-&gt;array, size_t(w) * h);
+  } else {      // "P2" (bonus) : pixels écrits en décimal
+    for (size_t t = 0; t &lt; size_t(w) * h &amp;&amp; is; t++) {
+      unsigned int v = 0;
+      if (is &gt;&gt; v &amp;&amp; v &gt; 255)
+        is.setstate(std::ios::failbit);
+      res-&gt;array[t] = uint8_t(v);
+    }
+  }
+  if (!is) {    // fichier tronqué ou corrompu
+    delete res; // on libère avant de signaler l'erreur
+    throw std::runtime_error("readPGM : pixels incomplets ou invalides");
+  }
+  return res;
+}</pre>
+      <ul class="petit">
+        <li>On lit <code>w</code> et <code>h</code> dans des <code>unsigned int</code> pour pouvoir <b>vérifier</b> qu'ils tiennent dans un <code>uint16_t</code>.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>readPGM : les deux questions à savoir expliquer</h2>
+  <div class="cols">
+    <div>
+      <div class="block"><h3>Pourquoi readPGM est static ?</h3><div>
+        <p>Une méthode normale s'appelle <b>sur une image qui existe déjà</b> (<code>im.writePGM(f)</code>). Or c'est justement <code>readPGM</code> qui fabrique l'image : il faudrait une image pour créer une image, « le serpent qui se mord la queue » (TD1).</p>
+        <p>Avec <code>static</code>, la fonction est attachée à la <b>classe</b> :</p>
+<pre class="cpp">std::ifstream f("images/chat.pgm", std::ios::binary);
+GrayImage* im = GrayImage::readPGM(f);  // pas d'objet avant
+...
+delete im;  // c'est l'appelant qui libère</pre>
+        <p class="petit">Elle reste membre de <code>GrayImage</code> : elle a le droit d'écrire dans <code>res-&gt;array</code>, qui est privé.</p>
+      </div></div>
+    </div>
+    <div>
+      <div class="alert"><h3>Pourquoi un seul is.get() après 255 ?</h3><div>
+        <p>PGM.txt : « <i>only a single character of whitespace (typically a newline) is allowed after the maxval</i> ».</p>
+        <svg width="66mm" height="16mm" viewBox="0 0 264 64" class="mono">
+          <g font-size="11" class="mono">
+            <rect x="0" y="6" width="22" height="20" fill="#ffe8c2" stroke="#999"/><text x="11" y="20" text-anchor="middle">'2'</text>
+            <rect x="22" y="6" width="22" height="20" fill="#ffe8c2" stroke="#999"/><text x="33" y="20" text-anchor="middle">'5'</text>
+            <rect x="44" y="6" width="22" height="20" fill="#ffe8c2" stroke="#999"/><text x="55" y="20" text-anchor="middle">'5'</text>
+            <rect x="66" y="6" width="26" height="20" fill="#ddd" stroke="#999"/><text x="79" y="20" text-anchor="middle">LF</text>
+            <rect x="92" y="6" width="26" height="20" fill="#d4f0d4" stroke="#999"/><text x="105" y="20" text-anchor="middle">10</text>
+            <rect x="118" y="6" width="26" height="20" fill="#d4f0d4" stroke="#999"/><text x="131" y="20" text-anchor="middle">32</text>
+            <rect x="144" y="6" width="26" height="20" fill="#d4f0d4" stroke="#999"/><text x="157" y="20" text-anchor="middle">200</text>
+          </g>
+          <text x="79" y="42" font-size="9.5" text-anchor="middle">is.get()</text>
+          <text x="182" y="20" font-size="9.5">pixels (binaires)</text>
+          <text x="0" y="60" font-size="9.5">Pixel 10 = code de LF, pixel 32 = code de l'espace !</text>
+        </svg>
+        <p class="petit">Si on sautait <i>tous</i> les blancs (avec <code>&gt;&gt;</code> ou un <code>skip_comments</code> qui saute les espaces), les pixels 10 et 32 seraient avalés : l'image serait décalée et il manquerait des octets à la fin. Avec <code>chat.pgm</code>, ça arrive vraiment (des pixels valent 10).</p>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>Tester : le chat à lunettes</h2>
+  <div class="cols">
+    <div class="w2">
+<pre class="cpp">std::ifstream ifs("images/chat.pgm", std::ios::binary);
+GrayImage* chat = GrayImage::readPGM(ifs);
+chat-&gt;fillRectangle(65, 100, 215, 4, 255); // la barre
+chat-&gt;fillRectangle(105, 90, 45, 30, 20);  // verre gauche
+chat-&gt;fillRectangle(195, 90, 45, 30, 20);  // verre droit
+chat-&gt;rectangle(105, 90, 45, 30, 255);     // monture
+chat-&gt;rectangle(195, 90, 45, 30, 255);
+std::ofstream ofs("tp1_chat_lunettes.pgm", std::ios::binary);
+chat-&gt;writePGM(ofs);
+delete chat;</pre>
+      <p class="petit">Le fichier <code>chat_lunettes.pgm</code> fourni a été comparé pixel par pixel avec notre résultat : <b class="ok">0 pixel différent</b>. Les coordonnées ci-dessus sont donc exactement celles de l'image de référence.</p>
+<pre>cd PROJET_FINAL
+make tp1 &amp;&amp; ./tp1
+eog images/chat.pgm tp1_chat_lunettes.pgm</pre>
+    </div>
+    <div>
+      <img src="file://IMG/lunettes.png" style="width:100%;border:.2mm solid #999">
+      <p class="tres-petit">Le programme teste aussi : une image non carrée 400 × 250, la lecture d'un PGM « P2 » (bonus), et deux exceptions (pixel hors de l'image, fichier qui n'est pas un PGM).</p>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>Ce qui a été corrigé par rapport à la version de Gemini</h2>
+  <table class="petit">
+    <tr><th>Point</th><th>Version Gemini</th><th>Correction</th></tr>
+    <tr><td><code>skip_comments</code></td><td>Sautait aussi les espaces et les LF : ça marche, mais ce n'est pas la fonction demandée au TD1 (question 4).</td><td>Version du TD (lit, teste '#', <code>putback</code>), précédée de <code>is &gt;&gt; std::ws</code>.</td></tr>
+    <tr><td>Commentaire écrit</td><td>« Image sauvegardee pour les TP de RepCod. » sans nom.</td><td>« Image sauvegardée par <i>nom</i> pour les TP de RepCod. » (demandé au TD).</td></tr>
+    <tr><td>Taille du tableau</td><td><code>width * height</code> calculé en <code>int</code>.</td><td><code>size_t(width) * height</code>.</td></tr>
+    <tr><td>Lecture P2</td><td>Valeurs &gt; 255 acceptées sans erreur.</td><td>Valeur &gt; 255 = fichier invalide.</td></tr>
+    <tr><td>Test</td><td>Rectangles au hasard.</td><td>Reproduit l'image fournie <code>chat_lunettes.pgm</code> et le vérifie.</td></tr>
+    <tr><td>Organisation</td><td><code>GrayImage.hpp/.cpp</code> à part, abandonnés dès le TP2.</td><td>Tout dans <code>Image.hpp/.cpp</code> (demandé au TP2), rendu unique.</td></tr>
+    <tr><td>PDF</td><td>Pied de page « E. Remy », citations du prof inventées.</td><td>Fiche de révision présentée comme telle.</td></tr>
+  </table>
+</section>
+
+<section class="slide">
+  <h2>Questions possibles au contrôle</h2>
+  <div class="cols">
+    <div class="petit">
+      <ol>
+        <li><b>Où est le pixel (x, y) dans <code>array</code> ?</b> À l'indice <code>y × width + x</code>.</li>
+        <li><b>Taille du fichier PGM d'une image 320 × 240 ?</b> En-tête (quelques dizaines d'octets) + 320 × 240 = 76 800 octets de pixels.</li>
+        <li><b>Pourquoi <code>ios::binary</code> ?</b> Pour éviter les conversions de fin de ligne (CM diapo 9) : sinon des octets 10 ou 13 peuvent être modifiés.</li>
+        <li><b>Pourquoi <code>write</code> et pas <code>&lt;&lt;</code> pour les pixels ?</b> <code>&lt;&lt;</code> écrit du texte (« 200 » = 3 octets), <code>write</code> écrit l'octet 200.</li>
+      </ol>
+    </div>
+    <div class="petit">
+      <ol start="5">
+        <li><b>Pourquoi <code>readPGM</code> est <code>static</code> ?</b> Elle crée l'image : on ne peut pas exiger qu'une image existe déjà pour l'appeler.</li>
+        <li><b>Que fait <code>putback(c)</code> ?</b> Il remet le caractère <code>c</code> dans le flux : la prochaine lecture le relira.</li>
+        <li><b>Pourquoi interdire <code>operator=</code> ?</b> Les dimensions sont <code>const</code> : <code>a = b</code> ne peut pas changer la taille de <code>a</code>.</li>
+        <li><b>Pourquoi un constructeur de copie ?</b> La copie par défaut copierait le pointeur : deux images partageraient le même tableau, puis deux <code>delete[]</code>.</li>
+        <li><b>Après 255, combien de blancs ?</b> Exactement un (PGM.txt). Le premier pixel peut lui-même valoir 10 ou 32.</li>
+      </ol>
+    </div>
+  </div>
+</section>

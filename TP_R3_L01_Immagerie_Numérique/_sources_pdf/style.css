@@ -1,0 +1,64 @@
+/* Mise en page « façon Beamer 16:9 » (160 x 90 mm), couleurs du thème par défaut. */
+@page { size: 160mm 90mm; margin: 0; }
+:root {
+  --bleu: #3333b3; --bleu-fonce: #1f1f6b; --bleu-moyen: #29298f; --bleu-clair: #ebebf7;
+  --rouge: #b31a1a; --rouge-clair: #f7e9e9; --vert: #1a7a1a; --vert-clair: #e8f4e8;
+}
+* { box-sizing: border-box; }
+html { font-size: 8.3pt; }
+body { margin: 0; font-family: "DejaVu Sans", "Noto Sans", sans-serif; color: #111; line-height: 1.32;
+       -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.slide { width: 160mm; height: 90mm; position: relative; overflow: hidden; page-break-after: always;
+         padding: 11.5mm 6mm 4.6mm 6mm; }
+.slide > h2 { position: absolute; top: 0; left: 0; right: 0; margin: 0; padding: 2.3mm 6mm 2mm;
+              font-size: 12.5pt; font-weight: normal; color: #fff; background: var(--bleu-fonce); }
+.slide > h2 small { font-size: 8pt; opacity: .8; margin-left: 2mm; }
+footer { position: absolute; left: 0; right: 0; bottom: 0; height: 3.6mm; display: flex; font-size: 5.6pt;
+         color: #fff; }
+footer span { display: flex; align-items: center; padding: 0 3mm; }
+footer span:nth-child(1) { flex: 1.25; background: var(--bleu-fonce); }
+footer span:nth-child(2) { flex: 1; background: var(--bleu-moyen); justify-content: center; }
+footer span:nth-child(3) { flex: .35; background: var(--bleu); justify-content: flex-end; }
+p { margin: 0 0 1.6mm; }
+ul, ol { margin: 0 0 1.6mm; padding-left: 5mm; }
+li { margin-bottom: .7mm; }
+li::marker { color: var(--bleu); }
+b, strong { color: var(--bleu-fonce); }
+em { color: var(--rouge); font-style: normal; }
+code { font-family: "DejaVu Sans Mono", monospace; font-size: .92em; background: #f1f1f8; padding: 0 .5mm;
+       border-radius: .5mm; }
+pre { margin: 0 0 1.6mm; font-family: "DejaVu Sans Mono", monospace; font-size: 5.8pt; line-height: 1.22;
+      background: #f6f6fb; border: .2mm solid #d6d6ea; border-radius: 1mm; padding: 1.2mm 1.8mm;
+      white-space: pre-wrap; overflow-wrap: anywhere; }
+pre.petit { font-size: 5.4pt; line-height: 1.17; }
+pre .kw { color: #1d1dad; font-weight: bold; } pre .ty { color: #0b6f73; }
+pre .com { color: #6f6f6f; font-style: italic; } pre .str { color: #a3361e; } pre .pp { color: #7a3c99; }
+.cols { display: flex; gap: 4mm; align-items: flex-start; }
+.cols > * { flex: 1; min-width: 0; }
+.cols > .w2 { flex: 2; } .cols > .w3 { flex: 3; }
+.block, .alert, .exemple { border-radius: 1.2mm; overflow: hidden; margin-bottom: 2mm; background: var(--bleu-clair); }
+.block > h3, .alert > h3, .exemple > h3 { margin: 0; padding: .9mm 2mm; font-size: 8.4pt; font-weight: normal;
+       color: #fff; background: var(--bleu); }
+.alert { background: var(--rouge-clair); } .alert > h3 { background: var(--rouge); }
+.exemple { background: var(--vert-clair); } .exemple > h3 { background: var(--vert); }
+.block > div, .alert > div, .exemple > div { padding: 1.4mm 2mm 1mm; }
+.block pre, .alert pre, .exemple pre { background: #fff; }
+table { border-collapse: collapse; margin-bottom: 1.6mm; font-size: 7.6pt; }
+th, td { border: .2mm solid #b9b9d6; padding: .5mm 1.5mm; text-align: left; vertical-align: top; }
+th { background: var(--bleu-clair); color: var(--bleu-fonce); font-weight: bold; }
+td.n, th.n { text-align: right; }
+.centre { text-align: center; }
+.petit { font-size: 7.4pt; } .tres-petit { font-size: 6.6pt; }
+.hex { font-family: "DejaVu Sans Mono", monospace; }
+svg { display: block; margin: 0 auto; max-width: 100%; height: auto; }
+svg text { font-family: "DejaVu Sans", sans-serif; }
+svg .mono { font-family: "DejaVu Sans Mono", monospace; }
+.titre { padding: 0; }
+.titre .bandeau { position: absolute; top: 16mm; left: 12mm; right: 12mm; background: var(--bleu); color: #fff;
+                  border-radius: 1.5mm; padding: 4mm 6mm; text-align: center; }
+.titre .bandeau h1 { margin: 0; font-size: 15pt; font-weight: normal; }
+.titre .bandeau p { margin: 1.5mm 0 0; font-size: 9pt; opacity: .95; }
+.titre .infos { position: absolute; top: 54mm; left: 12mm; right: 12mm; text-align: center; font-size: 8.5pt; }
+.note { font-size: 7pt; color: #444; }
+.ok { color: var(--vert); font-weight: bold; } .ko { color: var(--rouge); font-weight: bold; }
+table.tres-petit th, table.tres-petit td { padding: .3mm 1.2mm; }

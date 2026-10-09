@@ -1,0 +1,12 @@
+*.o
+tp1
+tp2
+tp3
+tp4
+tp5
+tp1_*.pgm
+tp2_*.p?m
+tp3_*
+out_*.jpg
+tp4_*
+tp5_*.ppm
