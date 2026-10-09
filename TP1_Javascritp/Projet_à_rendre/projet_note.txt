@@ -1,0 +1,51 @@
+2 clés api 
+on n'as le choix de l'api libre mais à valider avec le prof
+aujourd'hui savoir consommer l'application 
+partir sur des api (ouvertes) qui sont public non payant ouvert
+oubien chercher des api sur le web par exemple pokémon et autres...
+planings
+rendu: 23 octobre à faire.
+c'est de versionner le code avec git donc bien mettre le .git pour que le prof desbenoit ait accès
+cycle de travail avec git: toujours faire des commit sur chaque fonction si possible
+bien utiliser git penser à commiter souvent pour voir l'évolution du projet à chaque fois.
+si dépot distant mettre en privé avant de déposer 
+par rapport à l'IA:
+IA autororé pour avoir l'information
+amélioration de code qu'on a écrit 
+générer des petit fragments.
+
+
+Ne pas autoriser 
+architecture complète avec l'ia on doit le faire nous même
+faire gaffe si elle nous génère du code pour comprendre le code qu'elle nous fait
+ça reste un syper outil pour le développeur car un temps de fou mais là on est des junior mais faire le boulot nous-même
+faire un readme.  et dans ce readme dire ce qu'on as fait avec l'ia soit dsant faisant partie des bonne pratique.
+
+Les diffucultés rencontrées et explications de ce qui as été fait pour résoudre les problèmes.
+
+le dossier .git à verifier de près.
+
+si l'application as bésoin de mettre les clés api pour ne pas laisser le prof à le mettre car beaucoup d'étudiant .
+donc premier jour de tp trouver une api qui nous plait après parvenir à consommer cette api par exemple avec bruno ou autre 
+ou même dans le navigateur.
+
+évaluation:
+pas de présentation.
+
+
+
+nb: savoir concevoir l'appli sans dépendre d'une seule par exemple si l'autre meurt , l'autre prend le rélais le temps de trouver 
+une autre
+la gestion des données dépend des api
+
+même pour le projet pas obligé d'aller loin mais faut avoir une un projet qui dépend de la strucure pas des API.
+et aussi ce qui est important c'est de respecter le côté structural du projet en question.
+
+attention au cotat d'utilisation pour les api soit un cache au moinns il redemande pas à chaque fois pour pas être pas bloqué 
+comme un con quoi.
+on peut même utiliser deux api différentes si ça marche donc complémentaire l'une de l'autre . 
+par exemple météo + météo historique
+
+
+mon idée: heberger ma clé sur cloudflare workers ou keycloak. après je peux commiter celle heberger sans risque après expliquer le prof 
+le pourquoi car je veux partager à personne ma clé ...
