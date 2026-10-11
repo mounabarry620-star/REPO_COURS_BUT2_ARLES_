@@ -38,28 +38,123 @@ Guide préparé le 11/10/2026 après lecture du sujet, de mes notes, des chapitr
 
 ---
 
-## 1. Créer le dépôt git (hors du dépôt public)
+## 1. Créer le dépôt git (GitHub privé, puis clone)
 
-⚠️ Mon dépôt `REPO_COURS_BUT2_ARLES_` est **public** sur GitHub. Le projet doit avoir **son propre `.git`** et ne jamais être poussé dans un dépôt public. Je le crée donc **à côté**, dans `~/Documents/parcoursup-explorer`.
+Deux cours servent ici :
+- **R3.01 (B. Desbenoit)** : git obligatoire, l'historique fait partie du rendu, dépôt distant **privé**, `.git` dans l'archive ;
+- **R2.03 Qualité de développement (E. Lenhard, BUT1)** : les commandes, le cycle de travail, et ce qu'est un bon commit.
 
+### 1.1 Local d'abord, ou GitHub d'abord ?
+**Les deux marchent.** Le cours R2.03 montre le « workflow simple » : on crée le dépôt sur la plateforme, puis on le récupère avec `git clone URL`, une commande « à ne jouer qu'une seule fois ». **Je suis ce workflow.**
+
+### 1.2 Créer le dépôt sur GitHub (une seule fois)
+1. GitHub → **New repository**.
+2. Nom : `parcoursup-explorer`.
+3. Cocher **Private** (obligatoire : « un dépôt public […] vous expose aux règles sur le plagiat »).
+4. **Ne rien cocher d'autre** (ni README, ni `.gitignore`, ni licence). Le dépôt doit être vide, pour que **mon premier commit soit fait par moi, sur ma machine**.
+5. **Create repository**, puis copier l'adresse HTTPS : `https://github.com/mounabarry620-star/parcoursup-explorer.git`.
+
+### 1.3 Mon adresse mail dans les commits
+Le prof R3.01 demande `prenom.nom@etu.univ-amu.fr`, et mon README doit aussi contenir mon mail universitaire. Mon compte GitHub utilise `mounabarry620@gmail.com`.
+→ Je **commite avec mon mail universitaire**, et je l'**ajoute à mon compte GitHub** (Settings → Emails → Add email address). GitHub reliera ainsi mes commits à mon compte.
+
+### 1.4 Cloner et configurer (une seule fois)
+Dans le **terminal intégré de VS Code** : il se charge tout seul de la connexion à GitHub quand je fais `git push`.
 ```bash
-mkdir ~/Documents/parcoursup-explorer
-cd ~/Documents/parcoursup-explorer
-git init
-git config user.name "Prénom Nom"
-git config user.email "prenom.nom@etu.univ-amu.fr"
+cd ~/Documents
+git clone https://github.com/mounabarry620-star/parcoursup-explorer.git
+cd parcoursup-explorer
+code .
 ```
+Git affiche `warning: You appear to have cloned an empty repository`. C'est normal, le dépôt est vide.
 
-**Pourquoi sans `--global` ?** La config ne s'applique qu'à ce projet (elle est enregistrée dans `.git/config`). Mon identité de cours apparaîtra dans chaque commit, et non `nene_goto_`.
+L'identité (cours R2.03 : format **« NOM Prénom »** ; cours R3.01 : sans `--global`, elle ne vaut que pour ce projet) :
+```bash
+git config user.name "BARRY Mamadou-Bailo"
+git config user.email "prenom.nom@etu.univ-amu.fr"
+git config --global core.editor "code --wait"
+```
+- Écrire **mon vrai** mail universitaire à la place de `prenom.nom`.
+- `core.editor` (cours R2.03) : quand je tape `git commit` **sans** `-m`, VS Code s'ouvre pour que j'écrive un message avec un corps (voir 1.6). Je ferme l'onglet pour valider.
 
-Je crée ensuite le fichier `.gitignore` :
+### 1.5 Premier commit et premier push
+Je crée le fichier `.gitignore` **avant** tout `git add` :
 ```
 node_modules/
 dist/
 .env
 ```
+Ensuite :
+```bash
+git status                  # .gitignore apparaît en « non suivi »
+git add .gitignore
+git commit -m "chore: initialise le dépôt et ignore node_modules et dist"
+git branch -M main          # nomme la branche main (le défaut de git 2.47 sur ma machine est master)
+git push -u origin main     # -u : les prochains push sauront où aller, un simple « git push » suffira
+```
+**Vérification** : sur la page GitHub du dépôt, le fichier `.gitignore` et mon commit apparaissent, avec le cadenas **Private**.
 
-**Commit 1** : `git add .` puis `git commit -m "Initialisation du dépôt et du .gitignore"`
+### 1.6 Les règles de commit (cours R2.03)
+| Règle du cours | Ce que je fais |
+|---|---|
+| « Un commit = une étape claire », « faire une seule chose (une intention) » | Une classe, une requête ou une correction = un commit |
+| « Commiter souvent » : plusieurs commits par fonctionnalité et par jour | Le prof R3.01 pénalise « un historique réduit à quelques commits massifs » |
+| Le message répond à « Qu'est-ce qui change ? » et « Pourquoi ? » | Titre court. Un **corps** quand le pourquoi n'est pas évident |
+| Convention *Conventional Commits* (`<type>: <description>`) | `feat`, `fix`, `docs`, `refactor`, `chore`, `test`, description en français |
+| Messages à éviter : « fix », « update », « modifs », « test » | Toujours une phrase qui décrit l'intention |
+| Checklist : pas de changements « parasites », le build passe | `npm run lint` et `npm run build` passent avant chaque commit |
+
+Les types que j'utiliserai :
+- `feat:` nouvelle fonctionnalité (`feat: ajoute le géocodage d'une ville avec l'API IGN`) ;
+- `fix:` correction de bug (`fix: inverse longitude et latitude dans la requête Parcoursup`) ;
+- `refactor:` réorganisation sans nouvelle fonctionnalité (`refactor: extrait la conversion des champs dans la classe Formation`) ;
+- `docs:` README, diagramme (`docs: ajoute le diagramme de classes`) ;
+- `chore:` configuration, dépendances (`chore: configure webpack à partir du TP03`).
+
+Exemple de commit avec un corps (taper `git commit` sans `-m`, comme dans le cours) :
+```
+fix: convertit le taux d'accès en nombre pour toutes les années
+
+L'API renvoie 44 en 2025, "52" en 2024 et 59.0 en 2023.
+La conversion est faite une seule fois, à la création d'une Formation,
+pour que le calcul de la tendance ne mélange pas du texte et des nombres.
+```
+Ces corps de commit me serviront directement pour la section « Choix de conception » du README.
+
+### 1.7 Le cycle de travail (à chaque étape)
+```bash
+git status                       # où j'en suis
+git diff                         # ce que j'ai modifié
+npm run lint && npm run build    # le code respecte le style et compile
+git add src/scripts/Ville.js     # j'ajoute seulement les fichiers de CETTE étape (cours R2.03 : éviter « tout et n'importe quoi »)
+git diff --staged                # je relis ce qui va partir dans le commit
+git commit                       # titre + corps dans VS Code (ou -m "…" si le titre suffit)
+git push                         # sauvegarde sur GitHub
+git log --oneline --graph --decorate   # l'historique, version lisible du cours
+```
+
+### 1.8 Les branches (cours R2.03 : « utiliser les branches pour isoler son travail »)
+Pour chaque **bonus** (carte, historique, Mon Master…), je travaille sur une branche, puis je fusionne dans `main` quand ça marche :
+```bash
+git switch -c feature/carte-leaflet   # crée la branche et se place dessus
+# … plusieurs commits …
+git switch main
+git merge feature/carte-leaflet
+git push
+```
+Intérêt : si un bonus n'aboutit pas avant le 23/10, `main` reste propre et fonctionnelle. Pour l'obligatoire, je peux rester sur `main`.
+
+### 1.9 Pièges
+| Problème | Solution |
+|---|---|
+| `git push` demande un mot de passe | GitHub refuse les mots de passe en ligne de commande. Pousser depuis le **terminal de VS Code** (il gère la connexion) ou depuis l'onglet « Contrôle de code source » |
+| `GH007: Your push would publish a private email address` | GitHub → Settings → Emails : décocher « Block command line pushes that expose my email » |
+| J'ai commité un fichier de trop | Avant le push : `git restore --staged fichier` retire un fichier du prochain commit (rien n'est perdu) |
+| Le dépôt est visible par tout le monde | GitHub → Settings → General → Danger Zone → Change visibility → **Private** |
+
+💡 **Rendu AMETICE** : GitHub sert de sauvegarde, mais **ce que je rends, c'est l'archive** du dossier, **avec** `.git` et **sans** `node_modules`. Le prof n'a pas besoin d'accéder au dépôt GitHub.
+
+💡 **Option** : j'ai déjà une clé SSH pour **etulab** (le GitLab de l'université, `etulab.univ-amu.fr`), que le prof accepte aussi. Si un jour GitHub pose problème, le même dépôt peut y être poussé.
 
 ---
 
@@ -113,7 +208,7 @@ Chart.js s'installera plus tard, pour le bonus 1 (historique) : `npm install -D 
 
 **Pas de `dotenv` cette fois.** Au TP03, le `.env` servait au proxy (CORS). Mes API acceptent le CORS et n'ont **pas de clé** : pas besoin de proxy, ni de `.env`. Le prof n'aura rien à configurer. C'est un argument à mettre dans « Choix de conception ».
 
-**Commit 2** : `"Initialisation npm et installation des dépendances"` (le `package-lock.json` **se commite** : il fige les versions exactes).
+**Commit 2** : `chore: initialise npm et installe webpack, Babel, Sass, Leaflet et Handlebars` (le `package-lock.json` **se commite** : il fige les versions exactes).
 
 ---
 
@@ -175,7 +270,7 @@ Premier test minimal :
 - `npm run build` : le dossier `dist/` se crée sans erreur ;
 - `npm run lint` : StandardJS ne signale rien.
 
-**Commit 3** : `"Configuration de webpack et arborescence du projet"`
+**Commit 3** : `chore: configure webpack (common, dev, prod) et crée l'arborescence du TP03`
 
 ### 💡 Piège connu avec Handlebars + webpack
 `import Handlebars from 'handlebars'` affiche l'avertissement `require.extensions is not supported by webpack`. La cause : le fichier principal de Handlebars est prévu pour Node.js (j'ai vérifié, ligne 23 de `node_modules/handlebars/lib/index.js`). Il faut importer la version prévue pour le navigateur :
@@ -225,25 +320,28 @@ Je regroupe ce qui change **pour la même raison**. Les questions à me poser :
 
 ## 6. Ordre de codage et commits prévus
 
-Un commit = une modification cohérente. Exemple de progression :
+Un commit = une modification cohérente (cours R2.03). Exemple de progression, avec des messages au format *Conventional Commits* :
 
 | # | Ce que je code | Message de commit (exemple) |
 |---|---|---|
-| ✅ 4 | Diagramme de classes | `Ajout du diagramme de classes` |
-| ✅ 5 | La classe qui fait les requêtes (avec `response.ok`) | `Classe d'accès HTTP avec gestion des erreurs` |
-| ✅ 6 | Requête 1 seule : ville → coordonnées, affichées dans la console | `Géocodage d'une ville avec l'API IGN` |
-| ✅ 7 | Mon format « ville » (lon, lat, nom, département, région) | `Modèle Ville indépendant de l'API` |
-| ✅ 8 | Requête 2 qui utilise le résultat de la 1 | `Recherche des formations autour d'une ville` |
-| ✅ 9 | Mon format « formation » (conversion des nombres) | `Modèle Formation et conversion des champs` |
-| ✅ 10 | Formulaire + liste des résultats (template) | `Affichage des formations dans la page` |
-| ✅ 11 | Cas d'erreur : ville inconnue, 0 résultat, réseau | `Gestion des cas d'erreur et messages` |
-| ✅ 12 | Cache (`Map` + date d'expiration) | `Cache des réponses` |
-| ⭐ 13 | Carte Leaflet | `Carte Leaflet des formations` |
-| ⭐ 14 | Choix parmi les villes homonymes + debounce | `Choix de la ville avec debounce` |
-| ⭐ 15 | API de secours | `Bascule sur geo.api.gouv.fr si l'IGN échoue` |
-| ⭐ 16 | Historique + `Promise.all` + Chart.js | `Historique 2022-2025 et graphique` |
-| ⭐ 17 | Tendance, R², fourchette, rang du dernier appelé | `Calcul de la tendance et de sa fiabilité` |
-| ⭐ 18 | Mon Master | `Parcours étudiant diplômé avec Mon Master` |
+| ✅ 4 | Diagramme de classes | `docs: ajoute le diagramme de classes` |
+| ✅ 5 | La classe qui fait les requêtes (avec `response.ok`) | `feat: ajoute la classe d'accès HTTP avec gestion des erreurs` |
+| ✅ 6 | Requête 1 seule : ville → coordonnées, affichées dans la console | `feat: géocode une ville avec l'API IGN` |
+| ✅ 7 | Mon format « ville » (lon, lat, nom, département, région) | `feat: ajoute le modèle Ville indépendant de l'API` |
+| ✅ 8 | Requête 2 qui utilise le résultat de la 1 | `feat: recherche les formations autour d'une ville` |
+| ✅ 9 | Mon format « formation » (conversion des nombres) | `feat: ajoute le modèle Formation et convertit les champs` |
+| ✅ 10 | Formulaire + liste des résultats (template) | `feat: affiche les formations dans la page` |
+| ✅ 11 | Cas d'erreur : ville inconnue, 0 résultat, réseau | `feat: gère les cas d'erreur et affiche un message` |
+| ✅ 12 | Cache (`Map` + date d'expiration) | `feat: met en cache les réponses des API` |
+| ⭐ 13 | Carte Leaflet (branche `feature/carte-leaflet`) | `feat: affiche les formations sur une carte Leaflet` |
+| ⭐ 14 | Choix parmi les villes homonymes + debounce | `feat: propose les villes homonymes avec debounce` |
+| ⭐ 15 | API de secours | `feat: bascule sur geo.api.gouv.fr si l'IGN échoue` |
+| ⭐ 16 | Historique + `Promise.all` + Chart.js | `feat: affiche l'historique 2022-2025 dans un graphique` |
+| ⭐ 17 | Tendance, R², fourchette, rang du dernier appelé | `feat: calcule la tendance et sa fiabilité` |
+| ⭐ 18 | Mon Master | `feat: ajoute le parcours étudiant diplômé avec Mon Master` |
+| 📄 19 | README complet | `docs: rédige le README (installation, Usage de l'IA, Choix de conception)` |
+
+Entre ces lignes, il y aura **aussi** des `fix:` et des `refactor:` : c'est normal et ça montre le vrai travail. Chaque ligne du tableau peut demander plusieurs commits.
 
 ✅ = obligatoire · ⭐ = bonus. **Je ne passe aux ⭐ que quand les ✅ marchent et sont commités.**
 
@@ -270,7 +368,7 @@ Un commit = une modification cohérente. Exemple de progression :
 
 | Date | À faire |
 |---|---|
-| 11-12/10 | Étapes 1 à 4 (git, npm, webpack) → commits 1 à 3 |
+| 11-12/10 | Étapes 1 à 4 (GitHub privé + clone, npm, webpack) → commits 1 à 3, poussés sur GitHub |
 | 13/10 | Diagramme de classes (étape 5), relecture par Claude |
 | 14-16/10 | Commits 5 à 12 : **l'obligatoire fonctionne** |
 | 17-20/10 | Bonus dans l'ordre (carte, debounce, secours, historique…) |
