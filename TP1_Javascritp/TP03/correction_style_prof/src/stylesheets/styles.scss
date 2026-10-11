@@ -1,0 +1,48 @@
+@import url("materialize-css/dist/css/materialize.min.css");
+@import url("material-icons/iconfont/filled.css");
+@import url("leaflet/dist/leaflet.css");
+@import url("leaflet.markercluster/dist/MarkerCluster.css");
+@import url("leaflet.markercluster/dist/MarkerCluster.Default.css");
+
+$couleur-principale: #ee6e73;
+
+body {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  margin: 0;
+}
+
+nav {
+  background-color: $couleur-principale;
+
+  .brand-logo {
+    display: flex;
+    align-items: center;
+    padding-left: 1rem;
+
+    img {
+      height: 48px;
+    }
+  }
+
+  .maj {
+    display: flex;
+    align-items: center;
+    padding: 0 1rem;
+  }
+}
+
+#map {
+  flex: 1;
+}
+
+.popup-station {
+  p {
+    margin: 0.25rem 0;
+  }
+
+  .popup-titre {
+    font-weight: bold;
+  }
+}

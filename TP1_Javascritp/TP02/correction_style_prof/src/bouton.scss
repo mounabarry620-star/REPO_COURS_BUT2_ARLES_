@@ -1,0 +1,24 @@
+// « Pour aller plus loin » : Sass ajoute variables et imbrication au CSS
+$vert-eau: #7ee0c0;
+$fond: #1d1f27;
+
+body {
+  img {
+    display: block;
+    margin-bottom: 1rem;
+  }
+
+  button {
+    padding: 0.5rem 1rem;
+    border: 2px solid $vert-eau;
+    border-radius: 4px;
+    background: $fond;
+    color: $vert-eau;
+    cursor: pointer;
+
+    &:hover {
+      background: $vert-eau;
+      color: $fond;
+    }
+  }
+}

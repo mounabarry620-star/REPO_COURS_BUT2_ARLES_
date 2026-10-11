@@ -1,0 +1,12 @@
+<div class="popup-station">
+  <p class="popup-titre">{{station.stationCode}} - {{station.name}}</p>
+  {{#if statut}}
+    <p>
+      {{statut.velos}} vélo(s) disponible(s)
+      ({{statut.mecaniques}} mécanique(s), {{statut.electriques}} électrique(s))<br>
+      {{statut.bornes}} borne(s) libre(s) sur {{station.capacity}}
+    </p>
+  {{else}}
+    <p>Chargement des disponibilités…</p>
+  {{/if}}
+</div>
