@@ -1,0 +1,549 @@
+@import url("leaflet/dist/leaflet.css");
+@import url("leaflet.markercluster/dist/MarkerCluster.css");
+@import url("leaflet.markercluster/dist/MarkerCluster.Default.css");
+
+$police-texte: 'Source Sans 3', arial, sans-serif;
+$police-titre: 'Spectral', georgia, serif;
+
+// Couleurs du système de design de l'État (DSFR), utilisé par Parcoursup et Mon Master.
+// Ce sont des variables CSS (et non Sass) : elles peuvent changer pendant que la page tourne,
+// ce qui permet de passer du mode clair au mode sombre sans recharger.
+:root {
+  color-scheme: light;
+  --fond: #fff;
+  --fond-alt: #f6f6f6;
+  --fond-contraste: #eee;
+  --fond-survol: #f6f6f6;
+  --texte: #3a3a3a;
+  --titre: #161616;
+  --mention: #666;
+  --action: #000091;
+  --action-survol: #1212ff;
+  --action-halo: rgba(0, 0, 145, 0.25);
+  --texte-sur-action: #f5f5fe;
+  --bordure: #ddd;
+  --trait-champ: #3a3a3a;
+  --trait-tableau: #929292;
+  --erreur: #ce0500;
+  --info: #0063cb;
+  --vert-menthe: #009081;
+  // Violet glycine du DSFR : contraste d'au moins 3 pour un graphique, en clair comme en sombre
+  --violet: #a558a0;
+  --moutarde: #c3992a;
+  --fond-moutarde: #fef5e8;
+  --contour-focus: #0a76f6;
+  --ombre: rgba(0, 0, 18, 0.08);
+  --filtre-carte: none;
+}
+
+// Mode sombre : les valeurs sombres du DSFR (celles de Mon Master)
+:root[data-theme="sombre"] {
+  color-scheme: dark;
+  --fond: #161616;
+  --fond-alt: #1e1e1e;
+  --fond-contraste: #242424;
+  --fond-survol: #343434;
+  --texte: #cecece;
+  --titre: #fff;
+  --mention: #929292;
+  --action: #8585f6;
+  --action-survol: #b1b1f9;
+  --action-halo: rgba(133, 133, 246, 0.3);
+  --texte-sur-action: #000091;
+  --bordure: #353535;
+  --trait-champ: #cecece;
+  --trait-tableau: #535353;
+  --erreur: #ff5655;
+  --info: #518fff;
+  --moutarde: #c3992a;
+  --fond-moutarde: #2a2319;
+  --ombre: rgba(0, 0, 0, 0.5);
+  // Les images du fond de carte sont claires : on les assombrit (inversion des couleurs)
+  --filtre-carte: invert(1) hue-rotate(180deg) brightness(0.9) contrast(0.9);
+}
+
+body {
+  margin: 0;
+  font-family: $police-texte;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--texte);
+  background: var(--fond);
+}
+
+// Contour bien visible pour la navigation au clavier (accessibilité)
+:focus-visible {
+  outline: 2px solid var(--contour-focus);
+  outline-offset: 2px;
+}
+
+// Petite icône dessinée en SVG, de la couleur du texte qui l'entoure
+.icone {
+  flex-shrink: 0;
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.entete {
+  border-bottom: 1px solid var(--bordure);
+  box-shadow: 0 2px 6px var(--ombre);
+}
+
+.entete-contenu {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+  max-width: 60rem;
+  margin: 0 auto;
+  padding: 1rem;
+
+  // Le titre prend la place restante et ne passe sous le logo que si elle manque vraiment
+  div {
+    flex: 1 1 15rem;
+  }
+
+  h1 {
+    margin: 0;
+    font-family: $police-titre;
+    font-size: 1.75rem;
+    line-height: 1.2;
+    color: var(--action);
+  }
+
+  p {
+    margin: 0;
+    color: var(--texte);
+  }
+}
+
+// Bouton « Mode sombre », à droite de l'en-tête, comme les paramètres d'affichage de Mon Master
+.bouton-theme {
+  display: inline-flex;
+  flex-shrink: 0;
+  gap: 0.5rem;
+  align-items: center;
+  margin-left: auto;
+  padding: 0.25rem 0.75rem;
+  font-family: inherit;
+  font-size: 0.875rem;
+  color: var(--action);
+  background: transparent;
+  border: 1px solid var(--bordure);
+  cursor: pointer;
+
+  &:hover {
+    background: var(--fond-survol);
+  }
+
+  &[aria-pressed="true"] {
+    border-color: var(--action);
+  }
+}
+
+.contenu {
+  max-width: 60rem;
+  margin: 0 auto;
+  padding: 1.5rem 1rem;
+}
+
+// Formulaire de recherche, sur le modèle des formulaires du DSFR (Mon Master, Parcoursup)
+.formulaire {
+  padding: 1.5rem;
+  background: var(--fond-alt);
+  border: 1px solid var(--bordure);
+
+  // display: flex et grid l'emporteraient sur l'attribut hidden : on le rétablit
+  [hidden] {
+    display: none;
+  }
+}
+
+.formulaire-titre {
+  margin: 0 0 1rem;
+  font-size: 1.75rem;
+  line-height: 1.25;
+  color: var(--titre);
+}
+
+// Choix « Après le bac / Master » : des boutons radio dessinés comme deux boutons accolés
+.choix-parcours {
+  margin: 0 0 1.5rem;
+  padding: 0;
+  border: none;
+
+  legend {
+    margin-bottom: 0.5rem;
+    padding: 0;
+    color: var(--titre);
+  }
+}
+
+.segments {
+  position: relative;
+  display: inline-flex;
+  flex-wrap: wrap;
+  border: 1px solid var(--action);
+
+  // Le vrai bouton radio reste dans la page (clavier, lecteurs d'écran), mais invisible
+  input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: 0;
+    opacity: 0;
+  }
+
+  label {
+    padding: 0.5rem 1.25rem;
+    color: var(--action);
+    cursor: pointer;
+
+    span {
+      color: inherit;
+      opacity: 0.8;
+    }
+  }
+
+  input:checked + label {
+    color: var(--texte-sur-action);
+    background: var(--action);
+  }
+
+  input:focus-visible + label {
+    outline: 2px solid var(--contour-focus);
+    outline-offset: 2px;
+  }
+}
+
+// Les champs : une grille qui passe à la ligne toute seule sur un petit écran
+.champs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: 1.5rem;
+}
+
+.champ {
+  display: flex;
+  flex-direction: column;
+
+  label {
+    color: var(--titre);
+  }
+}
+
+// Texte d'aide sous le libellé (relié au champ par aria-describedby)
+.aide {
+  margin: 0.125rem 0 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  color: var(--mention);
+}
+
+// Champs façon DSFR : fond gris et trait épais en bas
+input,
+select {
+  box-sizing: border-box;
+  width: 100%;
+  height: 2.5rem;
+  margin-top: auto;
+  padding: 0.5rem 1rem;
+  font-family: inherit;
+  font-size: 1rem;
+  color: var(--titre);
+  background: var(--fond-contraste);
+  border: none;
+  border-radius: 0.25rem 0.25rem 0 0;
+  box-shadow: inset 0 -2px 0 0 var(--trait-champ);
+}
+
+// Bouton principal avec sa loupe, comme le bouton « Rechercher » de Mon Master
+.bouton-rechercher {
+  display: inline-flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-top: 1.5rem;
+  padding: 0.5rem 1.5rem;
+  font-family: inherit;
+  font-size: 1rem;
+  line-height: 1.5rem;
+  color: var(--texte-sur-action);
+  background: var(--action);
+  border: none;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--action-survol);
+  }
+}
+
+#carte {
+  height: 400px;
+  margin: 1.5rem 0;
+  border: 1px solid var(--bordure);
+}
+
+// Carte en mode sombre
+.leaflet-tile-pane {
+  filter: var(--filtre-carte);
+}
+
+.leaflet-container {
+  background: var(--fond-alt);
+}
+
+.leaflet-bar a,
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip,
+.leaflet-control-attribution.leaflet-control {
+  color: var(--titre);
+  background: var(--fond-alt);
+  border-color: var(--bordure);
+}
+
+.leaflet-container a {
+  color: var(--action);
+}
+
+// Cercle du rayon de recherche (en SVG, le CSS l'emporte sur la couleur donnée par Leaflet)
+.cercle-rayon {
+  fill: var(--action);
+  stroke: var(--action);
+}
+
+// Bulles de regroupement aux couleurs du site
+.marker-cluster-small,
+.marker-cluster-medium,
+.marker-cluster-large {
+  background-color: var(--action-halo);
+
+  div {
+    font-family: $police-texte;
+    font-weight: 700;
+    color: var(--texte-sur-action);
+    background-color: var(--action);
+  }
+}
+
+.popup-formation p {
+  margin: 0.25rem 0;
+}
+
+// Sans la carte (Mon Master), les résultats ne doivent pas coller au formulaire
+#resultats {
+  margin-top: 1.5rem;
+}
+
+// Remarque sous le résumé (par exemple : pas de carte pour Mon Master)
+.remarque {
+  font-size: 1rem;
+  font-style: italic;
+  color: var(--mention);
+}
+
+.parcours {
+  font-weight: 700;
+}
+
+.resume {
+  font-size: 1.125rem;
+
+  p {
+    margin: 0.5rem 0;
+  }
+}
+
+.filtre {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-width: 30rem;
+  margin: 1rem 0 0.5rem;
+  font-size: 1rem;
+  color: var(--titre);
+}
+
+.compteur {
+  font-size: 1rem;
+  color: var(--mention);
+}
+
+.formations {
+  padding: 0;
+  list-style: none;
+}
+
+.formation {
+  margin-bottom: 1rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--bordure);
+  border-left: 4px solid var(--action);
+
+  a,
+  strong {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--action);
+  }
+
+  p {
+    margin: 0.25rem 0;
+    color: var(--texte);
+  }
+}
+
+.chiffres {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bouton-secondaire {
+  margin-top: 0.75rem;
+  padding: 0.25rem 0.75rem;
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--action);
+  background: var(--fond);
+  border: 1px solid var(--action);
+  cursor: pointer;
+
+  &:hover {
+    background: var(--fond-survol);
+  }
+}
+
+// Fenêtre de l'historique (balise <dialog>)
+.fenetre-historique {
+  width: min(48rem, 92vw);
+  padding: 1.5rem;
+  color: var(--texte);
+  background: var(--fond);
+  border: none;
+  box-shadow: 0 6px 18px var(--ombre);
+
+  &::backdrop {
+    background: rgba(22, 22, 22, 0.6);
+  }
+
+  h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: var(--action);
+  }
+}
+
+.fenetre-entete {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  .fermer {
+    padding: 0 0.5rem;
+    font-size: 1.5rem;
+    line-height: 1;
+    color: var(--action);
+    background: none;
+    border: 1px solid var(--bordure);
+    cursor: pointer;
+  }
+}
+
+.fenetre-sous-titre {
+  margin: 0.25rem 0 1rem;
+  color: var(--texte);
+}
+
+.graphique {
+  position: relative;
+  height: 18rem;
+}
+
+// Tableau quadrillé, comme les tableaux de chiffres de Parcoursup
+.tableau-conteneur {
+  margin-top: 1.5rem;
+  overflow-x: auto;
+}
+
+.tableau-historique {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--fond-alt);
+
+  caption {
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+    color: var(--titre);
+    text-align: left;
+  }
+
+  th,
+  td {
+    padding: 0.75rem 1rem;
+    text-align: center;
+    vertical-align: middle;
+    border: 1px solid var(--trait-tableau);
+  }
+
+  th {
+    font-weight: 700;
+    color: var(--titre);
+  }
+
+  thead th {
+    background: var(--fond-contraste);
+  }
+
+  // Les chiffres ont tous la même largeur : les colonnes restent alignées
+  td {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+// Encadré d'explication, comme les encadrés « moutarde » de Parcoursup
+.encadre {
+  margin-top: 1.5rem;
+  padding: 1rem 1.5rem;
+  background: var(--fond-moutarde);
+  border-left: 4px solid var(--moutarde);
+
+  p {
+    margin: 0.25rem 0;
+  }
+}
+
+.chargement {
+  font-style: italic;
+  color: var(--mention);
+}
+
+.message,
+.erreur {
+  padding: 1rem 1.25rem;
+  background: var(--fond-alt);
+  border-left: 4px solid var(--info);
+}
+
+.erreur {
+  font-weight: 700;
+  color: var(--erreur);
+  border-left-color: var(--erreur);
+}
+
+.pied {
+  margin-top: 2rem;
+  padding: 1.5rem 1rem;
+  font-size: 0.875rem;
+  color: var(--mention);
+  border-top: 1px solid var(--bordure);
+
+  p {
+    max-width: 60rem;
+    margin: 0.25rem auto;
+  }
+}

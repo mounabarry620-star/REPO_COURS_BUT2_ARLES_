@@ -1,0 +1,12 @@
+<div class="resume">
+  <p>{{resume}}</p>
+  {{#if remarque}}
+  <p class="remarque">{{remarque}}</p>
+  {{/if}}
+  <label class="filtre">
+    Filtrer les {{mots}}
+    <input type="search" name="filtre" placeholder="ex. informatique, IUT, Nîmes&hellip;" autocomplete="off">
+  </label>
+  <p class="compteur"></p>
+</div>
+<ul class="formations"></ul>

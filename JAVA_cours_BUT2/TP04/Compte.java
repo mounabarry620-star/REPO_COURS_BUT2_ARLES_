@@ -1,7 +1,6 @@
 import java.io.Serializable;
 
 public class Compte implements Serializable {
-    private static final long serialVersionUID = 1L;
     private String proprietaire;
     private double solde;
     public Compte(String proprietaire, double solde) {

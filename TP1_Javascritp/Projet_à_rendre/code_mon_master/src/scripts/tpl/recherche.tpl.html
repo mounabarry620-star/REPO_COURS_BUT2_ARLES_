@@ -1,0 +1,92 @@
+<form class="formulaire">
+  <fieldset class="choix-parcours">
+    <legend>Je cherche</legend>
+    <label class="choix">
+      <input type="radio" name="parcours" value="formations" checked>
+      une formation après le bac (Parcoursup)
+    </label>
+    <label class="choix">
+      <input type="radio" name="parcours" value="masters">
+      un master (Mon Master)
+    </label>
+  </fieldset>
+  <label>
+    Ville
+    <input type="text" name="ville" placeholder="ex. Arles" required pattern=".*\S.*" title="Saisissez le nom d'une commune" list="villes-proposees" autocomplete="off">
+    <datalist id="villes-proposees"></datalist>
+  </label>
+  <label class="champ-formations">
+    Rayon (km)
+    <input type="number" name="rayon" value="30" min="1" max="200" required>
+  </label>
+  <label class="champ-formations">
+    Filière
+    <select name="filiere">
+      <option value="">Toutes</option>
+      <option value="BUT">BUT</option>
+      <option value="BTS">BTS</option>
+      <option value="Licence">Licence</option>
+      <option value="Licence_Las">Licence accès santé (L.AS)</option>
+      <option value="PASS">PASS</option>
+      <option value="CPGE">CPGE (classe prépa)</option>
+      <option value="Ecole d'Ingénieur">École d'ingénieur</option>
+      <option value="Ecole de Commerce">École de commerce</option>
+      <option value="IFSI">IFSI (soins infirmiers)</option>
+      <option value="EFTS">EFTS (travail social)</option>
+      <option value="Autre formation">Autre formation</option>
+    </select>
+  </label>
+  <label class="champ-masters" hidden>
+    Discipline
+    <select name="discipline" disabled>
+      <option value="">Toutes</option>
+      <option value="Administration économique et sociale">Administration économique et sociale</option>
+      <option value="Aménagement">Aménagement</option>
+      <option value="Archéologie, ethnologie, préhistoire, anthropologie">Archéologie, ethnologie, préhistoire, anthropologie</option>
+      <option value="Arts">Arts</option>
+      <option value="Chimie">Chimie</option>
+      <option value="Français, langue étrangère">Français, langue étrangère</option>
+      <option value="Génie civil">Génie civil</option>
+      <option value="Génie des procédés, matériaux">Génie des procédés, matériaux</option>
+      <option value="Géographie">Géographie</option>
+      <option value="Histoire">Histoire</option>
+      <option value="Informatique">Informatique</option>
+      <option value="Langues et littératures françaises">Langues et littératures françaises</option>
+      <option value="Langues et littératures étrangères">Langues et littératures étrangères</option>
+      <option value="Langues étrangères appliquées">Langues étrangères appliquées</option>
+      <option value="Littérature générale et comparée">Littérature générale et comparée</option>
+      <option value="Mathématique et informatique">Mathématique et informatique</option>
+      <option value="Mathématiques">Mathématiques</option>
+      <option value="Mathématiques appliquées et sciences sociales">Mathématiques appliquées et sciences sociales</option>
+      <option value="Mécanique, génie mécanique, ingénierie mécanique">Mécanique, génie mécanique, ingénierie mécanique</option>
+      <option value="Philosophie, épistémologie">Philosophie, épistémologie</option>
+      <option value="Physique">Physique</option>
+      <option value="Physique et chimie">Physique et chimie</option>
+      <option value="Pluridisciplinaire droit, sciences politiques">Pluridisciplinaire droit, sciences politiques</option>
+      <option value="Pluridisciplinaire droit, sciences économiques, AES">Pluridisciplinaire droit, sciences économiques, AES</option>
+      <option value="Pluridisciplinaire lettres, langues, sciences humaines">Pluridisciplinaire lettres, langues, sciences humaines</option>
+      <option value="Pluridisciplinaire lettres, sciences du langage, arts">Pluridisciplinaire lettres, sciences du langage, arts</option>
+      <option value="Pluridisciplinaire sciences">Pluridisciplinaire sciences</option>
+      <option value="Pluridisciplinaire sciences fondamentales et applications">Pluridisciplinaire sciences fondamentales et applications</option>
+      <option value="Pluridisciplinaire sciences humaines et sociales">Pluridisciplinaire sciences humaines et sociales</option>
+      <option value="Pluridisciplinaire sciences économiques et gestion">Pluridisciplinaire sciences économiques et gestion</option>
+      <option value="Psychologie, sciences cognitives">Psychologie, sciences cognitives</option>
+      <option value="STAPS">STAPS</option>
+      <option value="Sciences de gestion">Sciences de gestion</option>
+      <option value="Sciences de l'information et la communication">Sciences de l'information et la communication</option>
+      <option value="Sciences de l'univers, de la Terre, de l'espace, de la mer">Sciences de l'univers, de la Terre, de l'espace, de la mer</option>
+      <option value="Sciences de l'éducation">Sciences de l'éducation</option>
+      <option value="Sciences de la vie, biologie, santé">Sciences de la vie, biologie, santé</option>
+      <option value="Sciences du langage, linguistique">Sciences du langage, linguistique</option>
+      <option value="Sciences juridiques">Sciences juridiques</option>
+      <option value="Sciences politiques">Sciences politiques</option>
+      <option value="Sciences religieuses">Sciences religieuses</option>
+      <option value="Sciences économiques">Sciences économiques</option>
+      <option value="Sociologie, démographie">Sociologie, démographie</option>
+      <option value="Technologie et sciences industrielles">Technologie et sciences industrielles</option>
+      <option value="Théologie catholique">Théologie catholique</option>
+      <option value="Électronique, génie électrique, électronique - électrotechnique - automatique">Électronique, génie électrique, électronique - électrotechnique - automatique</option>
+    </select>
+  </label>
+  <button type="submit">Rechercher</button>
+</form>

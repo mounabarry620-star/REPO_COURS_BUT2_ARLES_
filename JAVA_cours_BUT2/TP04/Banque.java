@@ -10,9 +10,6 @@ import java.util.ArrayList;
 
 public class Banque implements Serializable {
 
-
-    private static final long serialVersionUID = 1L;
-
     private ArrayList<Compte> listeComptes;
 
     public Banque() {

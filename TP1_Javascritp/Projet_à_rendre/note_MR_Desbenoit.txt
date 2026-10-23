@@ -1,0 +1,9 @@
+Pas de révue.
+quand un étudiant fou rien pendant la salle et arrive avec rien
+faire attention à avoir des clé d'api. mettre dans le readme pour vérfier les clés d'api qui expirent vite.
+
+une api avec de l'autocomplétion
+deux techniques de prog. 
+mettre en place des moc.
+renvoyer un truc pour eviter d'être bani.
+à chaque fois tester les api peut vous banir

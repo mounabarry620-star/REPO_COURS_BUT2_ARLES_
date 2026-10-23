@@ -39,9 +39,7 @@ public class ListerRepertoire {
         long tailleTotaleFichiers = 0;
 
         System.out.println("Contenu du répertoire : " + repertoire.getAbsolutePath());
-        System.out.println("----------------------------------------------------------------------");
-        System.out.printf("%-35s | %-12s | %-15s%n", "Nom", "Type", "Taille (octets)");
-        System.out.println("----------------------------------------------------------------------");
+        System.out.println("--------------------------------------------------");
 
         for (int i = 0; i < listeFichiers.length; i++) {
             String nom = listeFichiers[i];
@@ -49,19 +47,19 @@ public class ListerRepertoire {
 
             if (element.isDirectory()) {
                 nbRepertoires++;
-                System.out.printf("%-35s | %-12s | %-15s%n", nom, "[Répertoire]", "-");
+                System.out.println(nom + " \t [Répertoire]");
             } else {
                 nbFichiers++;
                 long taille = element.length();
                 tailleTotaleFichiers += taille;
-                System.out.printf("%-35s | %-12s | %-15d%n", nom, "Fichier", taille);
+                System.out.println(nom + " \t Fichier (" + taille + " octets)");
             }
         }
-        System.out.println("----------------------------------------------------------------------");
+        System.out.println("--------------------------------------------------");
         System.out.println("Statistiques finales :");
         System.out.println("- Nombre de fichiers    : " + nbFichiers);
         System.out.println("- Nombre de répertoires : " + nbRepertoires);
         System.out.println("- Taille totale fichiers: " + tailleTotaleFichiers + " octets");
-        System.out.println("----------------------------------------------------------------------");
+        System.out.println("--------------------------------------------------");
     }
 }

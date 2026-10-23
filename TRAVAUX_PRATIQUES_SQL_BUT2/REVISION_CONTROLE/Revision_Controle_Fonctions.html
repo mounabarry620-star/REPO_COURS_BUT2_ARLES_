@@ -1,0 +1,1688 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="fr" xml:lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <meta name="author" content="Fiche de révision + exercices corrigés (base bdd_car_net)" />
+  <title>Révision contrôle — Les fonctions PL/pgSQL</title>
+  <style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+.display.math{display: block; text-align: center; margin: 0.5rem auto;}
+
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ background-color: #f8f8f8; }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ef2929; } 
+code span.an { color: #8f5902; font-weight: bold; font-style: italic; } 
+code span.at { color: #204a87; } 
+code span.bn { color: #0000cf; } 
+code span.cf { color: #204a87; font-weight: bold; } 
+code span.ch { color: #4e9a06; } 
+code span.cn { color: #8f5902; } 
+code span.co { color: #8f5902; font-style: italic; } 
+code span.cv { color: #8f5902; font-weight: bold; font-style: italic; } 
+code span.do { color: #8f5902; font-weight: bold; font-style: italic; } 
+code span.dt { color: #204a87; } 
+code span.dv { color: #0000cf; } 
+code span.er { color: #a40000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #0000cf; } 
+code span.fu { color: #204a87; font-weight: bold; } 
+code span.im { } 
+code span.in { color: #8f5902; font-weight: bold; font-style: italic; } 
+code span.kw { color: #204a87; font-weight: bold; } 
+code span.op { color: #ce5c00; font-weight: bold; } 
+code span.ot { color: #8f5902; } 
+code span.pp { color: #8f5902; font-style: italic; } 
+code span.sc { color: #ce5c00; font-weight: bold; } 
+code span.ss { color: #4e9a06; } 
+code span.st { color: #4e9a06; } 
+code span.va { color: #000000; } 
+code span.vs { color: #4e9a06; } 
+code span.wa { color: #8f5902; font-weight: bold; font-style: italic; } 
+</style>
+  <style type="text/css">@page { size: A4; margin: 18mm 16mm; }
+html { font-size: 10.5pt; }
+body { font-family: "DejaVu Sans", "Liberation Sans", Arial, sans-serif; line-height: 1.45; color: #1a1a1a; max-width: 100%; margin: 0; }
+header#title-block-header { border-bottom: 3px solid #336791; margin-bottom: 1.5em; padding-bottom: .6em; }
+h1.title { font-size: 2em; color: #336791 !important; background: none !important; padding: 0; margin: 0 0 .2em 0; page-break-before: auto !important; }
+p.subtitle { font-size: 1.15em; color: #444; margin: 0; }
+p.author, p.date { color: #666; margin: .2em 0; font-size: .95em; }
+h1 { font-size: 1.6em; color: #fff; background: #336791; padding: .35em .6em; border-radius: 4px; margin-top: 1.8em; page-break-before: always; }
+header + h1, h1:first-of-type { page-break-before: auto; }
+h2 { font-size: 1.25em; color: #336791; border-bottom: 2px solid #c9d8e6; padding-bottom: .15em; margin-top: 1.5em; }
+h3 { font-size: 1.05em; color: #24496b; margin-top: 1.2em; }
+pre { background: #f4f6f8; border: 1px solid #d5dbe1; border-left: 4px solid #336791; padding: .6em .8em; border-radius: 3px; font-size: .86em; line-height: 1.35; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word; page-break-inside: auto; }
+code { font-family: "DejaVu Sans Mono", "Liberation Mono", monospace; }
+p code, li code, td code { background: #eef2f6; padding: 0 .25em; border-radius: 2px; font-size: .9em; }
+table { border-collapse: collapse; width: 100%; margin: .8em 0; font-size: .9em; page-break-inside: auto; }
+tr { page-break-inside: avoid; }
+thead { display: table-header-group; }
+th, td { border: 1px solid #c9d1d9; padding: .35em .5em; vertical-align: top; text-align: left; }
+th { background: #e3ecf4; color: #24496b; }
+tr:nth-child(even) td { background: #f8fafc; }
+blockquote { border-left: 4px solid #e0a800; background: #fff8e1; margin: 1em 0; padding: .5em .9em; color: #4a3b00; }
+strong { color: #000; }
+ul, ol { padding-left: 1.4em; }
+li { margin: .15em 0; }
+hr { border: 0; border-top: 1px solid #ccc; margin: 1.5em 0; }
+
+.sourceCode .kw { color: #0b5394; font-weight: bold; }
+.sourceCode .co { color: #6a737d; font-style: italic; }
+.sourceCode .st { color: #b3541e; }
+.sourceCode .dt { color: #7a3e9d; }
+.sourceCode .fu { color: #005f5f; }
+.sourceCode .dv, .sourceCode .fl { color: #1b6e1b; }
+</style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">Révision contrôle — Les fonctions PL/pgSQL</h1>
+<p class="subtitle">R3.07 · SQL dans un langage de programmation · BUT
+Informatique 2</p>
+<p class="author">Fiche de révision + exercices corrigés (base
+bdd_car_net)</p>
+<p class="date">14 octobre 2026</p>
+</header>
+<nav id="TOC" role="doc-toc">
+<h2 id="toc-title">Sommaire</h2>
+<ul>
+<li><a href="#comment-utiliser-ce-document" id="toc-comment-utiliser-ce-document">Comment utiliser ce
+document</a></li>
+<li><a href="#partie-1-fiche-de-cours" id="toc-partie-1-fiche-de-cours">Partie 1 — Fiche de cours</a>
+<ul>
+<li><a href="#le-squelette-dune-fonction-à-connaître-par-cœur" id="toc-le-squelette-dune-fonction-à-connaître-par-cœur">1.1 Le
+squelette d’une fonction (à connaître par cœur)</a></li>
+<li><a href="#les-variables" id="toc-les-variables">1.2 Les
+variables</a></li>
+<li><a href="#les-paramètres" id="toc-les-paramètres">1.3 Les
+paramètres</a></li>
+<li><a href="#laffectation-4-façons-de-mettre-une-valeur-dans-une-variable" id="toc-laffectation-4-façons-de-mettre-une-valeur-dans-une-variable">1.4
+L’affectation : 4 façons de mettre une valeur dans une variable</a></li>
+<li><a href="#structures-de-contrôle" id="toc-structures-de-contrôle">1.5 Structures de contrôle</a></li>
+<li><a href="#le-retour-dune-fonction-le-tableau-à-maîtriser" id="toc-le-retour-dune-fonction-le-tableau-à-maîtriser">1.6 Le retour
+d’une fonction — LE tableau à maîtriser</a></li>
+<li><a href="#messages-et-erreurs" id="toc-messages-et-erreurs">1.7
+Messages et erreurs</a></li>
+<li><a href="#les-curseurs" id="toc-les-curseurs">1.8 Les
+curseurs</a></li>
+<li><a href="#execute-le-sql-dynamique" id="toc-execute-le-sql-dynamique">1.9 EXECUTE : le SQL
+dynamique</a></li>
+<li><a href="#fonctions-sql-à-avoir-sous-la-main" id="toc-fonctions-sql-à-avoir-sous-la-main">1.10 Fonctions SQL à avoir
+sous la main</a></li>
+<li><a href="#triggers-rappel-au-cas-où" id="toc-triggers-rappel-au-cas-où">1.11 Triggers (rappel, au cas
+où)</a></li>
+</ul></li>
+<li><a href="#partie-2-pièges-et-erreurs-classiques" id="toc-partie-2-pièges-et-erreurs-classiques">Partie 2 — Pièges et
+erreurs classiques</a></li>
+<li><a href="#partie-3-méthode-au-contrôle" id="toc-partie-3-méthode-au-contrôle">Partie 3 — Méthode au contrôle</a>
+<ul>
+<li><a href="#avant-de-commencer-5-minutes" id="toc-avant-de-commencer-5-minutes">3.1 Avant de commencer (5
+minutes)</a></li>
+<li><a href="#le-patron-de-réponse-pour-chaque-fonction" id="toc-le-patron-de-réponse-pour-chaque-fonction">3.2 Le patron de
+réponse pour chaque fonction</a></li>
+<li><a href="#grille-mentale-quel-returns" id="toc-grille-mentale-quel-returns">3.3 Grille mentale « quel RETURNS ?
+»</a></li>
+</ul></li>
+<li><a href="#partie-4-exercices-dentraînement-base-bdd_car_net" id="toc-partie-4-exercices-dentraînement-base-bdd_car_net">Partie 4 —
+Exercices d’entraînement (base <code>bdd_car_net</code>)</a>
+<ul>
+<li><a href="#niveau-1-fonctions-scalaires" id="toc-niveau-1-fonctions-scalaires">4.1 Niveau 1 — fonctions
+scalaires</a></li>
+<li><a href="#niveau-2-plusieurs-colonnes-plusieurs-lignes" id="toc-niveau-2-plusieurs-colonnes-plusieurs-lignes">4.2 Niveau 2 —
+plusieurs colonnes, plusieurs lignes</a></li>
+<li><a href="#niveau-3-curseurs-mises-à-jour-niveau-contrôle" id="toc-niveau-3-curseurs-mises-à-jour-niveau-contrôle">4.3 Niveau 3 —
+curseurs, mises à jour, niveau contrôle</a></li>
+<li><a href="#le-contrôle-dentraînement-à-refaire-en-conditions-réelles-1h30" id="toc-le-contrôle-dentraînement-à-refaire-en-conditions-réelles-1h30">4.4
+Le contrôle d’entraînement, à refaire en conditions réelles
+(1h30)</a></li>
+</ul></li>
+<li><a href="#corrections" id="toc-corrections">Corrections</a>
+<ul>
+<li><a href="#réponses-de-trouve-les-erreurs-partie-2" id="toc-réponses-de-trouve-les-erreurs-partie-2">Réponses de « trouve
+les erreurs » (partie 2)</a></li>
+<li><a href="#corrections-des-exercices-1-à-17" id="toc-corrections-des-exercices-1-à-17">Corrections des exercices 1 à
+17</a></li>
+<li><a href="#correction-du-contrôle-dentraînement-version-du-prof-commentée" id="toc-correction-du-contrôle-dentraînement-version-du-prof-commentée">Correction
+du contrôle d’entraînement (version du prof, commentée)</a></li>
+</ul></li>
+<li><a href="#mémo-dune-page-à-relire-juste-avant-dentrer" id="toc-mémo-dune-page-à-relire-juste-avant-dentrer">Mémo d’une page (à
+relire juste avant d’entrer)</a></li>
+</ul>
+</nav>
+<h1 id="comment-utiliser-ce-document">Comment utiliser ce document</h1>
+<p>Le contrôle dure <strong>1h30, sur machine, sans internet</strong>,
+avec droit au <strong>cours</strong> et aux <strong>corrections de
+TP</strong>. Il porte sur les <strong>fonctions</strong> (et très
+probablement les curseurs, qui sont dans le même cours ; les triggers
+sont un bonus peu probable). Le contrôle d’entraînement du prof utilise
+la base <code>bdd_car_net</code> : il y a de fortes chances que le vrai
+contrôle utilise la même base ou une base très proche, avec le même type
+de questions.</p>
+<p>Ce document est en 4 parties :</p>
+<ol type="1">
+<li><strong>Fiche de cours</strong> : tout ce qu’il faut savoir,
+condensé, avec la syntaxe exacte du prof.</li>
+<li><strong>Pièges et erreurs classiques</strong> : les erreurs qui
+coûtent des points (et du temps).</li>
+<li><strong>Méthode au contrôle</strong> : le patron de réponse à
+appliquer à chaque exercice.</li>
+<li><strong>Exercices d’entraînement</strong> sur
+<code>bdd_car_net</code>, du plus simple au niveau contrôle, puis le
+contrôle d’entraînement refait, puis les <strong>corrections</strong>
+(toutes testées sur la base, les résultats indiqués sont réels).</li>
+</ol>
+<p>Conseil de planning pour les 3 heures : 45 min de cours (parties 1 à
+3), 1h30 d’exercices en les faisant vraiment dans phppgadmin, 30 min
+pour refaire le contrôle d’entraînement en conditions réelles.</p>
+<hr />
+<h1 id="partie-1-fiche-de-cours">Partie 1 — Fiche de cours</h1>
+<h2 id="le-squelette-dune-fonction-à-connaître-par-cœur">1.1 Le
+squelette d’une fonction (à connaître par cœur)</h2>
+<div class="sourceCode" id="cb1"><pre class="sourceCode sql"><code class="sourceCode sql"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">FUNCTION</span> nom_fonction(p_param1 <span class="kw">type</span>, p_param2 <span class="kw">type</span>) RETURNS type_retour <span class="kw">AS</span> $$</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="kw">DECLARE</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- déclarations de variables (une par ligne, terminées par ;)</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    v_variable  <span class="kw">type</span>;</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="cf">BEGIN</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- instructions, chacune terminée par ;</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    <span class="kw">RETURN</span> valeur;</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="cf">END</span>;</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>$$ LANGUAGE plpgsql;</span></code></pre></div>
+<p>Points clés :</p>
+<ul>
+<li>Les <code>$$</code> délimitent le corps de la fonction. Sans eux, le
+moteur SQL prend le premier <code>;</code> pour la fin de la requête →
+erreur (vidéo « erreur délimiteur »).</li>
+<li><code>CREATE OR REPLACE</code> permet de recréer la fonction sans la
+supprimer… <strong>sauf si on change le type de retour</strong> (voir
+pièges).</li>
+<li><code>LANGUAGE plpgsql</code> en fin, obligatoire.</li>
+<li>Chaque déclaration et chaque instruction se termine par
+<code>;</code>. Les déclarations multiples <code>i, j integer;</code>
+sont <strong>interdites</strong>.</li>
+<li>Appel d’une fonction scalaire :
+<code>SELECT nom_fonction(valeurs);</code></li>
+<li>Commentaires : <code>-- une ligne</code> ou
+<code>/* plusieurs lignes */</code>. Le prof les considère quasi
+obligatoires : commentez vos vérifications.</li>
+</ul>
+<p>Exemple du prof (TP1) :</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode sql"><code class="sourceCode sql"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">FUNCTION</span> moySalaire() RETURNS <span class="dt">NUMERIC</span> <span class="kw">AS</span> $$</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="kw">DECLARE</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    V_Moyenne <span class="dt">numeric</span>;</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="cf">BEGIN</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">SELECT</span> <span class="fu">AVG</span>(salaire) <span class="kw">INTO</span> V_Moyenne <span class="kw">FROM</span> employes;</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">RETURN</span> V_Moyenne;</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="cf">END</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>$$ LANGUAGE plpgsql;</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> moySalaire();</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> nom, salaire <span class="kw">FROM</span> employes <span class="kw">WHERE</span> salaire <span class="op">&gt;</span> moySalaire();  <span class="co">-- utilisable dans une requête</span></span></code></pre></div>
+<h2 id="les-variables">1.2 Les variables</h2>
+<div class="sourceCode" id="cb3"><pre class="sourceCode sql"><code class="sourceCode sql"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">DECLARE</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    age          <span class="dt">integer</span>;                      <span class="co">-- simple</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    ok           <span class="dt">boolean</span> <span class="op">:=</span> <span class="kw">true</span>;              <span class="co">-- avec valeur initiale</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    quantite     <span class="dt">integer</span> <span class="kw">DEFAULT</span> <span class="dv">32</span>;           <span class="co">-- idem avec DEFAULT</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    taux         <span class="kw">CONSTANT</span> <span class="dt">numeric</span> <span class="op">:=</span> <span class="fl">0.2</span>;      <span class="co">-- constante, non modifiable</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    v_prix       vehicule.prix_jour<span class="dt">%TYPE</span>;      <span class="co">-- même type qu&#39;une colonne</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    v_cli        client<span class="dt">%ROWTYPE</span>;               <span class="co">-- une ligne entière de la table client</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    v_ligne      <span class="dt">RECORD</span>;                       <span class="co">-- ligne sans structure prédéfinie</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    somme        <span class="dt">real</span>;</span></code></pre></div>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Type</th>
+<th>Usage</th>
+<th>Accès aux champs</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>table.colonne%TYPE</code></td>
+<td>variable du même type qu’une colonne</td>
+<td>—</td>
+</tr>
+<tr class="even">
+<td><code>table%ROWTYPE</code></td>
+<td>une ligne complète d’une table (toutes les colonnes)</td>
+<td><code>v_cli.nom_client</code></td>
+</tr>
+<tr class="odd">
+<td><code>RECORD</code></td>
+<td>ligne de structure libre, prend la structure du <code>SELECT</code>
+ou du <code>FOR</code> qui la remplit</td>
+<td><code>v_ligne.exemple</code></td>
+</tr>
+</tbody>
+</table>
+<p>Un <code>RECORD</code> n’a <strong>pas de structure tant qu’il n’a
+pas été assigné</strong> : accéder à un champ avant provoque une erreur
+d’exécution.</p>
+<p>Identificateurs : commencent par une lettre,
+lettres/chiffres/<code>_</code>, <strong>insensibles à la casse</strong>
+(<code>SommePaye</code> = <code>sommepaye</code>). Convention du prof :
+<code>p_</code> pour les paramètres, <code>v_</code> pour les variables
+(ça évite les conflits de noms avec les colonnes !).</p>
+<h2 id="les-paramètres">1.3 Les paramètres</h2>
+<div class="sourceCode" id="cb4"><pre class="sourceCode sql"><code class="sourceCode sql"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- paramètres nommés (le plus courant)</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">FUNCTION</span> add_em(x <span class="dt">integer</span>, y <span class="dt">integer</span>) RETURNS <span class="dt">integer</span> <span class="kw">AS</span> $$</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="cf">BEGIN</span> <span class="kw">RETURN</span> x <span class="op">+</span> y; <span class="cf">END</span>; $$ LANGUAGE plpgsql;</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="co">-- paramètres anonymes : $1, $2 ...</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">FUNCTION</span> add_em(<span class="dt">integer</span>, <span class="dt">integer</span>) RETURNS <span class="dt">integer</span> <span class="kw">AS</span> $$</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="cf">BEGIN</span> <span class="kw">RETURN</span> $<span class="dv">1</span> <span class="op">+</span> $<span class="dv">2</span>; <span class="cf">END</span>; $$ LANGUAGE plpgsql;</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="co">-- alias (ancienne méthode)</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="kw">DECLARE</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>    prixHT ALIAS <span class="cf">FOR</span> $<span class="dv">1</span>;</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>    taux   ALIAS <span class="cf">FOR</span> $<span class="dv">2</span>;</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a><span class="co">-- valeurs par défaut (seulement en fin de liste)</span></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">FUNCTION</span> somme(x <span class="dt">numeric</span>, y <span class="dt">numeric</span> <span class="kw">DEFAULT</span> <span class="dv">2</span>, z <span class="dt">numeric</span> <span class="kw">DEFAULT</span> <span class="dv">2</span>) RETURNS <span class="dt">numeric</span> <span class="op">..</span>.</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> somme(<span class="dv">3</span>,<span class="dv">5</span>,<span class="dv">6</span>);  <span class="co">-- 14</span></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> somme(<span class="dv">3</span>);      <span class="co">-- 7</span></span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a><span class="co">-- paramètres de sortie OUT : pas de RETURNS, pas de RETURN</span></span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">FUNCTION</span> somme(<span class="kw">IN</span> x <span class="dt">numeric</span>, <span class="kw">IN</span> y <span class="dt">numeric</span>, <span class="kw">OUT</span> somme <span class="dt">numeric</span>) <span class="kw">AS</span> $$</span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a><span class="cf">BEGIN</span></span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>    somme <span class="op">:=</span> x <span class="op">+</span> y;</span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a><span class="cf">END</span>; $$ LANGUAGE plpgsql;</span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> somme(<span class="dv">4</span>,<span class="dv">7</span>);</span></code></pre></div>
+<p>Deux avertissements du prof :</p>
+<ul>
+<li><strong>Pas de polymorphisme</strong> (note de cours) : deux
+fonctions de même nom avec des paramètres différents coexistent et font
+des choses différentes → à éviter catégoriquement. Si vous changez les
+paramètres d’une fonction, faites
+<code>DROP FUNCTION ancien_nom(anciens types);</code> avant.</li>
+<li><strong>Attention au type des arguments</strong> (vidéo « erreur
+type arg ») : <code>varchar(45)</code> vs <code>text</code>,
+<code>int</code> vs <code>numeric</code>… Déclarez un type compatible
+avec la colonne que vous comparez. Si l’appel échoue avec « function
+xxx(unknown) does not exist » ou « does not match », c’est un problème
+de type.</li>
+</ul>
+<h2 id="laffectation-4-façons-de-mettre-une-valeur-dans-une-variable">1.4
+L’affectation : 4 façons de mettre une valeur dans une variable</h2>
+<div class="sourceCode" id="cb5"><pre class="sourceCode sql"><code class="sourceCode sql"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- 1. affectation directe</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>v_date <span class="op">:=</span> <span class="st">&#39;2004-10-10&#39;</span>;     <span class="co">-- ou  v_date = &#39;2004-10-10&#39;;</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co">-- 2. SELECT ... INTO  (requête qui renvoie UNE ligne, une ou plusieurs colonnes)</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> prix_jour <span class="kw">INTO</span> v_prix <span class="kw">FROM</span> vehicule <span class="kw">WHERE</span> code_vehicule <span class="op">=</span> p_code;</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> nom_client, pre_client <span class="kw">INTO</span> v_nom, v_prenom <span class="kw">FROM</span> client <span class="kw">WHERE</span> num_client <span class="op">=</span> p_num;</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> nom_client, pre_client <span class="kw">INTO</span> v_rec <span class="kw">FROM</span> client <span class="kw">WHERE</span> num_client <span class="op">=</span> p_num;  <span class="co">-- dans un record</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="co">-- forme équivalente du prof :  SELECT INTO v_moyenne AVG(salaire) FROM employes;</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="co">-- 3. variable := (requête)   (requête à UNE colonne et UNE ligne)</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>v_nb <span class="op">:=</span> (<span class="kw">SELECT</span> <span class="fu">count</span>(<span class="op">*</span>) <span class="kw">FROM</span> reservation <span class="kw">WHERE</span> num_client <span class="op">=</span> p_num);</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a><span class="co">-- 4. requête dans un test</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a><span class="cf">IF</span> (<span class="kw">SELECT</span> statut <span class="kw">FROM</span> reservations <span class="kw">WHERE</span> id_reservation <span class="op">=</span> p_id) <span class="op">=</span> <span class="st">&#39;ANNULEE&#39;</span> <span class="cf">THEN</span> <span class="op">..</span>.</span></code></pre></div>
+<p><strong>Règle d’or : un SELECT dans une fonction doit TOUJOURS avoir
+une destination</strong> (<code>INTO</code>, affectation, test, ou
+<code>FOR ... IN</code>). Un <code>SELECT</code> « nu » donne l’erreur
+<code>query has no destination for result data</code>.</p>
+<h3 id="perform-et-found-la-vérification-dexistence-dans-tous-les-exercices">PERFORM
+et FOUND — la vérification d’existence (dans TOUS les exercices)</h3>
+<p><code>PERFORM</code> = un <code>SELECT</code> dont on ignore le
+résultat. Il positionne la variable spéciale <code>FOUND</code> : vraie
+si la requête a ramené au moins une ligne.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode sql"><code class="sourceCode sql"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>PERFORM <span class="op">*</span> <span class="kw">FROM</span> agence <span class="kw">WHERE</span> <span class="fu">lower</span>(nom_agence) <span class="op">=</span> <span class="fu">lower</span>(p_nom_ag);</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="cf">IF</span> <span class="kw">NOT</span> FOUND <span class="cf">THEN</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    RAISE <span class="kw">EXCEPTION</span> <span class="st">&#39;l</span><span class="ch">&#39;&#39;</span><span class="st">agence % n</span><span class="ch">&#39;&#39;</span><span class="st">existe pas&#39;</span>, p_nom_ag;</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="cf">END</span> <span class="cf">IF</span>;</span></code></pre></div>
+<p><code>FOUND</code> est aussi positionné par <code>SELECT INTO</code>,
+<code>UPDATE</code>, <code>INSERT</code>, <code>DELETE</code>,
+<code>FETCH</code>, <code>FOR</code>. Donc après un
+<code>SELECT ... INTO</code>, on peut aussi tester
+<code>IF NOT FOUND</code>.</p>
+<h2 id="structures-de-contrôle">1.5 Structures de contrôle</h2>
+<div class="sourceCode" id="cb7"><pre class="sourceCode sql"><code class="sourceCode sql"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- IF</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="cf">IF</span> cond <span class="cf">THEN</span> <span class="op">..</span>.</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="cf">ELSIF</span> cond2 <span class="cf">THEN</span> <span class="op">..</span>.</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="cf">ELSE</span> <span class="op">..</span>.</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="cf">END</span> <span class="cf">IF</span>;</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="co">-- CASE</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="cf">CASE</span> x</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">WHEN</span> <span class="dv">1</span>, <span class="dv">2</span> <span class="cf">THEN</span> msg <span class="op">:=</span> <span class="st">&#39;un ou deux&#39;</span>;</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">ELSE</span> msg <span class="op">:=</span> <span class="st">&#39;autre&#39;</span>;</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a><span class="cf">END</span> <span class="cf">CASE</span>;</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a><span class="co">-- LOOP (sortie obligatoire avec EXIT ou RETURN)</span></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a><span class="cf">LOOP</span></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>    <span class="op">..</span>.</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>    EXIT <span class="cf">WHEN</span> compteur <span class="op">&gt;</span> <span class="dv">10</span>;      <span class="co">-- ou : IF compteur &gt; 10 THEN EXIT; </span><span class="re">END</span><span class="co"> IF;</span></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a><span class="cf">END</span> <span class="cf">LOOP</span>;</span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a><span class="co">-- WHILE</span></span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a><span class="cf">WHILE</span> montant <span class="op">&gt;</span> <span class="dv">0</span> <span class="cf">LOOP</span></span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>    <span class="op">..</span>.   <span class="co">-- faire évoluer la variable testée !</span></span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a><span class="cf">END</span> <span class="cf">LOOP</span>;</span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a><span class="co">-- FOR sur un intervalle d&#39;entiers</span></span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a><span class="cf">FOR</span> i <span class="kw">IN</span> <span class="dv">1</span><span class="op">..</span><span class="dv">10</span> <span class="cf">LOOP</span></span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>    RAISE NOTICE <span class="st">&#39;i vaut %&#39;</span>, i;</span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a><span class="cf">END</span> <span class="cf">LOOP</span>;</span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a><span class="cf">FOR</span> i <span class="kw">IN</span> <span class="kw">REVERSE</span> <span class="dv">10</span><span class="op">..</span><span class="dv">1</span> <span class="cf">LOOP</span> <span class="op">..</span>. <span class="cf">END</span> <span class="cf">LOOP</span>;</span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a><span class="co">-- FOR sur le résultat d&#39;une requête  ***  LE PLUS IMPORTANT  ***</span></span>
+<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a><span class="cf">FOR</span> v_ligne <span class="kw">IN</span> <span class="kw">SELECT</span> exemple, prix_jour <span class="kw">FROM</span> vehicule <span class="kw">WHERE</span> categorie <span class="op">=</span> p_cat   <span class="co">-- PAS de ; ici</span></span>
+<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a><span class="cf">LOOP</span></span>
+<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a>    <span class="kw">RETURN</span> <span class="kw">NEXT</span> v_ligne;</span>
+<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a><span class="cf">END</span> <span class="cf">LOOP</span>;</span>
+<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a><span class="co">-- FOR sur une requête dynamique</span></span>
+<span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a><span class="cf">FOR</span> v_ligne <span class="kw">IN</span> <span class="kw">EXECUTE</span> <span class="st">&#39;SELECT * FROM &#39;</span> <span class="op">||</span> quote_ident(p_table) <span class="cf">LOOP</span> <span class="op">..</span>. <span class="cf">END</span> <span class="cf">LOOP</span>;</span></code></pre></div>
+<p>Boucles imbriquées avec label :
+<code>&lt;&lt;loop1&gt;&gt; LOOP ... EXIT loop1 WHEN y &gt; 4; ... END LOOP;</code>.</p>
+<h2 id="le-retour-dune-fonction-le-tableau-à-maîtriser">1.6 Le retour
+d’une fonction — LE tableau à maîtriser</h2>
+<p>C’est le cœur du contrôle. Le choix dépend du nombre de
+<strong>lignes</strong> et de <strong>colonnes</strong> renvoyées.</p>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Résultat</th>
+<th><code>RETURNS</code></th>
+<th>Instruction de retour</th>
+<th>Appel</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1 ligne, 1 colonne (scalaire)</td>
+<td><code>RETURNS integer</code> / <code>numeric</code> /
+<code>varchar</code> / <code>boolean</code>…</td>
+<td><code>RETURN valeur;</code></td>
+<td><code>SELECT f(…);</code></td>
+</tr>
+<tr class="even">
+<td>1 ligne, N colonnes</td>
+<td><code>RETURNS record</code></td>
+<td><code>RETURN v_record;</code></td>
+<td><code>SELECT * FROM f(…) AS (c1 type, c2 type…);</code></td>
+</tr>
+<tr class="odd">
+<td>N lignes, 1 colonne</td>
+<td><code>RETURNS SETOF type</code></td>
+<td><code>RETURN NEXT valeur;</code> dans une boucle puis
+<code>RETURN;</code></td>
+<td><code>SELECT f(…);</code> ou <code>SELECT * FROM f(…);</code></td>
+</tr>
+<tr class="even">
+<td>N lignes, N colonnes</td>
+<td><code>RETURNS SETOF record</code></td>
+<td><code>RETURN NEXT v_record;</code> dans une boucle puis
+<code>RETURN;</code></td>
+<td><code>SELECT * FROM f(…) AS (c1 type, c2 type…);</code></td>
+</tr>
+<tr class="odd">
+<td>N lignes = lignes complètes d’une table</td>
+<td><code>RETURNS SETOF nom_table</code></td>
+<td><code>RETURN NEXT v_row;</code> (où <code>v_row</code> est
+<code>table%ROWTYPE</code>) ou <code>RETURN QUERY SELECT …;</code></td>
+<td><code>SELECT * FROM f(…);</code> (pas de <code>AS</code>)</td>
+</tr>
+<tr class="even">
+<td>N lignes, colonnes nommées à l’avance</td>
+<td><code>RETURNS TABLE(c1 type, c2 type…)</code></td>
+<td><code>RETURN QUERY SELECT …;</code></td>
+<td><code>SELECT * FROM f(…);</code> (pas de <code>AS</code>)</td>
+</tr>
+<tr class="odd">
+<td>rien</td>
+<td><code>RETURNS void</code></td>
+<td><code>RETURN;</code> facultatif</td>
+<td><code>SELECT f(…);</code></td>
+</tr>
+</tbody>
+</table>
+<p>Règle de la note de cours, à retenir mot pour mot :</p>
+<blockquote>
+<p>Si ça retourne <strong>plus d’une colonne</strong> :
+<code>SELECT * FROM f(12) AS (col1 type, col2 type, ...)</code>. Si ça
+retourne <strong>plus d’une ligne</strong> (et une seule colonne) :
+<code>SELECT * FROM f(12)</code> ou <code>SELECT f(12)</code>.</p>
+</blockquote>
+<p>Dans le <code>AS (...)</code>, les <strong>noms</strong> sont libres,
+mais les <strong>types doivent correspondre</strong> aux colonnes
+renvoyées (<code>varchar</code>, <code>numeric</code>, <code>int</code>,
+<code>date</code>, <code>time</code>, <code>boolean</code>,
+<code>bigint</code> pour un <code>count(*)</code>…). On peut ensuite
+n’afficher qu’une colonne :
+<code>SELECT n FROM info(1) AS (n varchar, s real);</code>.</p>
+<h3 id="les-4-modèles-à-recopier">Les 4 modèles à recopier</h3>
+<p><strong>Scalaire</strong> (1 ligne, 1 colonne) :</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode sql"><code class="sourceCode sql"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">FUNCTION</span> SommePaye(p_numCli <span class="dt">int</span>) RETURNS <span class="dt">real</span> <span class="kw">AS</span> $$</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="kw">DECLARE</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    somme <span class="dt">real</span>;</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="cf">BEGIN</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>    PERFORM num_client <span class="kw">FROM</span> client <span class="kw">WHERE</span> num_client <span class="op">=</span> p_numCli;</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">IF</span> <span class="kw">NOT</span> FOUND <span class="cf">THEN</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>        RAISE <span class="kw">EXCEPTION</span> <span class="st">&#39;le client % n</span><span class="ch">&#39;&#39;</span><span class="st">existe pas&#39;</span>, p_numCli;</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">END</span> <span class="cf">IF</span>;</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>    <span class="kw">SELECT</span> <span class="fu">sum</span>(prix_jour <span class="op">*</span> <span class="fu">extract</span>(<span class="dt">day</span> <span class="kw">FROM</span> (date_heure_retour <span class="op">-</span> date_heure_depart)))</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>    <span class="kw">INTO</span> somme</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>    <span class="kw">FROM</span> reservation <span class="kw">INNER</span> <span class="kw">JOIN</span> vehicule <span class="kw">USING</span> (code_vehicule)</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>    <span class="kw">WHERE</span> num_client <span class="op">=</span> p_numCli;</span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>    <span class="kw">RETURN</span> somme;</span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a><span class="cf">END</span></span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>$$ LANGUAGE plpgsql;</span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> SommePaye(<span class="dv">100</span>);   <span class="co">-- 5129</span></span></code></pre></div>
+<p><strong>Record</strong> (1 ligne, N colonnes) :</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode sql"><code class="sourceCode sql"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">FUNCTION</span> sup(P_NumEmp <span class="dt">integer</span>) RETURNS <span class="dt">RECORD</span> <span class="kw">AS</span> $$</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="kw">DECLARE</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>    Var_NomSup <span class="dt">RECORD</span>;</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="cf">BEGIN</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">SELECT</span> nom, prenom, nosupr <span class="kw">INTO</span> Var_NomSup <span class="kw">FROM</span> employes</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">WHERE</span> noemp <span class="op">=</span> (<span class="kw">SELECT</span> nosupr <span class="kw">FROM</span> employes <span class="kw">WHERE</span> noemp <span class="op">=</span> P_NumEmp);</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>    <span class="kw">RETURN</span> Var_NomSup;</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="cf">END</span>;</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>$$ LANGUAGE plpgsql;</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> sup(<span class="dv">17</span>) <span class="kw">AS</span> (nom <span class="dt">VARCHAR</span>, prenom <span class="dt">VARCHAR</span>, nosupr <span class="dt">NUMERIC</span>(<span class="dv">7</span>,<span class="dv">0</span>));</span></code></pre></div>
+<p><strong>SETOF record</strong> (N lignes, N colonnes) — le modèle le
+plus demandé :</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode sql"><code class="sourceCode sql"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">FUNCTION</span> listeVehicule(p_nom_ag <span class="dt">varchar</span>(<span class="dv">45</span>)) RETURNS SETOF <span class="dt">record</span> <span class="kw">AS</span> $$</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="kw">DECLARE</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    v_ligne <span class="dt">record</span>;</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="cf">BEGIN</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- vérification de l&#39;existence de l&#39;agence</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>    PERFORM nom_agence <span class="kw">FROM</span> agence <span class="kw">WHERE</span> <span class="fu">lower</span>(nom_agence) <span class="op">=</span> <span class="fu">lower</span>(p_nom_ag);</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">IF</span> <span class="kw">NOT</span> FOUND <span class="cf">THEN</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>        RAISE <span class="kw">EXCEPTION</span> <span class="st">&#39;l</span><span class="ch">&#39;&#39;</span><span class="st">agence % n</span><span class="ch">&#39;&#39;</span><span class="st">existe pas&#39;</span>, p_nom_ag;</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">END</span> <span class="cf">IF</span>;</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- parcours du résultat et renvoi ligne par ligne</span></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">FOR</span> v_ligne <span class="kw">IN</span> <span class="kw">SELECT</span> exemple, prix_jour</span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>                   <span class="kw">FROM</span> vehicule <span class="kw">INNER</span> <span class="kw">JOIN</span> proposer <span class="kw">USING</span> (code_vehicule)</span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>                                 <span class="kw">INNER</span> <span class="kw">JOIN</span> agence <span class="kw">USING</span> (num_agence)</span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>                   <span class="kw">WHERE</span> <span class="fu">lower</span>(nom_agence) <span class="op">=</span> <span class="fu">lower</span>(p_nom_ag)</span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">LOOP</span></span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>        <span class="kw">RETURN</span> <span class="kw">NEXT</span> v_ligne;</span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">END</span> <span class="cf">LOOP</span>;</span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>    <span class="kw">RETURN</span>;</span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a><span class="cf">END</span></span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>$$ LANGUAGE plpgsql;</span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> listeVehicule(<span class="st">&#39;Micsot&#39;</span>) <span class="kw">AS</span> (nom_vehi <span class="dt">varchar</span>, px <span class="dt">numeric</span>);</span></code></pre></div>
+<p><strong>SETOF table + RETURN QUERY</strong> (lignes complètes d’une
+table) :</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode sql"><code class="sourceCode sql"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">FUNCTION</span> voyages_par_guide(p_guide <span class="dt">INTEGER</span>) RETURNS SETOF voyages <span class="kw">AS</span> $$</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="cf">BEGIN</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    PERFORM <span class="op">*</span> <span class="kw">FROM</span> guides <span class="kw">WHERE</span> id_guide <span class="op">=</span> p_guide;</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">IF</span> <span class="kw">NOT</span> FOUND <span class="cf">THEN</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>        RAISE <span class="kw">EXCEPTION</span> <span class="st">&#39;le guide d</span><span class="ch">&#39;&#39;</span><span class="st">id % n</span><span class="ch">&#39;&#39;</span><span class="st">existe pas&#39;</span>, p_guide;</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">END</span> <span class="cf">IF</span>;</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>    <span class="kw">RETURN</span> <span class="kw">QUERY</span> <span class="kw">SELECT</span> voyages.<span class="op">*</span> <span class="kw">FROM</span> voyages <span class="kw">WHERE</span> id_guide <span class="op">=</span> p_guide;</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a><span class="cf">END</span>;</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>$$ LANGUAGE plpgsql;</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> voyages_par_guide(<span class="dv">1</span>);</span></code></pre></div>
+<h2 id="messages-et-erreurs">1.7 Messages et erreurs</h2>
+<div class="sourceCode" id="cb12"><pre class="sourceCode sql"><code class="sourceCode sql"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>RAISE NOTICE <span class="st">&#39;taux % et prix = %&#39;</span>, taux, prix;      <span class="co">-- message d&#39;info, n&#39;arrête pas</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>RAISE <span class="kw">EXCEPTION</span> <span class="st">&#39;le client % n</span><span class="ch">&#39;&#39;</span><span class="st">existe pas&#39;</span>, p_num; <span class="co">-- arrête la fonction et annule la transaction</span></span></code></pre></div>
+<ul>
+<li>Niveaux :
+<code>DEBUG, LOG, INFO, NOTICE, WARNING, EXCEPTION</code>.</li>
+<li>Chaque <code>%</code> est remplacé par l’expression correspondante,
+dans l’ordre.</li>
+<li>Une apostrophe dans le message s’écrit <strong>doublée</strong> :
+<code>&#39;n&#39;&#39;existe pas&#39;</code>.</li>
+</ul>
+<p>Bloc de récupération d’erreur (moins fréquent au contrôle mais au
+programme) :</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode sql"><code class="sourceCode sql"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="cf">BEGIN</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>    y <span class="op">:=</span> x <span class="op">/</span> p_diviseur;</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">INSERT</span> <span class="kw">INTO</span> formateur <span class="kw">VALUES</span> (<span class="dv">3</span>, <span class="st">&#39;Morel&#39;</span>, <span class="st">&#39;Paul&#39;</span>, <span class="dv">45</span>);</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="kw">EXCEPTION</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">WHEN</span> division_by_zero <span class="cf">THEN</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>        RAISE <span class="kw">EXCEPTION</span> <span class="st">&#39;Erreur division_by_zero&#39;</span>;</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">WHEN</span> unique_violation <span class="cf">THEN</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>        <span class="kw">UPDATE</span> formateur <span class="kw">SET</span> (nom_form, prenom_form, nbh) <span class="op">=</span> (<span class="st">&#39;Morel&#39;</span>, <span class="st">&#39;Paul&#39;</span>, <span class="dv">45</span>) <span class="kw">WHERE</span> id_formateur <span class="op">=</span> <span class="dv">3</span>;</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a><span class="cf">END</span>;</span></code></pre></div>
+<p>Autres conditions utiles : <code>no_data_found</code>,
+<code>too_many_rows</code>, <code>foreign_key_violation</code>,
+<code>check_violation</code>, <code>OTHERS</code>.</p>
+<h2 id="les-curseurs">1.8 Les curseurs</h2>
+<p>Un curseur = une requête « stockée » dont on parcourt le résultat
+ligne par ligne. C’est l’équivalent du <code>FOR ... IN requête</code>,
+mais explicite (le prof demande parfois expressément un curseur).</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode sql"><code class="sourceCode sql"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="kw">DECLARE</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- 3 formes de déclaration</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>    curs1 refcursor;                                           <span class="co">-- non lié : requête donnée à l&#39;OPEN</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>    curs2 <span class="kw">CURSOR</span> <span class="cf">FOR</span> <span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> client <span class="kw">WHERE</span> type_client <span class="op">=</span> <span class="st">&#39;Fidéle&#39;</span>;   <span class="co">-- lié</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>    curs3 <span class="kw">CURSOR</span> (<span class="kw">key</span> <span class="dt">integer</span>) <span class="kw">IS</span> <span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> reservation <span class="kw">WHERE</span> num_client <span class="op">=</span> <span class="kw">key</span>;  <span class="co">-- lié et paramétré</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>    v_ligne <span class="dt">record</span>;</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a><span class="cf">BEGIN</span></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>    <span class="kw">OPEN</span> curs2;                    <span class="co">-- ouvre et exécute la requête</span></span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>    <span class="kw">OPEN</span> curs3(p_num);             <span class="co">-- curseur paramétré</span></span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>    <span class="kw">OPEN</span> curs1 <span class="cf">FOR</span> <span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> agence <span class="kw">WHERE</span> pays_agence <span class="op">=</span> p_pays;   <span class="co">-- non lié</span></span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>    <span class="kw">OPEN</span> curs1 <span class="cf">FOR</span> <span class="kw">EXECUTE</span> <span class="st">&#39;SELECT * FROM &#39;</span> <span class="op">||</span> quote_ident(p_table);</span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>    <span class="cf">LOOP</span></span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>        FETCH curs3 <span class="kw">INTO</span> v_ligne;      <span class="co">-- lit la ligne courante</span></span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>        EXIT <span class="cf">WHEN</span> <span class="kw">NOT</span> FOUND;           <span class="co">-- plus de ligne → on sort</span></span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>        <span class="op">..</span>. traitement, par ex. <span class="kw">RETURN</span> <span class="kw">NEXT</span> v_ligne; <span class="op">..</span>.</span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">END</span> <span class="cf">LOOP</span>;</span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a>    <span class="kw">CLOSE</span> curs3;                   <span class="co">-- toujours fermer</span></span></code></pre></div>
+<p><code>CURSOR FOR</code> et <code>CURSOR IS</code> sont équivalents.
+Modèle complet (correction TP1) :</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode sql"><code class="sourceCode sql"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">FUNCTION</span> collegues_curs(P_NumEmp <span class="dt">integer</span>) RETURNS SETOF <span class="dt">RECORD</span> <span class="kw">AS</span> $$</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="kw">DECLARE</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>    V_rec <span class="dt">RECORD</span>;</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>    curs1 <span class="kw">CURSOR</span>(<span class="kw">key</span> <span class="dt">integer</span>) <span class="kw">IS</span> <span class="kw">SELECT</span> prenom, e.nom</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>                                 <span class="kw">FROM</span> employes e <span class="kw">INNER</span> <span class="kw">JOIN</span> departement d <span class="kw">ON</span> e.nodept <span class="op">=</span> d.nodept</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>                                 <span class="kw">WHERE</span> d.nom <span class="op">=</span> departement(<span class="kw">key</span>) <span class="kw">AND</span> noemp <span class="op">!=</span> <span class="kw">key</span>;</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a><span class="cf">BEGIN</span></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>    <span class="kw">OPEN</span> curs1(P_NumEmp);</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">LOOP</span></span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>        FETCH curs1 <span class="kw">INTO</span> V_rec;</span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>        EXIT <span class="cf">WHEN</span> <span class="kw">NOT</span> FOUND;</span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>        <span class="kw">RETURN</span> <span class="kw">NEXT</span> V_rec;</span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>    <span class="cf">END</span> <span class="cf">LOOP</span>;</span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>    <span class="kw">CLOSE</span> curs1;</span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a>    <span class="kw">RETURN</span>;</span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a><span class="cf">END</span>;</span>
+<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a>$$ LANGUAGE plpgsql;</span>
+<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-19"><a href="#cb15-19" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> collegues_curs(<span class="dv">7</span>) <span class="kw">AS</span> (prenom <span class="dt">VARCHAR</span>, nom <span class="dt">VARCHAR</span>);</span></code></pre></div>
+<h2 id="execute-le-sql-dynamique">1.9 EXECUTE : le SQL dynamique</h2>
+<p>Indispensable quand un <strong>nom de table ou de colonne</strong>
+vient d’un paramètre (on ne peut pas écrire
+<code>FROM p_table</code>).</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode sql"><code class="sourceCode sql"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="kw">EXECUTE</span> <span class="st">&#39;CREATE TABLE &#39;</span> <span class="op">||</span> quote_ident(p_temp) <span class="op">||</span> <span class="st">&#39;(id_f integer, nom varchar(50))&#39;</span>;</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="kw">EXECUTE</span> <span class="st">&#39;INSERT INTO &#39;</span> <span class="op">||</span> quote_ident(p_temp) <span class="op">||</span> <span class="st">&#39; VALUES(&#39;</span> <span class="op">||</span> use_form.id_formateur <span class="op">||</span> <span class="st">&#39;, &#39;</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>        <span class="op">||</span> quote_literal(use_form.nom_formateur) <span class="op">||</span> <span class="st">&#39;)&#39;</span>;</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a><span class="kw">EXECUTE</span> <span class="st">&#39;UPDATE tbl SET &#39;</span> <span class="op">||</span> quote_ident(colname) <span class="op">||</span> <span class="st">&#39; = &#39;</span> <span class="op">||</span> quote_literal(p_name) <span class="op">||</span> <span class="st">&#39; WHERE ...&#39;</span>;</span></code></pre></div>
+<ul>
+<li><code>quote_ident(x)</code> → identifiant (table, colonne)
+correctement protégé par des guillemets doubles.</li>
+<li><code>quote_literal(x)</code> → valeur chaîne entourée
+d’apostrophes, caractères spéciaux échappés.</li>
+<li>Pensez aux espaces dans la concaténation (<code>&#39; WHERE &#39;</code> et
+non <code>&#39;WHERE&#39;</code>).</li>
+</ul>
+<h2 id="fonctions-sql-à-avoir-sous-la-main">1.10 Fonctions SQL à avoir
+sous la main</h2>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Besoin</th>
+<th>Écriture</th>
+<th>Remarque</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>nombre de jours entre deux <code>TIMESTAMP</code></td>
+<td><code>extract(day FROM (date_heure_retour - date_heure_depart))</code></td>
+<td><strong>le prof insiste</strong> : on ne garde que les jours de
+l’intervalle</td>
+</tr>
+<tr class="even">
+<td>nombre de jours entre deux <code>DATE</code></td>
+<td><code>date_fin - date_deb</code></td>
+<td>donne directement un entier</td>
+</tr>
+<tr class="odd">
+<td>âge</td>
+<td><code>extract(year FROM age(current_date, date_naissance))</code></td>
+<td></td>
+</tr>
+<tr class="even">
+<td>remplacer NULL</td>
+<td><code>coalesce(pts_bonus_acquis, 0)</code></td>
+<td>indispensable avant une addition ou un <code>sum</code> qui peut
+être vide</td>
+</tr>
+<tr class="odd">
+<td>arrondir</td>
+<td><code>round(x, 2)</code> ou <code>x::numeric(10,2)</code></td>
+<td></td>
+</tr>
+<tr class="even">
+<td>conversion</td>
+<td><code>x::int</code>, <code>x::real</code>, <code>x::text</code>,
+<code>CAST(x AS int)</code></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>comparer sans la casse</td>
+<td><code>lower(nom_agence) = lower(p_nom)</code></td>
+<td>le prof le fait pour les noms d’agence</td>
+</tr>
+<tr class="even">
+<td>concaténer</td>
+<td><code>nom \|\| &#39; &#39; \|\| prenom</code></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>premier d’un classement</td>
+<td><code>ORDER BY … DESC LIMIT 1</code></td>
+<td>utilisé pour « la tranche la plus haute ≤ nb_jours »</td>
+</tr>
+<tr class="even">
+<td>max d’une moyenne par groupe</td>
+<td><code>HAVING avg(note) &gt;= ALL (SELECT avg(note) FROM … GROUP BY …)</code></td>
+<td>correction TP2</td>
+</tr>
+<tr class="odd">
+<td>nombre de lignes modifiées par un UPDATE</td>
+<td><code>GET DIAGNOSTICS v_nb = ROW_COUNT;</code></td>
+<td></td>
+</tr>
+<tr class="even">
+<td>date du jour</td>
+<td><code>current_date</code>, <code>current_timestamp</code>,
+<code>now()</code></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>nombre de résas par groupe</td>
+<td><code>count(*) … GROUP BY</code> ; en <code>AS (...)</code> le type
+est <code>bigint</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="triggers-rappel-au-cas-où">1.11 Triggers (rappel, au cas
+où)</h2>
+<div class="sourceCode" id="cb17"><pre class="sourceCode sql"><code class="sourceCode sql"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- 1. la fonction trigger : sans paramètre, RETURNS trigger, renvoie NEW (ou NULL pour annuler en BEFORE)</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">FUNCTION</span> emp_stamp() RETURNS <span class="kw">trigger</span> <span class="kw">AS</span> $$</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="cf">BEGIN</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">IF</span> <span class="kw">NEW</span>.salaire <span class="kw">IS</span> <span class="kw">NULL</span> <span class="cf">THEN</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>        RAISE <span class="kw">EXCEPTION</span> <span class="st">&#39;% doit avoir un salaire&#39;</span>, <span class="kw">NEW</span>.nom_employe;</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">END</span> <span class="cf">IF</span>;</span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>    <span class="kw">NEW</span>.date_dermodif <span class="op">:=</span> <span class="fu">current_timestamp</span>;</span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>    <span class="kw">RETURN</span> <span class="kw">NEW</span>;</span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a><span class="cf">END</span>; $$ LANGUAGE plpgsql;</span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a><span class="co">-- 2. le trigger lui-même (TOUJOURS après la fonction)</span></span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">TRIGGER</span> emp_stamp <span class="kw">BEFORE</span> <span class="kw">INSERT</span> <span class="kw">OR</span> <span class="kw">UPDATE</span> <span class="kw">ON</span> emp</span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a><span class="cf">FOR</span> <span class="kw">EACH</span> <span class="kw">ROW</span> <span class="kw">EXECUTE</span> <span class="kw">PROCEDURE</span> emp_stamp();</span></code></pre></div>
+<p>Variables spéciales : <code>NEW</code> (ligne après INSERT/UPDATE),
+<code>OLD</code> (ligne avant UPDATE/DELETE), <code>TG_OP</code>
+(<code>&#39;INSERT&#39;</code>, <code>&#39;UPDATE&#39;</code>, <code>&#39;DELETE&#39;</code>),
+<code>TG_TABLE_NAME</code>. <code>FOR EACH ROW</code> obligatoire pour
+utiliser <code>NEW</code>/<code>OLD</code>. Un trigger
+<code>BEFORE</code> qui renvoie <code>NULL</code> annule l’opération
+pour cette ligne.</p>
+<hr />
+<h1 id="partie-2-pièges-et-erreurs-classiques">Partie 2 — Pièges et
+erreurs classiques</h1>
+<p>Les 5 vidéos « erreur à ne pas faire » du cours, plus celles vues en
+TP :</p>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>#</th>
+<th>Erreur</th>
+<th>Message PostgreSQL</th>
+<th>Correction</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+<td>Oubli des <code>$$</code></td>
+<td><code>syntax error at or near &quot;DECLARE&quot;</code> ou erreur au premier
+<code>;</code></td>
+<td>Entourer le corps avec
+<code>AS $$ ... $$ LANGUAGE plpgsql;</code></td>
+</tr>
+<tr class="even">
+<td>2</td>
+<td>Type de paramètre incompatible avec la colonne</td>
+<td><code>operator does not exist: character varying = integer</code> /
+<code>function … does not exist</code></td>
+<td>Mettre le même type que la colonne (ou caster)</td>
+</tr>
+<tr class="odd">
+<td>3</td>
+<td><code>SELECT</code> sans destination</td>
+<td><code>query has no destination for result data</code></td>
+<td>Ajouter <code>INTO v_var</code>, ou utiliser <code>PERFORM</code> si
+on ignore le résultat</td>
+</tr>
+<tr class="even">
+<td>4</td>
+<td>Nom de table/colonne en paramètre utilisé directement</td>
+<td><code>relation &quot;p_table&quot; does not exist</code></td>
+<td>Passer par
+<code>EXECUTE &#39;SELECT … &#39; \|\| quote_ident(p_table)</code></td>
+</tr>
+<tr class="odd">
+<td>5</td>
+<td>Appel d’une fonction <code>record</code> sans
+<code>AS (...)</code></td>
+<td><code>a column definition list is required for functions returning &quot;record&quot;</code></td>
+<td><code>SELECT * FROM f() AS (c1 type, c2 type)</code></td>
+</tr>
+<tr class="even">
+<td>6</td>
+<td>Appel d’un <code>SETOF record</code> comme scalaire
+<code>SELECT f()</code></td>
+<td><code>materialize mode required, but it is not allowed in this context</code></td>
+<td><code>SELECT * FROM f() AS (...)</code></td>
+</tr>
+<tr class="odd">
+<td>7</td>
+<td>Changer le type de retour avec <code>CREATE OR REPLACE</code></td>
+<td><code>cannot change return type of existing function</code></td>
+<td><code>DROP FUNCTION f(types);</code> puis recréer</td>
+</tr>
+<tr class="even">
+<td>8</td>
+<td>Mauvais types dans le <code>AS (...)</code></td>
+<td><code>structure of query does not match function result type</code>
+/ erreur de cast</td>
+<td>Vérifier chaque type (ex. <code>count(*)</code> →
+<code>bigint</code>, <code>prix_jour</code> → <code>numeric</code>,
+<code>heure_ouverture</code> → <code>time</code>)</td>
+</tr>
+<tr class="odd">
+<td>9</td>
+<td><code>SELECT INTO</code> qui renvoie plusieurs lignes</td>
+<td>seule la première est prise, sans erreur → résultat faux</td>
+<td>Ajouter une condition, <code>LIMIT 1</code>, ou utiliser une boucle
+<code>FOR</code></td>
+</tr>
+<tr class="even">
+<td>10</td>
+<td>Point-virgule après la requête d’un
+<code>FOR … IN requête</code></td>
+<td><code>syntax error</code></td>
+<td><code>FOR r IN SELECT … LOOP</code> (pas de <code>;</code> avant
+<code>LOOP</code>)</td>
+</tr>
+<tr class="odd">
+<td>11</td>
+<td>Oubli du <code>RETURN;</code> final après les
+<code>RETURN NEXT</code></td>
+<td>fonctionne souvent, mais le prof l’exige dans ses corrections</td>
+<td>Toujours finir par <code>RETURN;</code></td>
+</tr>
+<tr class="even">
+<td>12</td>
+<td>Apostrophe non doublée dans un message</td>
+<td><code>syntax error</code></td>
+<td><code>&#39;n&#39;&#39;existe pas&#39;</code></td>
+</tr>
+<tr class="odd">
+<td>13</td>
+<td>Nom de variable identique à un nom de colonne</td>
+<td><code>column reference &quot;nom&quot; is ambiguous</code></td>
+<td>Préfixer <code>p_</code> / <code>v_</code></td>
+</tr>
+<tr class="even">
+<td>14</td>
+<td>Valeur texte comparée avec une mauvaise orthographe</td>
+<td>aucune erreur, juste <code>FOUND</code> faux partout</td>
+<td>Vérifier avec <code>SELECT DISTINCT type_client FROM client;</code>
+(voir ci-dessous)</td>
+</tr>
+<tr class="odd">
+<td>15</td>
+<td>Oubli de <code>SET search_path</code></td>
+<td><code>relation &quot;client&quot; does not exist</code></td>
+<td><code>SET search_path = bdd_car_net;</code> en début de session, ou
+préfixer les tables</td>
+</tr>
+<tr class="even">
+<td>16</td>
+<td><code>sum()</code> sur zéro ligne renvoie NULL</td>
+<td>la fonction renvoie NULL</td>
+<td><code>coalesce(sum(...), 0)</code></td>
+</tr>
+<tr class="odd">
+<td>17</td>
+<td>Division entière</td>
+<td><code>7/2 = 3</code></td>
+<td>caster : <code>7::numeric / 2</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Piège spécifique à <code>bdd_car_net</code></strong> : les
+valeurs stockées sont <code>&#39;Fidéle&#39;</code> (avec un <strong>é</strong>
+et non è) et <code>&#39;Occassionnel&#39;</code> (avec <strong>deux s</strong>).
+C’est d’ailleurs ce que le prof écrit dans sa correction. Au contrôle,
+la <strong>première chose à faire</strong> sur une colonne de type texte
+servant de filtre est :</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode sql"><code class="sourceCode sql"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> <span class="kw">DISTINCT</span> type_client <span class="kw">FROM</span> client;</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> <span class="kw">DISTINCT</span> categorie <span class="kw">FROM</span> vehicule;</span></code></pre></div>
+<p><strong>Exercice « trouve les erreurs »</strong> (réponses à la fin
+de la partie 4) :</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode sql"><code class="sourceCode sql"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- A</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">FUNCTION</span> nb_resa(p_num <span class="dt">int</span>) RETURNS <span class="dt">int</span> <span class="kw">AS</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a><span class="kw">DECLARE</span> v_nb <span class="dt">int</span>;</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a><span class="cf">BEGIN</span></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">SELECT</span> <span class="fu">count</span>(<span class="op">*</span>) <span class="kw">FROM</span> reservation <span class="kw">WHERE</span> num_client <span class="op">=</span> p_num;</span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">RETURN</span> v_nb;</span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a><span class="cf">END</span>; LANGUAGE plpgsql;</span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a><span class="co">-- B</span></span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">FUNCTION</span> infos(p_num <span class="dt">int</span>) RETURNS <span class="dt">record</span> <span class="kw">AS</span> $$</span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a><span class="kw">DECLARE</span> v_r <span class="dt">record</span>;</span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a><span class="cf">BEGIN</span></span>
+<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a>    <span class="kw">SELECT</span> nom_client, pre_client <span class="kw">INTO</span> v_r <span class="kw">FROM</span> client <span class="kw">WHERE</span> num_client <span class="op">=</span> p_num;</span>
+<span id="cb19-14"><a href="#cb19-14" aria-hidden="true" tabindex="-1"></a>    <span class="kw">RETURN</span> v_r;</span>
+<span id="cb19-15"><a href="#cb19-15" aria-hidden="true" tabindex="-1"></a><span class="cf">END</span>; $$ LANGUAGE plpgsql;</span>
+<span id="cb19-16"><a href="#cb19-16" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> infos(<span class="dv">100</span>);</span>
+<span id="cb19-17"><a href="#cb19-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-18"><a href="#cb19-18" aria-hidden="true" tabindex="-1"></a><span class="co">-- C</span></span>
+<span id="cb19-19"><a href="#cb19-19" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">FUNCTION</span> liste(p_cat <span class="dt">char</span>) RETURNS SETOF <span class="dt">record</span> <span class="kw">AS</span> $$</span>
+<span id="cb19-20"><a href="#cb19-20" aria-hidden="true" tabindex="-1"></a><span class="kw">DECLARE</span> v_r <span class="dt">record</span>;</span>
+<span id="cb19-21"><a href="#cb19-21" aria-hidden="true" tabindex="-1"></a><span class="cf">BEGIN</span></span>
+<span id="cb19-22"><a href="#cb19-22" aria-hidden="true" tabindex="-1"></a>    <span class="cf">FOR</span> v_r <span class="kw">IN</span> <span class="kw">SELECT</span> exemple, prix_jour <span class="kw">FROM</span> vehicule <span class="kw">WHERE</span> categorie <span class="op">=</span> p_cat;</span>
+<span id="cb19-23"><a href="#cb19-23" aria-hidden="true" tabindex="-1"></a>    <span class="cf">LOOP</span></span>
+<span id="cb19-24"><a href="#cb19-24" aria-hidden="true" tabindex="-1"></a>        <span class="kw">RETURN</span> v_r;</span>
+<span id="cb19-25"><a href="#cb19-25" aria-hidden="true" tabindex="-1"></a>    <span class="cf">END</span> <span class="cf">LOOP</span>;</span>
+<span id="cb19-26"><a href="#cb19-26" aria-hidden="true" tabindex="-1"></a><span class="cf">END</span>; $$ LANGUAGE plpgsql;</span></code></pre></div>
+<hr />
+<h1 id="partie-3-méthode-au-contrôle">Partie 3 — Méthode au
+contrôle</h1>
+<h2 id="avant-de-commencer-5-minutes">3.1 Avant de commencer (5
+minutes)</h2>
+<ol type="1">
+<li>Lancer le script de création dans phppgadmin, vérifier que le schéma
+(<code>bdd_car_net</code>) et les tables apparaissent à gauche.</li>
+<li>Dans la fenêtre SQL, commencer par
+<code>SET search_path = bdd_car_net;</code> (à refaire si vous rouvrez
+la fenêtre SQL — phppgadmin oublie le <code>search_path</code> entre
+deux exécutions ; sinon préfixez :
+<code>bdd_car_net.client</code>).</li>
+<li>Lire le MPD en annexe et repérer : les clés étrangères (pour les
+jointures), les colonnes <code>NULL</code>ables (pour les
+<code>coalesce</code>), les types (<code>TIMESTAMP</code> vs
+<code>DATE</code>).</li>
+<li><code>SELECT DISTINCT</code> sur les colonnes de
+type/état/catégorie.</li>
+<li>Ouvrir la correction du contrôle d’entraînement et le cours : vous y
+avez droit, servez-vous-en comme modèles.</li>
+<li>Sous phppgadmin, <strong>exécutez les tests « cas d’erreur » un par
+un</strong>, seuls dans la fenêtre SQL : une instruction qui lève une
+exception annule toutes celles envoyées en même temps qu’elle (y compris
+un <code>CREATE FUNCTION</code> placé juste avant — la fonction
+n’existera pas et vous aurez <code>function … does not exist</code>
+ensuite).</li>
+</ol>
+<h2 id="le-patron-de-réponse-pour-chaque-fonction">3.2 Le patron de
+réponse pour chaque fonction</h2>
+<ol type="1">
+<li><strong>Écrire d’abord la requête SQL seule</strong> et la tester
+avec des valeurs en dur. Si la requête est fausse, la fonction le sera
+aussi.</li>
+<li>Déterminer le retour avec le tableau 1.6 : combien de lignes ?
+combien de colonnes ? → <code>RETURNS …</code> et <code>RETURN</code> /
+<code>RETURN NEXT</code> / <code>RETURN QUERY</code>.</li>
+<li>Écrire la fonction dans cet ordre :
+<ul>
+<li>vérifications d’existence (<code>PERFORM</code> +
+<code>IF NOT FOUND THEN RAISE EXCEPTION</code>), <strong>une par
+condition demandée</strong>, avec un message explicite contenant la
+valeur (<code>%</code>) ;</li>
+<li>vérifications de cohérence
+(<code>IF date_deb &gt; date_fin THEN RAISE EXCEPTION …</code>) ;</li>
+<li>la requête (avec <code>INTO</code> ou dans un <code>FOR</code>)
+;</li>
+<li>le retour.</li>
+</ul></li>
+<li><strong>Respecter exactement le nom de fonction donné</strong> par
+le sujet (« Vous devez respecter les noms que je vous donne »).</li>
+<li><strong>Fournir les requêtes de test</strong> (« Vous devez me
+donner les requêtes qui permettent de tester vos fonctions ») : utiliser
+les valeurs imposées par le sujet, inclure au moins un cas d’erreur par
+vérification, et écrire le résultat attendu en commentaire
+(<code>-- ERREUR: le client 33 n&#39;existe pas</code>).</li>
+<li>Commenter chaque bloc (le prof le fait dans toutes ses
+corrections).</li>
+</ol>
+<h2 id="grille-mentale-quel-returns">3.3 Grille mentale « quel RETURNS ?
+»</h2>
+<ul>
+<li>« retourne le nombre / la somme / le prix / la moyenne / TRUE ou
+FALSE » → scalaire.</li>
+<li>« retourne le nom et le prénom de … » (1 individu) →
+<code>record</code>.</li>
+<li>« retourne la liste des … avec leur … » → <code>SETOF record</code>
++ <code>FOR … LOOP RETURN NEXT</code>.</li>
+<li>« retourne toutes les informations sur les … » →
+<code>SETOF table</code> + <code>RETURN QUERY</code> ou
+<code>%ROWTYPE</code>.</li>
+<li>« met à jour … » sans valeur à renvoyer → <code>void</code> (ou
+renvoyer le nombre de lignes / un booléen si demandé).</li>
+<li>« utilisez un curseur » → déclarer <code>CURSOR</code>,
+<code>OPEN</code>, <code>LOOP FETCH … EXIT WHEN NOT FOUND</code>,
+<code>CLOSE</code>.</li>
+</ul>
+<hr />
+<h1 id="partie-4-exercices-dentraînement-base-bdd_car_net">Partie 4 —
+Exercices d’entraînement (base <code>bdd_car_net</code>)</h1>
+<p>Toutes ces fonctions ont été testées sur la base du script
+<code>create_table_car_net.sql</code>. Les résultats indiqués sont les
+vrais résultats. Faites chaque exercice dans phppgadmin
+<strong>avant</strong> de regarder la correction (section 4.4). Un
+fichier <code>solutions_car_net.sql</code> prêt à coller accompagne ce
+document.</p>
+<p>Rappel du schéma (tables et colonnes utiles) :</p>
+<ul>
+<li><code>agence(num_agence, nom_agence, tel_agence, adr_agence, ville_agence, cp_agence, pays_agence)</code></li>
+<li><code>client(num_client, type_client, civilite, nom_client, pre_client, …, mode_reglement, date_naissance, num_permis, date_permis, pts_bonus_acquis, num_cb)</code>
+— <code>type_client</code> ∈ {<code>&#39;Fidéle&#39;</code>,
+<code>&#39;Occassionnel&#39;</code>}</li>
+<li><code>vehicule(code_vehicule, exemple, categorie, prix_jour, nb_portes, nb_passagers, nb_bagages, clim, volume, charge_utile, longueur, largeur, hauteur)</code>
+— <code>categorie</code> ∈ {A, B, C, K, F}</li>
+<li><code>reservation(num_resa, retour_agence, depart_agence, num_client, code_vehicule, date_resa, date_heure_depart, date_heure_retour)</code>
+— les deux dernières sont des <code>TIMESTAMP</code></li>
+<li><code>proposer(code_vehicule, num_agence)</code> — quels véhicules
+propose chaque agence</li>
+<li><code>attribuer(code_vehicule, nb_jours, nb_points)</code> — barème
+de points par véhicule et par tranche</li>
+<li><code>tranche_location(nb_jours)</code> — tranches 3, 5, 7, 8, 10,
+20, 30</li>
+<li><code>ouverture(num_agence, num_jour, heure_ouverture, heure_fermeture)</code>
+et <code>jour_semaine(num_jour, libelle_jour)</code></li>
+</ul>
+<h2 id="niveau-1-fonctions-scalaires">4.1 Niveau 1 — fonctions
+scalaires</h2>
+<p><strong>Exercice 1.</strong> <code>nb_vehicules()</code> : renvoie le
+nombre de véhicules de la flotte. Test :
+<code>SELECT nb_vehicules();</code> → 16.</p>
+<p><strong>Exercice 2.</strong> <code>prix_vehicule(code)</code> :
+renvoie le prix journalier d’un véhicule. Erreur si le véhicule n’existe
+pas. Utilisez une variable déclarée avec <code>%TYPE</code>. Tests :
+<code>(1)</code> → 33.00 ; <code>(99)</code> → erreur. Puis utilisez la
+fonction dans une requête : les véhicules plus chers que le véhicule
+4.</p>
+<p><strong>Exercice 3.</strong> <code>nb_jours_resa(num_resa)</code> :
+renvoie le nombre de jours d’une réservation (uniquement la partie «
+jours » de l’intervalle, comme le prof). Erreur si la réservation
+n’existe pas. Tests : <code>(78)</code> → 2 ; <code>(100)</code> → 4 ;
+<code>(9999)</code> → erreur.</p>
+<p><strong>Exercice 4.</strong> <code>montant_resa(num_resa)</code> :
+renvoie le montant d’une réservation = prix journalier × nombre de
+jours. Réutilisez <code>nb_jours_resa</code>. Tests : <code>(78)</code>
+→ 262.00 ; <code>(100)</code> → 580.00.</p>
+<p><strong>Exercice 5.</strong> <code>est_fidele(num_client)</code> :
+renvoie <code>TRUE</code> si le client est fidèle, <code>FALSE</code>
+sinon ; erreur s’il n’existe pas. Tests : <code>(100)</code> → true ;
+<code>(103)</code> → false ; <code>(1)</code> → erreur.</p>
+<p><strong>Exercice 6.</strong>
+<code>points_tranche(code_vehicule, nb_jours)</code> : renvoie le nombre
+de points qu’attribue ce véhicule pour cette durée, selon la table
+<code>attribuer</code> : on prend la tranche la plus grande qui est ≤
+<code>nb_jours</code> (pour le véhicule 1 : 3–4 jours → 10 pts, 5–6 →
+20, 20–29 → 60). Renvoyer 0 si la durée est inférieure à la première
+tranche. Erreur si le véhicule n’existe pas ou si <code>nb_jours</code>
+≤ 0. Tests sur le véhicule 1 : 2 j → 0 ; 3 j → 10 ; 4 j → 10 ; 6 j → 20
+; 25 j → 60 ; 40 j → 100.</p>
+<h2 id="niveau-2-plusieurs-colonnes-plusieurs-lignes">4.2 Niveau 2 —
+plusieurs colonnes, plusieurs lignes</h2>
+<p><strong>Exercice 7.</strong> <code>info_client(num_client)</code> :
+renvoie le nom, le prénom et le type d’un client (une seule ligne, trois
+colonnes). Erreur s’il n’existe pas. Test : <code>(100)</code> → Paul,
+Troy, Fidéle. Écrivez l’appel correct.</p>
+<p><strong>Exercice 8.</strong> <code>vehicules_categorie(cat)</code> :
+renvoie le modèle (<code>exemple</code>), le prix journalier et la
+climatisation de tous les véhicules d’une catégorie, triés par prix
+croissant. Erreur si aucun véhicule de cette catégorie. Test :
+<code>(&#39;A&#39;)</code> → 4 lignes (opel corsa 33, peugeot 107 51, toyota
+yaris 78, AUSTIN MINI 135) ; <code>(&#39;Z&#39;)</code> → erreur.</p>
+<p><strong>Exercice 9.</strong> <code>agences_pays(pays)</code> :
+renvoie <strong>toutes les colonnes</strong> des agences d’un pays,
+triées par nom. Utilisez <code>RETURNS SETOF agence</code> et
+<code>RETURN QUERY</code>. Test : <code>(&#39;US&#39;)</code> → 25 agences, la
+première est « Ade ».</p>
+<p><strong>Exercice 10.</strong>
+<code>horaires_agence(nom_agence)</code> : renvoie, pour une agence
+donnée par son nom (sans tenir compte de la casse), le libellé du jour,
+l’heure d’ouverture et de fermeture, dans l’ordre des jours. Erreur si
+l’agence n’existe pas. Test : <code>(&#39;Lavat sud&#39;)</code> → 6 lignes
+(lundi 07:30–22:00, …) ; <code>(&#39;Nulle part&#39;)</code> → erreur.</p>
+<p><strong>Exercice 11.</strong> <code>meilleur_client()</code> :
+renvoie le numéro, le nom, le prénom et le nombre de réservations du
+client qui a le plus de réservations (une ligne). Test → 124, Rhodes,
+Silas, 13. Attention au type de <code>count(*)</code> dans le
+<code>AS (...)</code>.</p>
+<p><strong>Exercice 12.</strong> <code>ca_par_categorie()</code> :
+renvoie pour chaque catégorie de véhicule le nombre de réservations et
+le chiffre d’affaires (somme des montants prix × jours). Utilisez
+<code>RETURNS TABLE(...)</code> et <code>RETURN QUERY</code>. Test → A :
+57 résas, 43428 ; F : 49 résas, 72072.</p>
+<h2 id="niveau-3-curseurs-mises-à-jour-niveau-contrôle">4.3 Niveau 3 —
+curseurs, mises à jour, niveau contrôle</h2>
+<p><strong>Exercice 13.</strong>
+<code>reservations_client(num_client)</code> <strong>avec un curseur
+paramétré</strong> : renvoie pour un client la liste de ses réservations
+(numéro, modèle du véhicule, nombre de jours, montant), triées par date
+de départ. Erreur si le client n’existe pas. Test : <code>(100)</code> →
+6 lignes, dont (18, opel corsa, 16 j, 528) ; vérifiez que
+<code>SELECT sum(montant) FROM reservations_client(100) AS (...)</code>
+donne bien 5129 (= <code>SommePaye(100)</code> du prof).</p>
+<p><strong>Exercice 14.</strong> <code>majorer_prix(cat, pct)</code> :
+augmente de <code>pct</code> % le prix journalier de tous les véhicules
+d’une catégorie et renvoie le nombre de véhicules modifiés. Erreur si
+<code>pct</code> n’est pas dans ]0 ; 50] ou si la catégorie n’existe
+pas. Test : <code>(&#39;A&#39;, 10)</code> → 4, et l’opel corsa passe à 36.30 ;
+<code>(&#39;A&#39;, 80)</code> → erreur.</p>
+<p><strong>Exercice 15.</strong>
+<code>crediter_points(num_client)</code> : pour un client
+<strong>fidèle</strong> (erreur sinon, en réutilisant
+<code>est_fidele</code>), calcule le total des points de toutes ses
+réservations (avec <code>points_tranche</code>), ajoute ce total à
+<code>pts_bonus_acquis</code> (attention au NULL) et renvoie le nombre
+de points crédités. Test : client 100 a 220 points ;
+<code>crediter_points(100)</code> → 233 ; il a ensuite 453 points.
+<code>(103)</code> → erreur.</p>
+<p><strong>Exercice 16.</strong>
+<code>clients_fideles_sans_points()</code> <strong>avec un curseur et
+<code>%ROWTYPE</code></strong> : renvoie toutes les colonnes des clients
+fidèles dont les points sont NULL ou 0.
+<code>RETURNS SETOF client</code>. Test → 1 client (131, Shields).</p>
+<p><strong>Exercice 17 (bonus trigger).</strong> Créez un trigger
+<code>BEFORE INSERT OR UPDATE</code> sur <code>reservation</code> qui
+refuse une réservation dont la date de retour est antérieure ou égale à
+la date de départ, et qui met <code>date_resa</code> à la date du jour
+si elle est NULL. Testez avec un <code>INSERT</code> invalide puis un
+valide.</p>
+<h2 id="le-contrôle-dentraînement-à-refaire-en-conditions-réelles-1h30">4.4
+Le contrôle d’entraînement, à refaire en conditions réelles (1h30)</h2>
+<p>Reprenez le sujet
+<code>entrainement_controle/Controle fonction.pdf</code> et refaites les
+3 exercices <strong>sans regarder la correction</strong> :</p>
+<ol type="1">
+<li><code>listeVehicule(NomAg)</code> : modèles et prix journalier des
+véhicules proposés par une agence. Tests <code>&#39;Micsot&#39;</code> (4
+lignes), <code>&#39;Ade&#39;</code>, <code>&#39;Micot&#39;</code> (erreur).</li>
+<li><code>SommePaye(NumeroClient)</code> : cumul payé par un client.
+Tests 100 → 5129, 102 → 7402, 103 → 1016, 33 → erreur.</li>
+<li><code>nb_pts(NumeroClient, Num_vehi, date_deb, date_fin)</code> :
+points déjà acquis, points attribués, total ; 4 vérifications (client
+existe, client fidèle, véhicule existe, dates cohérentes). Test
+<code>(104, 1, &#39;2020-06-20&#39;, &#39;2020-06-30&#39;)</code> → 190, 50, 240.</li>
+</ol>
+<p>Indices si vous bloquez : ex. 1 = modèle <code>SETOF record</code>
+(section 1.6) avec jointure <code>vehicule ⋈ proposer ⋈ agence</code> ;
+ex. 2 = scalaire avec <code>sum(prix_jour * extract(day FROM …))</code>
+; ex. 3 = <code>record</code> avec une sous-requête
+<code>ORDER BY nb_jours DESC LIMIT 1</code> sur <code>attribuer</code>
+(c’est exactement <code>points_tranche</code> de l’exercice 6, vous
+pouvez la réutiliser !).</p>
+<hr />
+<h1 id="corrections">Corrections</h1>
+<h2 id="réponses-de-trouve-les-erreurs-partie-2">Réponses de « trouve
+les erreurs » (partie 2)</h2>
+<ul>
+<li><strong>A</strong> : (1) pas de <code>$$</code> autour du corps ;
+(2) <code>SELECT count(*)</code> sans <code>INTO v_nb</code> ; (3)
+<code>END; LANGUAGE plpgsql</code> doit être
+<code>END; $$ LANGUAGE plpgsql;</code>.</li>
+<li><strong>B</strong> : la fonction est correcte, c’est
+<strong>l’appel</strong> qui est faux : elle renvoie un
+<code>record</code>. <code>SELECT infos(100);</code> ne plante pas mais
+renvoie une seule colonne contenant <code>(Paul,Troy)</code> —
+inutilisable. Il faut
+<code>SELECT * FROM infos(100) AS (nom varchar, prenom varchar);</code>
+pour obtenir deux colonnes (et <code>SELECT * FROM infos(100);</code>
+sans <code>AS</code> donne l’erreur
+<code>a column definition list is required</code>).</li>
+<li><strong>C</strong> : (1) <code>;</code> après la requête du
+<code>FOR</code> ; (2) <code>RETURN v_r</code> au lieu de
+<code>RETURN NEXT v_r</code> — PostgreSQL refuse même la création :
+<code>RETURN cannot have a parameter in function returning set</code> ;
+(3) pas de <code>RETURN;</code> final.</li>
+</ul>
+<h2 id="corrections-des-exercices-1-à-17">Corrections des exercices 1 à
+17</h2>
+<div class="sourceCode" id="cb20"><pre class="sourceCode sql"><code class="sourceCode sql"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="kw">SET</span> search_path <span class="op">=</span> bdd_car_net;</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a><span class="co">-- ============ Exercice 1 ============</span></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">FUNCTION</span> nb_vehicules() RETURNS <span class="dt">integer</span> <span class="kw">AS</span> $$</span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a><span class="kw">DECLARE</span></span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>    v_nb <span class="dt">integer</span>;</span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a><span class="cf">BEGIN</span></span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>    <span class="kw">SELECT</span> <span class="fu">count</span>(<span class="op">*</span>) <span class="kw">INTO</span> v_nb <span class="kw">FROM</span> vehicule;</span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>    <span class="kw">RETURN</span> v_nb;</span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a><span class="cf">END</span>;</span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a>$$ LANGUAGE plpgsql;</span>
+<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> nb_vehicules();                     <span class="co">-- 16</span></span>
+<span id="cb20-14"><a href="#cb20-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-15"><a href="#cb20-15" aria-hidden="true" tabindex="-1"></a><span class="co">-- ============ Exercice 2 ============</span></span>
+<span id="cb20-16"><a href="#cb20-16" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">FUNCTION</span> prix_vehicule(p_code <span class="dt">integer</span>) RETURNS <span class="dt">numeric</span> <span class="kw">AS</span> $$</span>
+<span id="cb20-17"><a href="#cb20-17" aria-hidden="true" tabindex="-1"></a><span class="kw">DECLARE</span></span>
+<span id="cb20-18"><a href="#cb20-18" aria-hidden="true" tabindex="-1"></a>    v_prix vehicule.prix_jour<span class="dt">%TYPE</span>;</span>
+<span id="cb20-19"><a href="#cb20-19" aria-hidden="true" tabindex="-1"></a><span class="cf">BEGIN</span></span>
+<span id="cb20-20"><a href="#cb20-20" aria-hidden="true" tabindex="-1"></a>    <span class="kw">SELECT</span> prix_jour <span class="kw">INTO</span> v_prix <span class="kw">FROM</span> vehicule <span class="kw">WHERE</span> code_vehicule <span class="op">=</span> p_code;</span>
+<span id="cb20-21"><a href="#cb20-21" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- SELECT INTO positionne FOUND : pas besoin d&#39;un PERFORM séparé ici</span></span>
+<span id="cb20-22"><a href="#cb20-22" aria-hidden="true" tabindex="-1"></a>    <span class="cf">IF</span> <span class="kw">NOT</span> FOUND <span class="cf">THEN</span></span>
+<span id="cb20-23"><a href="#cb20-23" aria-hidden="true" tabindex="-1"></a>        RAISE <span class="kw">EXCEPTION</span> <span class="st">&#39;le véhicule % n</span><span class="ch">&#39;&#39;</span><span class="st">existe pas&#39;</span>, p_code;</span>
+<span id="cb20-24"><a href="#cb20-24" aria-hidden="true" tabindex="-1"></a>    <span class="cf">END</span> <span class="cf">IF</span>;</span>
+<span id="cb20-25"><a href="#cb20-25" aria-hidden="true" tabindex="-1"></a>    <span class="kw">RETURN</span> v_prix;</span>
+<span id="cb20-26"><a href="#cb20-26" aria-hidden="true" tabindex="-1"></a><span class="cf">END</span>;</span>
+<span id="cb20-27"><a href="#cb20-27" aria-hidden="true" tabindex="-1"></a>$$ LANGUAGE plpgsql;</span>
+<span id="cb20-28"><a href="#cb20-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-29"><a href="#cb20-29" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> prix_vehicule(<span class="dv">1</span>);                   <span class="co">-- 33.00</span></span>
+<span id="cb20-30"><a href="#cb20-30" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> prix_vehicule(<span class="dv">99</span>);                  <span class="co">-- ERREUR: le véhicule 99 n&#39;existe pas</span></span>
+<span id="cb20-31"><a href="#cb20-31" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> exemple, prix_jour <span class="kw">FROM</span> vehicule <span class="kw">WHERE</span> prix_jour <span class="op">&gt;</span> prix_vehicule(<span class="dv">4</span>);   <span class="co">-- 11 lignes</span></span>
+<span id="cb20-32"><a href="#cb20-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-33"><a href="#cb20-33" aria-hidden="true" tabindex="-1"></a><span class="co">-- ============ Exercice 3 ============</span></span>
+<span id="cb20-34"><a href="#cb20-34" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">FUNCTION</span> nb_jours_resa(p_resa <span class="dt">integer</span>) RETURNS <span class="dt">integer</span> <span class="kw">AS</span> $$</span>
+<span id="cb20-35"><a href="#cb20-35" aria-hidden="true" tabindex="-1"></a><span class="kw">DECLARE</span></span>
+<span id="cb20-36"><a href="#cb20-36" aria-hidden="true" tabindex="-1"></a>    v_nb <span class="dt">integer</span>;</span>
+<span id="cb20-37"><a href="#cb20-37" aria-hidden="true" tabindex="-1"></a><span class="cf">BEGIN</span></span>
+<span id="cb20-38"><a href="#cb20-38" aria-hidden="true" tabindex="-1"></a>    <span class="kw">SELECT</span> <span class="fu">extract</span>(<span class="dt">day</span> <span class="kw">FROM</span> (date_heure_retour <span class="op">-</span> date_heure_depart)) <span class="kw">INTO</span> v_nb</span>
+<span id="cb20-39"><a href="#cb20-39" aria-hidden="true" tabindex="-1"></a>    <span class="kw">FROM</span> reservation <span class="kw">WHERE</span> num_resa <span class="op">=</span> p_resa;</span>
+<span id="cb20-40"><a href="#cb20-40" aria-hidden="true" tabindex="-1"></a>    <span class="cf">IF</span> <span class="kw">NOT</span> FOUND <span class="cf">THEN</span></span>
+<span id="cb20-41"><a href="#cb20-41" aria-hidden="true" tabindex="-1"></a>        RAISE <span class="kw">EXCEPTION</span> <span class="st">&#39;la réservation % n</span><span class="ch">&#39;&#39;</span><span class="st">existe pas&#39;</span>, p_resa;</span>
+<span id="cb20-42"><a href="#cb20-42" aria-hidden="true" tabindex="-1"></a>    <span class="cf">END</span> <span class="cf">IF</span>;</span>
+<span id="cb20-43"><a href="#cb20-43" aria-hidden="true" tabindex="-1"></a>    <span class="kw">RETURN</span> v_nb;</span>
+<span id="cb20-44"><a href="#cb20-44" aria-hidden="true" tabindex="-1"></a><span class="cf">END</span>;</span>
+<span id="cb20-45"><a href="#cb20-45" aria-hidden="true" tabindex="-1"></a>$$ LANGUAGE plpgsql;</span>
+<span id="cb20-46"><a href="#cb20-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-47"><a href="#cb20-47" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> nb_jours_resa(<span class="dv">78</span>);                  <span class="co">-- 2</span></span>
+<span id="cb20-48"><a href="#cb20-48" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> nb_jours_resa(<span class="dv">100</span>);                 <span class="co">-- 4</span></span>
+<span id="cb20-49"><a href="#cb20-49" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> nb_jours_resa(<span class="dv">9999</span>);                <span class="co">-- ERREUR: la réservation 9999 n&#39;existe pas</span></span>
+<span id="cb20-50"><a href="#cb20-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-51"><a href="#cb20-51" aria-hidden="true" tabindex="-1"></a><span class="co">-- ============ Exercice 4 ============</span></span>
+<span id="cb20-52"><a href="#cb20-52" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">FUNCTION</span> montant_resa(p_resa <span class="dt">integer</span>) RETURNS <span class="dt">numeric</span> <span class="kw">AS</span> $$</span>
+<span id="cb20-53"><a href="#cb20-53" aria-hidden="true" tabindex="-1"></a><span class="kw">DECLARE</span></span>
+<span id="cb20-54"><a href="#cb20-54" aria-hidden="true" tabindex="-1"></a>    v_prix <span class="dt">numeric</span>;</span>
+<span id="cb20-55"><a href="#cb20-55" aria-hidden="true" tabindex="-1"></a><span class="cf">BEGIN</span></span>
+<span id="cb20-56"><a href="#cb20-56" aria-hidden="true" tabindex="-1"></a>    <span class="kw">SELECT</span> prix_jour <span class="kw">INTO</span> v_prix</span>
+<span id="cb20-57"><a href="#cb20-57" aria-hidden="true" tabindex="-1"></a>    <span class="kw">FROM</span> reservation <span class="kw">JOIN</span> vehicule <span class="kw">USING</span> (code_vehicule)</span>
+<span id="cb20-58"><a href="#cb20-58" aria-hidden="true" tabindex="-1"></a>    <span class="kw">WHERE</span> num_resa <span class="op">=</span> p_resa;</span>
+<span id="cb20-59"><a href="#cb20-59" aria-hidden="true" tabindex="-1"></a>    <span class="cf">IF</span> <span class="kw">NOT</span> FOUND <span class="cf">THEN</span></span>
+<span id="cb20-60"><a href="#cb20-60" aria-hidden="true" tabindex="-1"></a>        RAISE <span class="kw">EXCEPTION</span> <span class="st">&#39;la réservation % n</span><span class="ch">&#39;&#39;</span><span class="st">existe pas&#39;</span>, p_resa;</span>
+<span id="cb20-61"><a href="#cb20-61" aria-hidden="true" tabindex="-1"></a>    <span class="cf">END</span> <span class="cf">IF</span>;</span>
+<span id="cb20-62"><a href="#cb20-62" aria-hidden="true" tabindex="-1"></a>    <span class="kw">RETURN</span> v_prix <span class="op">*</span> nb_jours_resa(p_resa);     <span class="co">-- réutilisation de la fonction précédente</span></span>
+<span id="cb20-63"><a href="#cb20-63" aria-hidden="true" tabindex="-1"></a><span class="cf">END</span>;</span>
+<span id="cb20-64"><a href="#cb20-64" aria-hidden="true" tabindex="-1"></a>$$ LANGUAGE plpgsql;</span>
+<span id="cb20-65"><a href="#cb20-65" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-66"><a href="#cb20-66" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> montant_resa(<span class="dv">78</span>);                   <span class="co">-- 262.00</span></span>
+<span id="cb20-67"><a href="#cb20-67" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> montant_resa(<span class="dv">100</span>);                  <span class="co">-- 580.00</span></span>
+<span id="cb20-68"><a href="#cb20-68" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-69"><a href="#cb20-69" aria-hidden="true" tabindex="-1"></a><span class="co">-- ============ Exercice 5 ============</span></span>
+<span id="cb20-70"><a href="#cb20-70" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">FUNCTION</span> est_fidele(p_num <span class="dt">integer</span>) RETURNS <span class="dt">boolean</span> <span class="kw">AS</span> $$</span>
+<span id="cb20-71"><a href="#cb20-71" aria-hidden="true" tabindex="-1"></a><span class="kw">DECLARE</span></span>
+<span id="cb20-72"><a href="#cb20-72" aria-hidden="true" tabindex="-1"></a>    v_type client.type_client<span class="dt">%TYPE</span>;</span>
+<span id="cb20-73"><a href="#cb20-73" aria-hidden="true" tabindex="-1"></a><span class="cf">BEGIN</span></span>
+<span id="cb20-74"><a href="#cb20-74" aria-hidden="true" tabindex="-1"></a>    <span class="kw">SELECT</span> type_client <span class="kw">INTO</span> v_type <span class="kw">FROM</span> client <span class="kw">WHERE</span> num_client <span class="op">=</span> p_num;</span>
+<span id="cb20-75"><a href="#cb20-75" aria-hidden="true" tabindex="-1"></a>    <span class="cf">IF</span> <span class="kw">NOT</span> FOUND <span class="cf">THEN</span></span>
+<span id="cb20-76"><a href="#cb20-76" aria-hidden="true" tabindex="-1"></a>        RAISE <span class="kw">EXCEPTION</span> <span class="st">&#39;le client % n</span><span class="ch">&#39;&#39;</span><span class="st">existe pas&#39;</span>, p_num;</span>
+<span id="cb20-77"><a href="#cb20-77" aria-hidden="true" tabindex="-1"></a>    <span class="cf">END</span> <span class="cf">IF</span>;</span>
+<span id="cb20-78"><a href="#cb20-78" aria-hidden="true" tabindex="-1"></a>    <span class="kw">RETURN</span> v_type <span class="op">=</span> <span class="st">&#39;Fidéle&#39;</span>;        <span class="co">-- attention à l&#39;orthographe exacte dans la base</span></span>
+<span id="cb20-79"><a href="#cb20-79" aria-hidden="true" tabindex="-1"></a><span class="cf">END</span>;</span>
+<span id="cb20-80"><a href="#cb20-80" aria-hidden="true" tabindex="-1"></a>$$ LANGUAGE plpgsql;</span>
+<span id="cb20-81"><a href="#cb20-81" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-82"><a href="#cb20-82" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> est_fidele(<span class="dv">100</span>);                    <span class="co">-- true</span></span>
+<span id="cb20-83"><a href="#cb20-83" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> est_fidele(<span class="dv">103</span>);                    <span class="co">-- false</span></span>
+<span id="cb20-84"><a href="#cb20-84" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> est_fidele(<span class="dv">1</span>);                      <span class="co">-- ERREUR: le client 1 n&#39;existe pas</span></span>
+<span id="cb20-85"><a href="#cb20-85" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-86"><a href="#cb20-86" aria-hidden="true" tabindex="-1"></a><span class="co">-- ============ Exercice 6 ============</span></span>
+<span id="cb20-87"><a href="#cb20-87" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">FUNCTION</span> points_tranche(p_code <span class="dt">integer</span>, p_nb_jours <span class="dt">integer</span>) RETURNS <span class="dt">integer</span> <span class="kw">AS</span> $$</span>
+<span id="cb20-88"><a href="#cb20-88" aria-hidden="true" tabindex="-1"></a><span class="kw">DECLARE</span></span>
+<span id="cb20-89"><a href="#cb20-89" aria-hidden="true" tabindex="-1"></a>    v_pts <span class="dt">integer</span>;</span>
+<span id="cb20-90"><a href="#cb20-90" aria-hidden="true" tabindex="-1"></a><span class="cf">BEGIN</span></span>
+<span id="cb20-91"><a href="#cb20-91" aria-hidden="true" tabindex="-1"></a>    PERFORM <span class="op">*</span> <span class="kw">FROM</span> vehicule <span class="kw">WHERE</span> code_vehicule <span class="op">=</span> p_code;</span>
+<span id="cb20-92"><a href="#cb20-92" aria-hidden="true" tabindex="-1"></a>    <span class="cf">IF</span> <span class="kw">NOT</span> FOUND <span class="cf">THEN</span></span>
+<span id="cb20-93"><a href="#cb20-93" aria-hidden="true" tabindex="-1"></a>        RAISE <span class="kw">EXCEPTION</span> <span class="st">&#39;le véhicule % n</span><span class="ch">&#39;&#39;</span><span class="st">existe pas&#39;</span>, p_code;</span>
+<span id="cb20-94"><a href="#cb20-94" aria-hidden="true" tabindex="-1"></a>    <span class="cf">END</span> <span class="cf">IF</span>;</span>
+<span id="cb20-95"><a href="#cb20-95" aria-hidden="true" tabindex="-1"></a>    <span class="cf">IF</span> p_nb_jours <span class="op">&lt;=</span> <span class="dv">0</span> <span class="cf">THEN</span></span>
+<span id="cb20-96"><a href="#cb20-96" aria-hidden="true" tabindex="-1"></a>        RAISE <span class="kw">EXCEPTION</span> <span class="st">&#39;le nombre de jours doit être positif&#39;</span>;</span>
+<span id="cb20-97"><a href="#cb20-97" aria-hidden="true" tabindex="-1"></a>    <span class="cf">END</span> <span class="cf">IF</span>;</span>
+<span id="cb20-98"><a href="#cb20-98" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- la plus grande tranche inférieure ou égale à la durée</span></span>
+<span id="cb20-99"><a href="#cb20-99" aria-hidden="true" tabindex="-1"></a>    <span class="kw">SELECT</span> nb_points <span class="kw">INTO</span> v_pts</span>
+<span id="cb20-100"><a href="#cb20-100" aria-hidden="true" tabindex="-1"></a>    <span class="kw">FROM</span> attribuer</span>
+<span id="cb20-101"><a href="#cb20-101" aria-hidden="true" tabindex="-1"></a>    <span class="kw">WHERE</span> code_vehicule <span class="op">=</span> p_code <span class="kw">AND</span> nb_jours <span class="op">&lt;=</span> p_nb_jours</span>
+<span id="cb20-102"><a href="#cb20-102" aria-hidden="true" tabindex="-1"></a>    <span class="kw">ORDER</span> <span class="kw">BY</span> nb_jours <span class="kw">DESC</span></span>
+<span id="cb20-103"><a href="#cb20-103" aria-hidden="true" tabindex="-1"></a>    <span class="kw">LIMIT</span> <span class="dv">1</span>;</span>
+<span id="cb20-104"><a href="#cb20-104" aria-hidden="true" tabindex="-1"></a>    <span class="kw">RETURN</span> <span class="fu">coalesce</span>(v_pts, <span class="dv">0</span>);       <span class="co">-- aucune tranche → 0 point</span></span>
+<span id="cb20-105"><a href="#cb20-105" aria-hidden="true" tabindex="-1"></a><span class="cf">END</span>;</span>
+<span id="cb20-106"><a href="#cb20-106" aria-hidden="true" tabindex="-1"></a>$$ LANGUAGE plpgsql;</span>
+<span id="cb20-107"><a href="#cb20-107" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-108"><a href="#cb20-108" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> points_tranche(<span class="dv">1</span>,<span class="dv">2</span>), points_tranche(<span class="dv">1</span>,<span class="dv">3</span>), points_tranche(<span class="dv">1</span>,<span class="dv">4</span>),</span>
+<span id="cb20-109"><a href="#cb20-109" aria-hidden="true" tabindex="-1"></a>       points_tranche(<span class="dv">1</span>,<span class="dv">6</span>), points_tranche(<span class="dv">1</span>,<span class="dv">25</span>), points_tranche(<span class="dv">1</span>,<span class="dv">40</span>);   <span class="co">-- 0 10 10 20 60 100</span></span>
+<span id="cb20-110"><a href="#cb20-110" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> points_tranche(<span class="dv">1</span>,<span class="dv">0</span>);                <span class="co">-- ERREUR: le nombre de jours doit être positif</span></span>
+<span id="cb20-111"><a href="#cb20-111" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-112"><a href="#cb20-112" aria-hidden="true" tabindex="-1"></a><span class="co">-- ============ Exercice 7 ============</span></span>
+<span id="cb20-113"><a href="#cb20-113" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">FUNCTION</span> info_client(p_num <span class="dt">integer</span>) RETURNS <span class="dt">record</span> <span class="kw">AS</span> $$</span>
+<span id="cb20-114"><a href="#cb20-114" aria-hidden="true" tabindex="-1"></a><span class="kw">DECLARE</span></span>
+<span id="cb20-115"><a href="#cb20-115" aria-hidden="true" tabindex="-1"></a>    v_info <span class="dt">record</span>;</span>
+<span id="cb20-116"><a href="#cb20-116" aria-hidden="true" tabindex="-1"></a><span class="cf">BEGIN</span></span>
+<span id="cb20-117"><a href="#cb20-117" aria-hidden="true" tabindex="-1"></a>    PERFORM <span class="op">*</span> <span class="kw">FROM</span> client <span class="kw">WHERE</span> num_client <span class="op">=</span> p_num;</span>
+<span id="cb20-118"><a href="#cb20-118" aria-hidden="true" tabindex="-1"></a>    <span class="cf">IF</span> <span class="kw">NOT</span> FOUND <span class="cf">THEN</span></span>
+<span id="cb20-119"><a href="#cb20-119" aria-hidden="true" tabindex="-1"></a>        RAISE <span class="kw">EXCEPTION</span> <span class="st">&#39;le client % n</span><span class="ch">&#39;&#39;</span><span class="st">existe pas&#39;</span>, p_num;</span>
+<span id="cb20-120"><a href="#cb20-120" aria-hidden="true" tabindex="-1"></a>    <span class="cf">END</span> <span class="cf">IF</span>;</span>
+<span id="cb20-121"><a href="#cb20-121" aria-hidden="true" tabindex="-1"></a>    <span class="kw">SELECT</span> nom_client, pre_client, type_client <span class="kw">INTO</span> v_info</span>
+<span id="cb20-122"><a href="#cb20-122" aria-hidden="true" tabindex="-1"></a>    <span class="kw">FROM</span> client <span class="kw">WHERE</span> num_client <span class="op">=</span> p_num;</span>
+<span id="cb20-123"><a href="#cb20-123" aria-hidden="true" tabindex="-1"></a>    <span class="kw">RETURN</span> v_info;</span>
+<span id="cb20-124"><a href="#cb20-124" aria-hidden="true" tabindex="-1"></a><span class="cf">END</span>;</span>
+<span id="cb20-125"><a href="#cb20-125" aria-hidden="true" tabindex="-1"></a>$$ LANGUAGE plpgsql;</span>
+<span id="cb20-126"><a href="#cb20-126" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-127"><a href="#cb20-127" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> info_client(<span class="dv">100</span>) <span class="kw">AS</span> (nom <span class="dt">varchar</span>, prenom <span class="dt">varchar</span>, type_cli <span class="dt">varchar</span>);  <span class="co">-- Paul | Troy | Fidéle</span></span>
+<span id="cb20-128"><a href="#cb20-128" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> info_client(<span class="dv">1</span>)   <span class="kw">AS</span> (nom <span class="dt">varchar</span>, prenom <span class="dt">varchar</span>, type_cli <span class="dt">varchar</span>);  <span class="co">-- ERREUR</span></span>
+<span id="cb20-129"><a href="#cb20-129" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-130"><a href="#cb20-130" aria-hidden="true" tabindex="-1"></a><span class="co">-- ============ Exercice 8 ============</span></span>
+<span id="cb20-131"><a href="#cb20-131" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">FUNCTION</span> vehicules_categorie(p_cat <span class="dt">char</span>) RETURNS SETOF <span class="dt">record</span> <span class="kw">AS</span> $$</span>
+<span id="cb20-132"><a href="#cb20-132" aria-hidden="true" tabindex="-1"></a><span class="kw">DECLARE</span></span>
+<span id="cb20-133"><a href="#cb20-133" aria-hidden="true" tabindex="-1"></a>    v_ligne <span class="dt">record</span>;</span>
+<span id="cb20-134"><a href="#cb20-134" aria-hidden="true" tabindex="-1"></a><span class="cf">BEGIN</span></span>
+<span id="cb20-135"><a href="#cb20-135" aria-hidden="true" tabindex="-1"></a>    PERFORM <span class="op">*</span> <span class="kw">FROM</span> vehicule <span class="kw">WHERE</span> categorie <span class="op">=</span> p_cat;</span>
+<span id="cb20-136"><a href="#cb20-136" aria-hidden="true" tabindex="-1"></a>    <span class="cf">IF</span> <span class="kw">NOT</span> FOUND <span class="cf">THEN</span></span>
+<span id="cb20-137"><a href="#cb20-137" aria-hidden="true" tabindex="-1"></a>        RAISE <span class="kw">EXCEPTION</span> <span class="st">&#39;aucun véhicule de catégorie %&#39;</span>, p_cat;</span>
+<span id="cb20-138"><a href="#cb20-138" aria-hidden="true" tabindex="-1"></a>    <span class="cf">END</span> <span class="cf">IF</span>;</span>
+<span id="cb20-139"><a href="#cb20-139" aria-hidden="true" tabindex="-1"></a>    <span class="cf">FOR</span> v_ligne <span class="kw">IN</span> <span class="kw">SELECT</span> exemple, prix_jour, clim</span>
+<span id="cb20-140"><a href="#cb20-140" aria-hidden="true" tabindex="-1"></a>                   <span class="kw">FROM</span> vehicule <span class="kw">WHERE</span> categorie <span class="op">=</span> p_cat</span>
+<span id="cb20-141"><a href="#cb20-141" aria-hidden="true" tabindex="-1"></a>                   <span class="kw">ORDER</span> <span class="kw">BY</span> prix_jour</span>
+<span id="cb20-142"><a href="#cb20-142" aria-hidden="true" tabindex="-1"></a>    <span class="cf">LOOP</span></span>
+<span id="cb20-143"><a href="#cb20-143" aria-hidden="true" tabindex="-1"></a>        <span class="kw">RETURN</span> <span class="kw">NEXT</span> v_ligne;</span>
+<span id="cb20-144"><a href="#cb20-144" aria-hidden="true" tabindex="-1"></a>    <span class="cf">END</span> <span class="cf">LOOP</span>;</span>
+<span id="cb20-145"><a href="#cb20-145" aria-hidden="true" tabindex="-1"></a>    <span class="kw">RETURN</span>;</span>
+<span id="cb20-146"><a href="#cb20-146" aria-hidden="true" tabindex="-1"></a><span class="cf">END</span>;</span>
+<span id="cb20-147"><a href="#cb20-147" aria-hidden="true" tabindex="-1"></a>$$ LANGUAGE plpgsql;</span>
+<span id="cb20-148"><a href="#cb20-148" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-149"><a href="#cb20-149" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> vehicules_categorie(<span class="st">&#39;A&#39;</span>) <span class="kw">AS</span> (modele <span class="dt">varchar</span>, prix <span class="dt">numeric</span>, clim <span class="dt">boolean</span>);  <span class="co">-- 4 lignes</span></span>
+<span id="cb20-150"><a href="#cb20-150" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> vehicules_categorie(<span class="st">&#39;Z&#39;</span>) <span class="kw">AS</span> (modele <span class="dt">varchar</span>, prix <span class="dt">numeric</span>, clim <span class="dt">boolean</span>);  <span class="co">-- ERREUR</span></span>
+<span id="cb20-151"><a href="#cb20-151" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-152"><a href="#cb20-152" aria-hidden="true" tabindex="-1"></a><span class="co">-- ============ Exercice 9 ============</span></span>
+<span id="cb20-153"><a href="#cb20-153" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">FUNCTION</span> agences_pays(p_pays <span class="dt">char</span>(<span class="dv">2</span>)) RETURNS SETOF agence <span class="kw">AS</span> $$</span>
+<span id="cb20-154"><a href="#cb20-154" aria-hidden="true" tabindex="-1"></a><span class="cf">BEGIN</span></span>
+<span id="cb20-155"><a href="#cb20-155" aria-hidden="true" tabindex="-1"></a>    <span class="kw">RETURN</span> <span class="kw">QUERY</span> <span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> agence <span class="kw">WHERE</span> pays_agence <span class="op">=</span> p_pays <span class="kw">ORDER</span> <span class="kw">BY</span> nom_agence;</span>
+<span id="cb20-156"><a href="#cb20-156" aria-hidden="true" tabindex="-1"></a><span class="cf">END</span>;</span>
+<span id="cb20-157"><a href="#cb20-157" aria-hidden="true" tabindex="-1"></a>$$ LANGUAGE plpgsql;</span>
+<span id="cb20-158"><a href="#cb20-158" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-159"><a href="#cb20-159" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> agences_pays(<span class="st">&#39;US&#39;</span>);                              <span class="co">-- 25 lignes, pas de AS (...)</span></span>
+<span id="cb20-160"><a href="#cb20-160" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> nom_agence, ville_agence <span class="kw">FROM</span> agences_pays(<span class="st">&#39;US&#39;</span>);</span>
+<span id="cb20-161"><a href="#cb20-161" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-162"><a href="#cb20-162" aria-hidden="true" tabindex="-1"></a><span class="co">-- ============ Exercice 10 ============</span></span>
+<span id="cb20-163"><a href="#cb20-163" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">FUNCTION</span> horaires_agence(p_nom <span class="dt">varchar</span>) RETURNS SETOF <span class="dt">record</span> <span class="kw">AS</span> $$</span>
+<span id="cb20-164"><a href="#cb20-164" aria-hidden="true" tabindex="-1"></a><span class="kw">DECLARE</span></span>
+<span id="cb20-165"><a href="#cb20-165" aria-hidden="true" tabindex="-1"></a>    v_ligne <span class="dt">record</span>;</span>
+<span id="cb20-166"><a href="#cb20-166" aria-hidden="true" tabindex="-1"></a><span class="cf">BEGIN</span></span>
+<span id="cb20-167"><a href="#cb20-167" aria-hidden="true" tabindex="-1"></a>    PERFORM <span class="op">*</span> <span class="kw">FROM</span> agence <span class="kw">WHERE</span> <span class="fu">lower</span>(nom_agence) <span class="op">=</span> <span class="fu">lower</span>(p_nom);</span>
+<span id="cb20-168"><a href="#cb20-168" aria-hidden="true" tabindex="-1"></a>    <span class="cf">IF</span> <span class="kw">NOT</span> FOUND <span class="cf">THEN</span></span>
+<span id="cb20-169"><a href="#cb20-169" aria-hidden="true" tabindex="-1"></a>        RAISE <span class="kw">EXCEPTION</span> <span class="st">&#39;l</span><span class="ch">&#39;&#39;</span><span class="st">agence % n</span><span class="ch">&#39;&#39;</span><span class="st">existe pas&#39;</span>, p_nom;</span>
+<span id="cb20-170"><a href="#cb20-170" aria-hidden="true" tabindex="-1"></a>    <span class="cf">END</span> <span class="cf">IF</span>;</span>
+<span id="cb20-171"><a href="#cb20-171" aria-hidden="true" tabindex="-1"></a>    <span class="cf">FOR</span> v_ligne <span class="kw">IN</span> <span class="kw">SELECT</span> libelle_jour, heure_ouverture, heure_fermeture</span>
+<span id="cb20-172"><a href="#cb20-172" aria-hidden="true" tabindex="-1"></a>                   <span class="kw">FROM</span> agence <span class="kw">JOIN</span> ouverture <span class="kw">USING</span> (num_agence)</span>
+<span id="cb20-173"><a href="#cb20-173" aria-hidden="true" tabindex="-1"></a>                               <span class="kw">JOIN</span> jour_semaine <span class="kw">USING</span> (num_jour)</span>
+<span id="cb20-174"><a href="#cb20-174" aria-hidden="true" tabindex="-1"></a>                   <span class="kw">WHERE</span> <span class="fu">lower</span>(nom_agence) <span class="op">=</span> <span class="fu">lower</span>(p_nom)</span>
+<span id="cb20-175"><a href="#cb20-175" aria-hidden="true" tabindex="-1"></a>                   <span class="kw">ORDER</span> <span class="kw">BY</span> num_jour</span>
+<span id="cb20-176"><a href="#cb20-176" aria-hidden="true" tabindex="-1"></a>    <span class="cf">LOOP</span></span>
+<span id="cb20-177"><a href="#cb20-177" aria-hidden="true" tabindex="-1"></a>        <span class="kw">RETURN</span> <span class="kw">NEXT</span> v_ligne;</span>
+<span id="cb20-178"><a href="#cb20-178" aria-hidden="true" tabindex="-1"></a>    <span class="cf">END</span> <span class="cf">LOOP</span>;</span>
+<span id="cb20-179"><a href="#cb20-179" aria-hidden="true" tabindex="-1"></a>    <span class="kw">RETURN</span>;</span>
+<span id="cb20-180"><a href="#cb20-180" aria-hidden="true" tabindex="-1"></a><span class="cf">END</span>;</span>
+<span id="cb20-181"><a href="#cb20-181" aria-hidden="true" tabindex="-1"></a>$$ LANGUAGE plpgsql;</span>
+<span id="cb20-182"><a href="#cb20-182" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-183"><a href="#cb20-183" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> horaires_agence(<span class="st">&#39;Lavat sud&#39;</span>)  <span class="kw">AS</span> (jour <span class="dt">varchar</span>, ouv <span class="dt">time</span>, ferm <span class="dt">time</span>);  <span class="co">-- 6 lignes</span></span>
+<span id="cb20-184"><a href="#cb20-184" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> horaires_agence(<span class="st">&#39;LAVAT SUD&#39;</span>)  <span class="kw">AS</span> (jour <span class="dt">varchar</span>, ouv <span class="dt">time</span>, ferm <span class="dt">time</span>);  <span class="co">-- idem (lower)</span></span>
+<span id="cb20-185"><a href="#cb20-185" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> horaires_agence(<span class="st">&#39;Nulle part&#39;</span>) <span class="kw">AS</span> (jour <span class="dt">varchar</span>, ouv <span class="dt">time</span>, ferm <span class="dt">time</span>);  <span class="co">-- ERREUR</span></span>
+<span id="cb20-186"><a href="#cb20-186" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-187"><a href="#cb20-187" aria-hidden="true" tabindex="-1"></a><span class="co">-- ============ Exercice 11 ============</span></span>
+<span id="cb20-188"><a href="#cb20-188" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">FUNCTION</span> meilleur_client() RETURNS <span class="dt">record</span> <span class="kw">AS</span> $$</span>
+<span id="cb20-189"><a href="#cb20-189" aria-hidden="true" tabindex="-1"></a><span class="kw">DECLARE</span></span>
+<span id="cb20-190"><a href="#cb20-190" aria-hidden="true" tabindex="-1"></a>    v_info <span class="dt">record</span>;</span>
+<span id="cb20-191"><a href="#cb20-191" aria-hidden="true" tabindex="-1"></a><span class="cf">BEGIN</span></span>
+<span id="cb20-192"><a href="#cb20-192" aria-hidden="true" tabindex="-1"></a>    <span class="kw">SELECT</span> num_client, nom_client, pre_client, <span class="fu">count</span>(<span class="op">*</span>) <span class="kw">AS</span> nb_resa <span class="kw">INTO</span> v_info</span>
+<span id="cb20-193"><a href="#cb20-193" aria-hidden="true" tabindex="-1"></a>    <span class="kw">FROM</span> client <span class="kw">JOIN</span> reservation <span class="kw">USING</span> (num_client)</span>
+<span id="cb20-194"><a href="#cb20-194" aria-hidden="true" tabindex="-1"></a>    <span class="kw">GROUP</span> <span class="kw">BY</span> num_client, nom_client, pre_client</span>
+<span id="cb20-195"><a href="#cb20-195" aria-hidden="true" tabindex="-1"></a>    <span class="kw">ORDER</span> <span class="kw">BY</span> nb_resa <span class="kw">DESC</span></span>
+<span id="cb20-196"><a href="#cb20-196" aria-hidden="true" tabindex="-1"></a>    <span class="kw">LIMIT</span> <span class="dv">1</span>;</span>
+<span id="cb20-197"><a href="#cb20-197" aria-hidden="true" tabindex="-1"></a>    <span class="kw">RETURN</span> v_info;</span>
+<span id="cb20-198"><a href="#cb20-198" aria-hidden="true" tabindex="-1"></a><span class="cf">END</span>;</span>
+<span id="cb20-199"><a href="#cb20-199" aria-hidden="true" tabindex="-1"></a>$$ LANGUAGE plpgsql;</span>
+<span id="cb20-200"><a href="#cb20-200" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-201"><a href="#cb20-201" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> meilleur_client() <span class="kw">AS</span> (num <span class="dt">int</span>, nom <span class="dt">varchar</span>, prenom <span class="dt">varchar</span>, nb bigint);  <span class="co">-- 124 Rhodes Silas 13</span></span>
+<span id="cb20-202"><a href="#cb20-202" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-203"><a href="#cb20-203" aria-hidden="true" tabindex="-1"></a><span class="co">-- ============ Exercice 12 ============</span></span>
+<span id="cb20-204"><a href="#cb20-204" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">FUNCTION</span> ca_par_categorie()</span>
+<span id="cb20-205"><a href="#cb20-205" aria-hidden="true" tabindex="-1"></a>RETURNS <span class="kw">TABLE</span> (categorie <span class="dt">char</span>, nb_resa bigint, chiffre_affaires <span class="dt">numeric</span>) <span class="kw">AS</span> $$</span>
+<span id="cb20-206"><a href="#cb20-206" aria-hidden="true" tabindex="-1"></a><span class="cf">BEGIN</span></span>
+<span id="cb20-207"><a href="#cb20-207" aria-hidden="true" tabindex="-1"></a>    <span class="kw">RETURN</span> <span class="kw">QUERY</span></span>
+<span id="cb20-208"><a href="#cb20-208" aria-hidden="true" tabindex="-1"></a>        <span class="kw">SELECT</span> v.categorie, <span class="fu">count</span>(<span class="op">*</span>),</span>
+<span id="cb20-209"><a href="#cb20-209" aria-hidden="true" tabindex="-1"></a>               <span class="fu">sum</span>(prix_jour <span class="op">*</span> <span class="fu">extract</span>(<span class="dt">day</span> <span class="kw">FROM</span> (date_heure_retour <span class="op">-</span> date_heure_depart)))</span>
+<span id="cb20-210"><a href="#cb20-210" aria-hidden="true" tabindex="-1"></a>        <span class="kw">FROM</span> reservation r <span class="kw">JOIN</span> vehicule v <span class="kw">USING</span> (code_vehicule)</span>
+<span id="cb20-211"><a href="#cb20-211" aria-hidden="true" tabindex="-1"></a>        <span class="kw">GROUP</span> <span class="kw">BY</span> v.categorie</span>
+<span id="cb20-212"><a href="#cb20-212" aria-hidden="true" tabindex="-1"></a>        <span class="kw">ORDER</span> <span class="kw">BY</span> v.categorie;</span>
+<span id="cb20-213"><a href="#cb20-213" aria-hidden="true" tabindex="-1"></a><span class="cf">END</span>;</span>
+<span id="cb20-214"><a href="#cb20-214" aria-hidden="true" tabindex="-1"></a>$$ LANGUAGE plpgsql;</span>
+<span id="cb20-215"><a href="#cb20-215" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-216"><a href="#cb20-216" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> ca_par_categorie();          <span class="co">-- A 57 43428 | B 35 36354 | C 26 26227 | F 49 72072 | K 33 33763</span></span>
+<span id="cb20-217"><a href="#cb20-217" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-218"><a href="#cb20-218" aria-hidden="true" tabindex="-1"></a><span class="co">-- ============ Exercice 13 (curseur paramétré) ============</span></span>
+<span id="cb20-219"><a href="#cb20-219" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">FUNCTION</span> reservations_client(p_num <span class="dt">integer</span>) RETURNS SETOF <span class="dt">record</span> <span class="kw">AS</span> $$</span>
+<span id="cb20-220"><a href="#cb20-220" aria-hidden="true" tabindex="-1"></a><span class="kw">DECLARE</span></span>
+<span id="cb20-221"><a href="#cb20-221" aria-hidden="true" tabindex="-1"></a>    v_ligne <span class="dt">record</span>;</span>
+<span id="cb20-222"><a href="#cb20-222" aria-hidden="true" tabindex="-1"></a>    curs_resa <span class="kw">CURSOR</span> (p_cli <span class="dt">integer</span>) <span class="cf">FOR</span></span>
+<span id="cb20-223"><a href="#cb20-223" aria-hidden="true" tabindex="-1"></a>        <span class="kw">SELECT</span> num_resa, exemple,</span>
+<span id="cb20-224"><a href="#cb20-224" aria-hidden="true" tabindex="-1"></a>               <span class="fu">extract</span>(<span class="dt">day</span> <span class="kw">FROM</span> (date_heure_retour <span class="op">-</span> date_heure_depart)):<span class="ch">:int</span> <span class="kw">AS</span> nb_jours,</span>
+<span id="cb20-225"><a href="#cb20-225" aria-hidden="true" tabindex="-1"></a>               prix_jour <span class="op">*</span> <span class="fu">extract</span>(<span class="dt">day</span> <span class="kw">FROM</span> (date_heure_retour <span class="op">-</span> date_heure_depart)) <span class="kw">AS</span> montant</span>
+<span id="cb20-226"><a href="#cb20-226" aria-hidden="true" tabindex="-1"></a>        <span class="kw">FROM</span> reservation <span class="kw">JOIN</span> vehicule <span class="kw">USING</span> (code_vehicule)</span>
+<span id="cb20-227"><a href="#cb20-227" aria-hidden="true" tabindex="-1"></a>        <span class="kw">WHERE</span> num_client <span class="op">=</span> p_cli</span>
+<span id="cb20-228"><a href="#cb20-228" aria-hidden="true" tabindex="-1"></a>        <span class="kw">ORDER</span> <span class="kw">BY</span> date_heure_depart;</span>
+<span id="cb20-229"><a href="#cb20-229" aria-hidden="true" tabindex="-1"></a><span class="cf">BEGIN</span></span>
+<span id="cb20-230"><a href="#cb20-230" aria-hidden="true" tabindex="-1"></a>    PERFORM <span class="op">*</span> <span class="kw">FROM</span> client <span class="kw">WHERE</span> num_client <span class="op">=</span> p_num;</span>
+<span id="cb20-231"><a href="#cb20-231" aria-hidden="true" tabindex="-1"></a>    <span class="cf">IF</span> <span class="kw">NOT</span> FOUND <span class="cf">THEN</span></span>
+<span id="cb20-232"><a href="#cb20-232" aria-hidden="true" tabindex="-1"></a>        RAISE <span class="kw">EXCEPTION</span> <span class="st">&#39;le client % n</span><span class="ch">&#39;&#39;</span><span class="st">existe pas&#39;</span>, p_num;</span>
+<span id="cb20-233"><a href="#cb20-233" aria-hidden="true" tabindex="-1"></a>    <span class="cf">END</span> <span class="cf">IF</span>;</span>
+<span id="cb20-234"><a href="#cb20-234" aria-hidden="true" tabindex="-1"></a>    <span class="kw">OPEN</span> curs_resa(p_num);</span>
+<span id="cb20-235"><a href="#cb20-235" aria-hidden="true" tabindex="-1"></a>    <span class="cf">LOOP</span></span>
+<span id="cb20-236"><a href="#cb20-236" aria-hidden="true" tabindex="-1"></a>        FETCH curs_resa <span class="kw">INTO</span> v_ligne;</span>
+<span id="cb20-237"><a href="#cb20-237" aria-hidden="true" tabindex="-1"></a>        EXIT <span class="cf">WHEN</span> <span class="kw">NOT</span> FOUND;</span>
+<span id="cb20-238"><a href="#cb20-238" aria-hidden="true" tabindex="-1"></a>        <span class="kw">RETURN</span> <span class="kw">NEXT</span> v_ligne;</span>
+<span id="cb20-239"><a href="#cb20-239" aria-hidden="true" tabindex="-1"></a>    <span class="cf">END</span> <span class="cf">LOOP</span>;</span>
+<span id="cb20-240"><a href="#cb20-240" aria-hidden="true" tabindex="-1"></a>    <span class="kw">CLOSE</span> curs_resa;</span>
+<span id="cb20-241"><a href="#cb20-241" aria-hidden="true" tabindex="-1"></a>    <span class="kw">RETURN</span>;</span>
+<span id="cb20-242"><a href="#cb20-242" aria-hidden="true" tabindex="-1"></a><span class="cf">END</span>;</span>
+<span id="cb20-243"><a href="#cb20-243" aria-hidden="true" tabindex="-1"></a>$$ LANGUAGE plpgsql;</span>
+<span id="cb20-244"><a href="#cb20-244" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-245"><a href="#cb20-245" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> reservations_client(<span class="dv">100</span>) <span class="kw">AS</span> (num_resa <span class="dt">int</span>, vehicule <span class="dt">varchar</span>, nb_jours <span class="dt">int</span>, montant <span class="dt">numeric</span>);</span>
+<span id="cb20-246"><a href="#cb20-246" aria-hidden="true" tabindex="-1"></a><span class="co">-- 18 opel corsa 16 528 | 144 toyota yaris 10 780 | 178 citroen jumper 18 2610 | 182 ... | 358 ... | 210 ...</span></span>
+<span id="cb20-247"><a href="#cb20-247" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> <span class="fu">sum</span>(montant) <span class="kw">FROM</span> reservations_client(<span class="dv">100</span>) <span class="kw">AS</span> (num_resa <span class="dt">int</span>, vehicule <span class="dt">varchar</span>, nb_jours <span class="dt">int</span>, montant <span class="dt">numeric</span>);</span>
+<span id="cb20-248"><a href="#cb20-248" aria-hidden="true" tabindex="-1"></a><span class="co">-- 5129  (= SommePaye(100))</span></span>
+<span id="cb20-249"><a href="#cb20-249" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-250"><a href="#cb20-250" aria-hidden="true" tabindex="-1"></a><span class="co">-- ============ Exercice 14 ============</span></span>
+<span id="cb20-251"><a href="#cb20-251" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">FUNCTION</span> majorer_prix(p_cat <span class="dt">char</span>, p_pct <span class="dt">numeric</span>) RETURNS <span class="dt">integer</span> <span class="kw">AS</span> $$</span>
+<span id="cb20-252"><a href="#cb20-252" aria-hidden="true" tabindex="-1"></a><span class="kw">DECLARE</span></span>
+<span id="cb20-253"><a href="#cb20-253" aria-hidden="true" tabindex="-1"></a>    v_nb <span class="dt">integer</span>;</span>
+<span id="cb20-254"><a href="#cb20-254" aria-hidden="true" tabindex="-1"></a><span class="cf">BEGIN</span></span>
+<span id="cb20-255"><a href="#cb20-255" aria-hidden="true" tabindex="-1"></a>    <span class="cf">IF</span> p_pct <span class="op">&lt;=</span> <span class="dv">0</span> <span class="kw">OR</span> p_pct <span class="op">&gt;</span> <span class="dv">50</span> <span class="cf">THEN</span></span>
+<span id="cb20-256"><a href="#cb20-256" aria-hidden="true" tabindex="-1"></a>        RAISE <span class="kw">EXCEPTION</span> <span class="st">&#39;pourcentage % invalide (doit être entre 0 et 50)&#39;</span>, p_pct;</span>
+<span id="cb20-257"><a href="#cb20-257" aria-hidden="true" tabindex="-1"></a>    <span class="cf">END</span> <span class="cf">IF</span>;</span>
+<span id="cb20-258"><a href="#cb20-258" aria-hidden="true" tabindex="-1"></a>    PERFORM <span class="op">*</span> <span class="kw">FROM</span> vehicule <span class="kw">WHERE</span> categorie <span class="op">=</span> p_cat;</span>
+<span id="cb20-259"><a href="#cb20-259" aria-hidden="true" tabindex="-1"></a>    <span class="cf">IF</span> <span class="kw">NOT</span> FOUND <span class="cf">THEN</span></span>
+<span id="cb20-260"><a href="#cb20-260" aria-hidden="true" tabindex="-1"></a>        RAISE <span class="kw">EXCEPTION</span> <span class="st">&#39;aucun véhicule de catégorie %&#39;</span>, p_cat;</span>
+<span id="cb20-261"><a href="#cb20-261" aria-hidden="true" tabindex="-1"></a>    <span class="cf">END</span> <span class="cf">IF</span>;</span>
+<span id="cb20-262"><a href="#cb20-262" aria-hidden="true" tabindex="-1"></a>    <span class="kw">UPDATE</span> vehicule <span class="kw">SET</span> prix_jour <span class="op">=</span> <span class="fu">round</span>(prix_jour <span class="op">*</span> (<span class="dv">1</span> <span class="op">+</span> p_pct<span class="op">/</span><span class="dv">100</span>), <span class="dv">2</span>)</span>
+<span id="cb20-263"><a href="#cb20-263" aria-hidden="true" tabindex="-1"></a>    <span class="kw">WHERE</span> categorie <span class="op">=</span> p_cat;</span>
+<span id="cb20-264"><a href="#cb20-264" aria-hidden="true" tabindex="-1"></a>    GET DIAGNOSTICS v_nb <span class="op">=</span> ROW_COUNT;    <span class="co">-- nombre de lignes modifiées par l&#39;UPDATE</span></span>
+<span id="cb20-265"><a href="#cb20-265" aria-hidden="true" tabindex="-1"></a>    <span class="kw">RETURN</span> v_nb;</span>
+<span id="cb20-266"><a href="#cb20-266" aria-hidden="true" tabindex="-1"></a><span class="cf">END</span>;</span>
+<span id="cb20-267"><a href="#cb20-267" aria-hidden="true" tabindex="-1"></a>$$ LANGUAGE plpgsql;</span>
+<span id="cb20-268"><a href="#cb20-268" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-269"><a href="#cb20-269" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> majorer_prix(<span class="st">&#39;A&#39;</span>, <span class="dv">10</span>);              <span class="co">-- 4</span></span>
+<span id="cb20-270"><a href="#cb20-270" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> code_vehicule, exemple, prix_jour <span class="kw">FROM</span> vehicule <span class="kw">WHERE</span> categorie <span class="op">=</span> <span class="st">&#39;A&#39;</span>;   <span class="co">-- opel corsa 36.30 ...</span></span>
+<span id="cb20-271"><a href="#cb20-271" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> majorer_prix(<span class="st">&#39;A&#39;</span>, <span class="dv">80</span>);              <span class="co">-- ERREUR: pourcentage 80 invalide</span></span>
+<span id="cb20-272"><a href="#cb20-272" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-273"><a href="#cb20-273" aria-hidden="true" tabindex="-1"></a><span class="co">-- ============ Exercice 15 ============</span></span>
+<span id="cb20-274"><a href="#cb20-274" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">FUNCTION</span> crediter_points(p_num <span class="dt">integer</span>) RETURNS <span class="dt">integer</span> <span class="kw">AS</span> $$</span>
+<span id="cb20-275"><a href="#cb20-275" aria-hidden="true" tabindex="-1"></a><span class="kw">DECLARE</span></span>
+<span id="cb20-276"><a href="#cb20-276" aria-hidden="true" tabindex="-1"></a>    v_resa  <span class="dt">record</span>;</span>
+<span id="cb20-277"><a href="#cb20-277" aria-hidden="true" tabindex="-1"></a>    v_total <span class="dt">integer</span> <span class="op">:=</span> <span class="dv">0</span>;</span>
+<span id="cb20-278"><a href="#cb20-278" aria-hidden="true" tabindex="-1"></a><span class="cf">BEGIN</span></span>
+<span id="cb20-279"><a href="#cb20-279" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- est_fidele lève déjà l&#39;exception si le client n&#39;existe pas</span></span>
+<span id="cb20-280"><a href="#cb20-280" aria-hidden="true" tabindex="-1"></a>    <span class="cf">IF</span> <span class="kw">NOT</span> est_fidele(p_num) <span class="cf">THEN</span></span>
+<span id="cb20-281"><a href="#cb20-281" aria-hidden="true" tabindex="-1"></a>        RAISE <span class="kw">EXCEPTION</span> <span class="st">&#39;le client % n</span><span class="ch">&#39;&#39;</span><span class="st">est pas Fidéle, pas de points&#39;</span>, p_num;</span>
+<span id="cb20-282"><a href="#cb20-282" aria-hidden="true" tabindex="-1"></a>    <span class="cf">END</span> <span class="cf">IF</span>;</span>
+<span id="cb20-283"><a href="#cb20-283" aria-hidden="true" tabindex="-1"></a>    <span class="cf">FOR</span> v_resa <span class="kw">IN</span> <span class="kw">SELECT</span> code_vehicule,</span>
+<span id="cb20-284"><a href="#cb20-284" aria-hidden="true" tabindex="-1"></a>                         <span class="fu">extract</span>(<span class="dt">day</span> <span class="kw">FROM</span> (date_heure_retour <span class="op">-</span> date_heure_depart)):<span class="ch">:int</span> <span class="kw">AS</span> nbj</span>
+<span id="cb20-285"><a href="#cb20-285" aria-hidden="true" tabindex="-1"></a>                  <span class="kw">FROM</span> reservation <span class="kw">WHERE</span> num_client <span class="op">=</span> p_num</span>
+<span id="cb20-286"><a href="#cb20-286" aria-hidden="true" tabindex="-1"></a>    <span class="cf">LOOP</span></span>
+<span id="cb20-287"><a href="#cb20-287" aria-hidden="true" tabindex="-1"></a>        v_total <span class="op">:=</span> v_total <span class="op">+</span> points_tranche(v_resa.code_vehicule, v_resa.nbj);</span>
+<span id="cb20-288"><a href="#cb20-288" aria-hidden="true" tabindex="-1"></a>    <span class="cf">END</span> <span class="cf">LOOP</span>;</span>
+<span id="cb20-289"><a href="#cb20-289" aria-hidden="true" tabindex="-1"></a>    <span class="kw">UPDATE</span> client <span class="kw">SET</span> pts_bonus_acquis <span class="op">=</span> <span class="fu">coalesce</span>(pts_bonus_acquis, <span class="dv">0</span>) <span class="op">+</span> v_total</span>
+<span id="cb20-290"><a href="#cb20-290" aria-hidden="true" tabindex="-1"></a>    <span class="kw">WHERE</span> num_client <span class="op">=</span> p_num;</span>
+<span id="cb20-291"><a href="#cb20-291" aria-hidden="true" tabindex="-1"></a>    <span class="kw">RETURN</span> v_total;</span>
+<span id="cb20-292"><a href="#cb20-292" aria-hidden="true" tabindex="-1"></a><span class="cf">END</span>;</span>
+<span id="cb20-293"><a href="#cb20-293" aria-hidden="true" tabindex="-1"></a>$$ LANGUAGE plpgsql;</span>
+<span id="cb20-294"><a href="#cb20-294" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-295"><a href="#cb20-295" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> pts_bonus_acquis <span class="kw">FROM</span> client <span class="kw">WHERE</span> num_client <span class="op">=</span> <span class="dv">100</span>;   <span class="co">-- 220</span></span>
+<span id="cb20-296"><a href="#cb20-296" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> crediter_points(<span class="dv">100</span>);                                   <span class="co">-- 233</span></span>
+<span id="cb20-297"><a href="#cb20-297" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> pts_bonus_acquis <span class="kw">FROM</span> client <span class="kw">WHERE</span> num_client <span class="op">=</span> <span class="dv">100</span>;   <span class="co">-- 453</span></span>
+<span id="cb20-298"><a href="#cb20-298" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> crediter_points(<span class="dv">103</span>);                                   <span class="co">-- ERREUR: le client 103 n&#39;est pas Fidéle</span></span>
+<span id="cb20-299"><a href="#cb20-299" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-300"><a href="#cb20-300" aria-hidden="true" tabindex="-1"></a><span class="co">-- ============ Exercice 16 (curseur + %ROWTYPE) ============</span></span>
+<span id="cb20-301"><a href="#cb20-301" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">FUNCTION</span> clients_fideles_sans_points() RETURNS SETOF client <span class="kw">AS</span> $$</span>
+<span id="cb20-302"><a href="#cb20-302" aria-hidden="true" tabindex="-1"></a><span class="kw">DECLARE</span></span>
+<span id="cb20-303"><a href="#cb20-303" aria-hidden="true" tabindex="-1"></a>    v_cli client<span class="dt">%ROWTYPE</span>;</span>
+<span id="cb20-304"><a href="#cb20-304" aria-hidden="true" tabindex="-1"></a>    curs_cli <span class="kw">CURSOR</span> <span class="cf">FOR</span></span>
+<span id="cb20-305"><a href="#cb20-305" aria-hidden="true" tabindex="-1"></a>        <span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> client</span>
+<span id="cb20-306"><a href="#cb20-306" aria-hidden="true" tabindex="-1"></a>        <span class="kw">WHERE</span> type_client <span class="op">=</span> <span class="st">&#39;Fidéle&#39;</span> <span class="kw">AND</span> <span class="fu">coalesce</span>(pts_bonus_acquis, <span class="dv">0</span>) <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb20-307"><a href="#cb20-307" aria-hidden="true" tabindex="-1"></a>        <span class="kw">ORDER</span> <span class="kw">BY</span> nom_client;</span>
+<span id="cb20-308"><a href="#cb20-308" aria-hidden="true" tabindex="-1"></a><span class="cf">BEGIN</span></span>
+<span id="cb20-309"><a href="#cb20-309" aria-hidden="true" tabindex="-1"></a>    <span class="kw">OPEN</span> curs_cli;</span>
+<span id="cb20-310"><a href="#cb20-310" aria-hidden="true" tabindex="-1"></a>    <span class="cf">LOOP</span></span>
+<span id="cb20-311"><a href="#cb20-311" aria-hidden="true" tabindex="-1"></a>        FETCH curs_cli <span class="kw">INTO</span> v_cli;</span>
+<span id="cb20-312"><a href="#cb20-312" aria-hidden="true" tabindex="-1"></a>        EXIT <span class="cf">WHEN</span> <span class="kw">NOT</span> FOUND;</span>
+<span id="cb20-313"><a href="#cb20-313" aria-hidden="true" tabindex="-1"></a>        <span class="kw">RETURN</span> <span class="kw">NEXT</span> v_cli;</span>
+<span id="cb20-314"><a href="#cb20-314" aria-hidden="true" tabindex="-1"></a>    <span class="cf">END</span> <span class="cf">LOOP</span>;</span>
+<span id="cb20-315"><a href="#cb20-315" aria-hidden="true" tabindex="-1"></a>    <span class="kw">CLOSE</span> curs_cli;</span>
+<span id="cb20-316"><a href="#cb20-316" aria-hidden="true" tabindex="-1"></a>    <span class="kw">RETURN</span>;</span>
+<span id="cb20-317"><a href="#cb20-317" aria-hidden="true" tabindex="-1"></a><span class="cf">END</span>;</span>
+<span id="cb20-318"><a href="#cb20-318" aria-hidden="true" tabindex="-1"></a>$$ LANGUAGE plpgsql;</span>
+<span id="cb20-319"><a href="#cb20-319" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-320"><a href="#cb20-320" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> num_client, nom_client, pts_bonus_acquis <span class="kw">FROM</span> clients_fideles_sans_points();   <span class="co">-- 131 Shields NULL</span></span>
+<span id="cb20-321"><a href="#cb20-321" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-322"><a href="#cb20-322" aria-hidden="true" tabindex="-1"></a><span class="co">-- ============ Exercice 17 (trigger) ============</span></span>
+<span id="cb20-323"><a href="#cb20-323" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">FUNCTION</span> verif_dates_resa() RETURNS <span class="kw">trigger</span> <span class="kw">AS</span> $$</span>
+<span id="cb20-324"><a href="#cb20-324" aria-hidden="true" tabindex="-1"></a><span class="cf">BEGIN</span></span>
+<span id="cb20-325"><a href="#cb20-325" aria-hidden="true" tabindex="-1"></a>    <span class="cf">IF</span> <span class="kw">NEW</span>.date_heure_retour <span class="op">&lt;=</span> <span class="kw">NEW</span>.date_heure_depart <span class="cf">THEN</span></span>
+<span id="cb20-326"><a href="#cb20-326" aria-hidden="true" tabindex="-1"></a>        RAISE <span class="kw">EXCEPTION</span> <span class="st">&#39;retour (%) doit être après départ (%)&#39;</span>, <span class="kw">NEW</span>.date_heure_retour, <span class="kw">NEW</span>.date_heure_depart;</span>
+<span id="cb20-327"><a href="#cb20-327" aria-hidden="true" tabindex="-1"></a>    <span class="cf">END</span> <span class="cf">IF</span>;</span>
+<span id="cb20-328"><a href="#cb20-328" aria-hidden="true" tabindex="-1"></a>    <span class="cf">IF</span> <span class="kw">NEW</span>.date_resa <span class="kw">IS</span> <span class="kw">NULL</span> <span class="cf">THEN</span></span>
+<span id="cb20-329"><a href="#cb20-329" aria-hidden="true" tabindex="-1"></a>        <span class="kw">NEW</span>.date_resa <span class="op">:=</span> <span class="fu">current_date</span>;</span>
+<span id="cb20-330"><a href="#cb20-330" aria-hidden="true" tabindex="-1"></a>    <span class="cf">END</span> <span class="cf">IF</span>;</span>
+<span id="cb20-331"><a href="#cb20-331" aria-hidden="true" tabindex="-1"></a>    <span class="kw">RETURN</span> <span class="kw">NEW</span>;</span>
+<span id="cb20-332"><a href="#cb20-332" aria-hidden="true" tabindex="-1"></a><span class="cf">END</span>;</span>
+<span id="cb20-333"><a href="#cb20-333" aria-hidden="true" tabindex="-1"></a>$$ LANGUAGE plpgsql;</span>
+<span id="cb20-334"><a href="#cb20-334" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-335"><a href="#cb20-335" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">TRIGGER</span> trg_verif_dates_resa <span class="kw">BEFORE</span> <span class="kw">INSERT</span> <span class="kw">OR</span> <span class="kw">UPDATE</span> <span class="kw">ON</span> reservation</span>
+<span id="cb20-336"><a href="#cb20-336" aria-hidden="true" tabindex="-1"></a><span class="cf">FOR</span> <span class="kw">EACH</span> <span class="kw">ROW</span> <span class="kw">EXECUTE</span> <span class="kw">PROCEDURE</span> verif_dates_resa();</span>
+<span id="cb20-337"><a href="#cb20-337" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-338"><a href="#cb20-338" aria-hidden="true" tabindex="-1"></a><span class="co">-- refusé</span></span>
+<span id="cb20-339"><a href="#cb20-339" aria-hidden="true" tabindex="-1"></a><span class="kw">INSERT</span> <span class="kw">INTO</span> reservation (retour_agence, depart_agence, num_client, code_vehicule, date_resa, date_heure_depart, date_heure_retour)</span>
+<span id="cb20-340"><a href="#cb20-340" aria-hidden="true" tabindex="-1"></a><span class="kw">VALUES</span> (<span class="dv">1007</span>, <span class="dv">1007</span>, <span class="dv">100</span>, <span class="dv">1</span>, <span class="st">&#39;2024-01-01&#39;</span>, <span class="st">&#39;2024-01-10 08:00&#39;</span>, <span class="st">&#39;2024-01-05 08:00&#39;</span>);</span>
+<span id="cb20-341"><a href="#cb20-341" aria-hidden="true" tabindex="-1"></a><span class="co">-- accepté</span></span>
+<span id="cb20-342"><a href="#cb20-342" aria-hidden="true" tabindex="-1"></a><span class="kw">INSERT</span> <span class="kw">INTO</span> reservation (retour_agence, depart_agence, num_client, code_vehicule, date_resa, date_heure_depart, date_heure_retour)</span>
+<span id="cb20-343"><a href="#cb20-343" aria-hidden="true" tabindex="-1"></a><span class="kw">VALUES</span> (<span class="dv">1007</span>, <span class="dv">1007</span>, <span class="dv">100</span>, <span class="dv">1</span>, <span class="st">&#39;2024-01-01&#39;</span>, <span class="st">&#39;2024-01-05 08:00&#39;</span>, <span class="st">&#39;2024-01-10 08:00&#39;</span>);</span></code></pre></div>
+<h2 id="correction-du-contrôle-dentraînement-version-du-prof-commentée">Correction
+du contrôle d’entraînement (version du prof, commentée)</h2>
+<div class="sourceCode" id="cb21"><pre class="sourceCode sql"><code class="sourceCode sql"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co">-- Exercice 1 : SETOF record, jointure vehicule-proposer-agence, lower() pour la casse</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">FUNCTION</span> listeVehicule(p_nom_ag <span class="dt">varchar</span>(<span class="dv">45</span>)) RETURNS setof <span class="dt">record</span> <span class="kw">AS</span> $$</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a><span class="kw">DECLARE</span></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>    v_ligne <span class="dt">record</span>;</span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a><span class="cf">BEGIN</span></span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>    PERFORM nom_agence <span class="kw">FROM</span> agence <span class="kw">WHERE</span> <span class="fu">lower</span>(nom_agence) <span class="op">=</span> <span class="fu">lower</span>(p_nom_ag);</span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">IF</span> <span class="kw">NOT</span> FOUND <span class="cf">THEN</span></span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>        RAISE <span class="kw">EXCEPTION</span> <span class="st">&#39;l</span><span class="ch">&#39;&#39;</span><span class="st">agence % n</span><span class="ch">&#39;&#39;</span><span class="st">existe pas&#39;</span>, p_nom_ag;</span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">END</span> <span class="cf">IF</span>;</span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">FOR</span> v_ligne <span class="kw">IN</span> <span class="kw">SELECT</span> exemple, prix_jour</span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a>                   <span class="kw">FROM</span> vehicule <span class="kw">INNER</span> <span class="kw">JOIN</span> proposer <span class="kw">USING</span> (code_vehicule)</span>
+<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a>                                 <span class="kw">INNER</span> <span class="kw">JOIN</span> agence <span class="kw">USING</span> (num_agence)</span>
+<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a>                   <span class="kw">WHERE</span> <span class="fu">lower</span>(nom_agence) <span class="op">=</span> <span class="fu">lower</span>(p_nom_ag)</span>
+<span id="cb21-14"><a href="#cb21-14" aria-hidden="true" tabindex="-1"></a>    <span class="cf">LOOP</span></span>
+<span id="cb21-15"><a href="#cb21-15" aria-hidden="true" tabindex="-1"></a>        <span class="kw">RETURN</span> <span class="kw">NEXT</span> v_ligne;</span>
+<span id="cb21-16"><a href="#cb21-16" aria-hidden="true" tabindex="-1"></a>    <span class="cf">END</span> <span class="cf">LOOP</span>;</span>
+<span id="cb21-17"><a href="#cb21-17" aria-hidden="true" tabindex="-1"></a>    <span class="kw">RETURN</span>;</span>
+<span id="cb21-18"><a href="#cb21-18" aria-hidden="true" tabindex="-1"></a><span class="cf">END</span></span>
+<span id="cb21-19"><a href="#cb21-19" aria-hidden="true" tabindex="-1"></a>$$ LANGUAGE plpgsql;</span>
+<span id="cb21-20"><a href="#cb21-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-21"><a href="#cb21-21" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> listeVehicule(<span class="st">&#39;Micsot&#39;</span>) <span class="kw">AS</span> (nom_vehi <span class="dt">varchar</span>, px <span class="dt">numeric</span>);   <span class="co">-- 4 lignes</span></span>
+<span id="cb21-22"><a href="#cb21-22" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> listeVehicule(<span class="st">&#39;Ade&#39;</span>)    <span class="kw">AS</span> (nom_vehi <span class="dt">varchar</span>, px <span class="dt">numeric</span>);</span>
+<span id="cb21-23"><a href="#cb21-23" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> listeVehicule(<span class="st">&#39;Micot&#39;</span>)  <span class="kw">AS</span> (nom_vehi <span class="dt">varchar</span>, px <span class="dt">numeric</span>);   <span class="co">-- ERREUR: l&#39;agence Micot n&#39;existe pas</span></span>
+<span id="cb21-24"><a href="#cb21-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-25"><a href="#cb21-25" aria-hidden="true" tabindex="-1"></a><span class="co">-- Exercice 2 : scalaire, extract(day FROM intervalle)</span></span>
+<span id="cb21-26"><a href="#cb21-26" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">FUNCTION</span> SommePaye(p_numCli <span class="dt">int</span>) RETURNS <span class="dt">real</span> <span class="kw">AS</span> $$</span>
+<span id="cb21-27"><a href="#cb21-27" aria-hidden="true" tabindex="-1"></a><span class="kw">DECLARE</span></span>
+<span id="cb21-28"><a href="#cb21-28" aria-hidden="true" tabindex="-1"></a>    somme <span class="dt">real</span>;</span>
+<span id="cb21-29"><a href="#cb21-29" aria-hidden="true" tabindex="-1"></a><span class="cf">BEGIN</span></span>
+<span id="cb21-30"><a href="#cb21-30" aria-hidden="true" tabindex="-1"></a>    PERFORM num_client <span class="kw">FROM</span> client <span class="kw">WHERE</span> num_client <span class="op">=</span> p_numCli;</span>
+<span id="cb21-31"><a href="#cb21-31" aria-hidden="true" tabindex="-1"></a>    <span class="cf">IF</span> <span class="kw">NOT</span> FOUND <span class="cf">THEN</span></span>
+<span id="cb21-32"><a href="#cb21-32" aria-hidden="true" tabindex="-1"></a>        RAISE <span class="kw">EXCEPTION</span> <span class="st">&#39;le client % n</span><span class="ch">&#39;&#39;</span><span class="st">existe pas&#39;</span>, p_numCli;</span>
+<span id="cb21-33"><a href="#cb21-33" aria-hidden="true" tabindex="-1"></a>    <span class="cf">END</span> <span class="cf">IF</span>;</span>
+<span id="cb21-34"><a href="#cb21-34" aria-hidden="true" tabindex="-1"></a>    <span class="kw">SELECT</span> <span class="fu">sum</span>(prix_jour <span class="op">*</span> <span class="fu">extract</span>(<span class="dt">day</span> <span class="kw">FROM</span> (date_heure_retour <span class="op">-</span> date_heure_depart)))</span>
+<span id="cb21-35"><a href="#cb21-35" aria-hidden="true" tabindex="-1"></a>    <span class="kw">INTO</span> somme</span>
+<span id="cb21-36"><a href="#cb21-36" aria-hidden="true" tabindex="-1"></a>    <span class="kw">FROM</span> reservation <span class="kw">INNER</span> <span class="kw">JOIN</span> vehicule <span class="kw">USING</span> (code_vehicule)</span>
+<span id="cb21-37"><a href="#cb21-37" aria-hidden="true" tabindex="-1"></a>    <span class="kw">WHERE</span> num_client <span class="op">=</span> p_numCli;</span>
+<span id="cb21-38"><a href="#cb21-38" aria-hidden="true" tabindex="-1"></a>    <span class="kw">RETURN</span> somme;</span>
+<span id="cb21-39"><a href="#cb21-39" aria-hidden="true" tabindex="-1"></a><span class="cf">END</span></span>
+<span id="cb21-40"><a href="#cb21-40" aria-hidden="true" tabindex="-1"></a>$$ LANGUAGE plpgsql;</span>
+<span id="cb21-41"><a href="#cb21-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-42"><a href="#cb21-42" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> SommePaye(<span class="dv">100</span>);   <span class="co">-- 5129</span></span>
+<span id="cb21-43"><a href="#cb21-43" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> SommePaye(<span class="dv">102</span>);   <span class="co">-- 7402</span></span>
+<span id="cb21-44"><a href="#cb21-44" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> SommePaye(<span class="dv">103</span>);   <span class="co">-- 1016</span></span>
+<span id="cb21-45"><a href="#cb21-45" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> SommePaye(<span class="dv">33</span>);    <span class="co">-- ERREUR: le client 33 n&#39;existe pas</span></span>
+<span id="cb21-46"><a href="#cb21-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-47"><a href="#cb21-47" aria-hidden="true" tabindex="-1"></a><span class="co">-- Exercice 3 : record, 4 vérifications, sous-requête ORDER BY nb_jours DESC LIMIT 1</span></span>
+<span id="cb21-48"><a href="#cb21-48" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">FUNCTION</span> nb_pts(NumeroClient <span class="dt">int</span>, Num_vehi <span class="dt">int</span>, date_deb <span class="dt">date</span>, date_fin <span class="dt">date</span>)</span>
+<span id="cb21-49"><a href="#cb21-49" aria-hidden="true" tabindex="-1"></a>RETURNS <span class="dt">record</span> <span class="kw">AS</span> $$</span>
+<span id="cb21-50"><a href="#cb21-50" aria-hidden="true" tabindex="-1"></a><span class="kw">DECLARE</span></span>
+<span id="cb21-51"><a href="#cb21-51" aria-hidden="true" tabindex="-1"></a>    info <span class="dt">record</span>;</span>
+<span id="cb21-52"><a href="#cb21-52" aria-hidden="true" tabindex="-1"></a><span class="cf">BEGIN</span></span>
+<span id="cb21-53"><a href="#cb21-53" aria-hidden="true" tabindex="-1"></a>    PERFORM num_client <span class="kw">FROM</span> client <span class="kw">WHERE</span> num_client <span class="op">=</span> NumeroClient;</span>
+<span id="cb21-54"><a href="#cb21-54" aria-hidden="true" tabindex="-1"></a>    <span class="cf">IF</span> <span class="kw">NOT</span> FOUND <span class="cf">THEN</span></span>
+<span id="cb21-55"><a href="#cb21-55" aria-hidden="true" tabindex="-1"></a>        RAISE <span class="kw">EXCEPTION</span> <span class="st">&#39;le client % n</span><span class="ch">&#39;&#39;</span><span class="st">existe pas&#39;</span>, NumeroClient;</span>
+<span id="cb21-56"><a href="#cb21-56" aria-hidden="true" tabindex="-1"></a>    <span class="cf">END</span> <span class="cf">IF</span>;</span>
+<span id="cb21-57"><a href="#cb21-57" aria-hidden="true" tabindex="-1"></a>    PERFORM num_client <span class="kw">FROM</span> client <span class="kw">WHERE</span> type_client <span class="op">=</span> <span class="st">&#39;Fidéle&#39;</span> <span class="kw">AND</span> num_client <span class="op">=</span> NumeroClient;</span>
+<span id="cb21-58"><a href="#cb21-58" aria-hidden="true" tabindex="-1"></a>    <span class="cf">IF</span> <span class="kw">NOT</span> FOUND <span class="cf">THEN</span></span>
+<span id="cb21-59"><a href="#cb21-59" aria-hidden="true" tabindex="-1"></a>        RAISE <span class="kw">EXCEPTION</span> <span class="st">&#39;le client % n</span><span class="ch">&#39;&#39;</span><span class="st">est pas Fidéle&#39;</span>, NumeroClient;</span>
+<span id="cb21-60"><a href="#cb21-60" aria-hidden="true" tabindex="-1"></a>    <span class="cf">END</span> <span class="cf">IF</span>;</span>
+<span id="cb21-61"><a href="#cb21-61" aria-hidden="true" tabindex="-1"></a>    PERFORM code_vehicule <span class="kw">FROM</span> vehicule <span class="kw">WHERE</span> code_vehicule <span class="op">=</span> Num_vehi;</span>
+<span id="cb21-62"><a href="#cb21-62" aria-hidden="true" tabindex="-1"></a>    <span class="cf">IF</span> <span class="kw">NOT</span> FOUND <span class="cf">THEN</span></span>
+<span id="cb21-63"><a href="#cb21-63" aria-hidden="true" tabindex="-1"></a>        RAISE <span class="kw">EXCEPTION</span> <span class="st">&#39;le véhicule % n</span><span class="ch">&#39;&#39;</span><span class="st">existe pas&#39;</span>, Num_vehi;</span>
+<span id="cb21-64"><a href="#cb21-64" aria-hidden="true" tabindex="-1"></a>    <span class="cf">END</span> <span class="cf">IF</span>;</span>
+<span id="cb21-65"><a href="#cb21-65" aria-hidden="true" tabindex="-1"></a>    <span class="cf">IF</span> date_deb <span class="op">&gt;</span> date_fin <span class="cf">THEN</span></span>
+<span id="cb21-66"><a href="#cb21-66" aria-hidden="true" tabindex="-1"></a>        RAISE <span class="kw">EXCEPTION</span> <span class="st">&#39;la date de début ne peut être plus grande que la date de fin&#39;</span>;</span>
+<span id="cb21-67"><a href="#cb21-67" aria-hidden="true" tabindex="-1"></a>    <span class="cf">END</span> <span class="cf">IF</span>;</span>
+<span id="cb21-68"><a href="#cb21-68" aria-hidden="true" tabindex="-1"></a>    <span class="kw">SELECT</span> <span class="fu">coalesce</span>(pts_bonus_acquis, <span class="dv">0</span>) <span class="kw">AS</span> pts_deja_acquis,</span>
+<span id="cb21-69"><a href="#cb21-69" aria-hidden="true" tabindex="-1"></a>           (<span class="kw">SELECT</span> nb_points <span class="kw">FROM</span> attribuer</span>
+<span id="cb21-70"><a href="#cb21-70" aria-hidden="true" tabindex="-1"></a>            <span class="kw">WHERE</span> nb_jours <span class="op">&lt;=</span> date_fin <span class="op">-</span> date_deb <span class="kw">AND</span> code_vehicule <span class="op">=</span> Num_vehi</span>
+<span id="cb21-71"><a href="#cb21-71" aria-hidden="true" tabindex="-1"></a>            <span class="kw">ORDER</span> <span class="kw">BY</span> nb_jours <span class="kw">DESC</span> <span class="kw">LIMIT</span> <span class="dv">1</span>) <span class="kw">AS</span> nb_pts_attribuer,</span>
+<span id="cb21-72"><a href="#cb21-72" aria-hidden="true" tabindex="-1"></a>           <span class="fu">coalesce</span>(pts_bonus_acquis, <span class="dv">0</span>) <span class="op">+</span></span>
+<span id="cb21-73"><a href="#cb21-73" aria-hidden="true" tabindex="-1"></a>           (<span class="kw">SELECT</span> nb_points <span class="kw">FROM</span> attribuer</span>
+<span id="cb21-74"><a href="#cb21-74" aria-hidden="true" tabindex="-1"></a>            <span class="kw">WHERE</span> nb_jours <span class="op">&lt;=</span> date_fin <span class="op">-</span> date_deb <span class="kw">AND</span> code_vehicule <span class="op">=</span> Num_vehi</span>
+<span id="cb21-75"><a href="#cb21-75" aria-hidden="true" tabindex="-1"></a>            <span class="kw">ORDER</span> <span class="kw">BY</span> nb_jours <span class="kw">DESC</span> <span class="kw">LIMIT</span> <span class="dv">1</span>) <span class="kw">AS</span> pts_total</span>
+<span id="cb21-76"><a href="#cb21-76" aria-hidden="true" tabindex="-1"></a>    <span class="kw">INTO</span> info</span>
+<span id="cb21-77"><a href="#cb21-77" aria-hidden="true" tabindex="-1"></a>    <span class="kw">FROM</span> client <span class="kw">WHERE</span> num_client <span class="op">=</span> NumeroClient;</span>
+<span id="cb21-78"><a href="#cb21-78" aria-hidden="true" tabindex="-1"></a>    <span class="kw">RETURN</span> info;</span>
+<span id="cb21-79"><a href="#cb21-79" aria-hidden="true" tabindex="-1"></a><span class="cf">END</span>;</span>
+<span id="cb21-80"><a href="#cb21-80" aria-hidden="true" tabindex="-1"></a>$$ LANGUAGE plpgsql;</span>
+<span id="cb21-81"><a href="#cb21-81" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-82"><a href="#cb21-82" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> nb_pts(<span class="dv">300</span>, <span class="dv">1</span>, <span class="st">&#39;2020-06-30&#39;</span>, <span class="st">&#39;2020-06-20&#39;</span>) <span class="kw">AS</span> (deja <span class="dt">int</span>, attribues <span class="dt">int</span>, total <span class="dt">int</span>);  <span class="co">-- client 300 n&#39;existe pas</span></span>
+<span id="cb21-83"><a href="#cb21-83" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> nb_pts(<span class="dv">100</span>, <span class="dv">78</span>, <span class="st">&#39;2020-06-30&#39;</span>, <span class="st">&#39;2020-06-20&#39;</span>) <span class="kw">AS</span> (deja <span class="dt">int</span>, attribues <span class="dt">int</span>, total <span class="dt">int</span>); <span class="co">-- véhicule 78 n&#39;existe pas</span></span>
+<span id="cb21-84"><a href="#cb21-84" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> nb_pts(<span class="dv">103</span>, <span class="dv">1</span>, <span class="st">&#39;2020-06-20&#39;</span>, <span class="st">&#39;2020-06-30&#39;</span>) <span class="kw">AS</span> (deja <span class="dt">int</span>, attribues <span class="dt">int</span>, total <span class="dt">int</span>);  <span class="co">-- client 103 n&#39;est pas Fidéle</span></span>
+<span id="cb21-85"><a href="#cb21-85" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> nb_pts(<span class="dv">104</span>, <span class="dv">1</span>, <span class="st">&#39;2020-06-30&#39;</span>, <span class="st">&#39;2020-06-20&#39;</span>) <span class="kw">AS</span> (deja <span class="dt">int</span>, attribues <span class="dt">int</span>, total <span class="dt">int</span>);  <span class="co">-- dates incohérentes</span></span>
+<span id="cb21-86"><a href="#cb21-86" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> nb_pts(<span class="dv">104</span>, <span class="dv">1</span>, <span class="st">&#39;2020-06-20&#39;</span>, <span class="st">&#39;2020-06-30&#39;</span>) <span class="kw">AS</span> (deja <span class="dt">int</span>, attribues <span class="dt">int</span>, total <span class="dt">int</span>);  <span class="co">-- 190 | 50 | 240</span></span></code></pre></div>
+<p>Variante plus lisible de l’exercice 3 en réutilisant
+<code>points_tranche</code> (exercice 6) — à utiliser si vous avez déjà
+écrit la fonction :</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode sql"><code class="sourceCode sql"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>    <span class="kw">SELECT</span> <span class="fu">coalesce</span>(pts_bonus_acquis, <span class="dv">0</span>),</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>           points_tranche(Num_vehi, date_fin <span class="op">-</span> date_deb),</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>           <span class="fu">coalesce</span>(pts_bonus_acquis, <span class="dv">0</span>) <span class="op">+</span> points_tranche(Num_vehi, date_fin <span class="op">-</span> date_deb)</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">INTO</span> info</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">FROM</span> client <span class="kw">WHERE</span> num_client <span class="op">=</span> NumeroClient;</span></code></pre></div>
+<hr />
+<h1 id="mémo-dune-page-à-relire-juste-avant-dentrer">Mémo d’une page (à
+relire juste avant d’entrer)</h1>
+<div class="sourceCode" id="cb23"><pre class="sourceCode sql"><code class="sourceCode sql"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="kw">SET</span> search_path <span class="op">=</span> bdd_car_net;                         <span class="co">-- toujours en premier</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> <span class="kw">DISTINCT</span> type_client <span class="kw">FROM</span> client;               <span class="co">-- vérifier les libellés exacts (&#39;Fidéle&#39;)</span></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">FUNCTION</span> f(p_x <span class="dt">int</span>) RETURNS SETOF <span class="dt">record</span> <span class="kw">AS</span> $$</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a><span class="kw">DECLARE</span></span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>    v_r <span class="dt">record</span>;</span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a><span class="cf">BEGIN</span></span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>    PERFORM <span class="op">*</span> <span class="kw">FROM</span> t <span class="kw">WHERE</span> <span class="kw">id</span> <span class="op">=</span> p_x;                   <span class="co">-- 1. existence</span></span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">IF</span> <span class="kw">NOT</span> FOUND <span class="cf">THEN</span> RAISE <span class="kw">EXCEPTION</span> <span class="st">&#39;le ... % n</span><span class="ch">&#39;&#39;</span><span class="st">existe pas&#39;</span>, p_x; <span class="cf">END</span> <span class="cf">IF</span>;</span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">FOR</span> v_r <span class="kw">IN</span> <span class="kw">SELECT</span> a, b <span class="kw">FROM</span> t <span class="kw">WHERE</span> <span class="kw">id</span> <span class="op">=</span> p_x       <span class="co">-- 2. requête (pas de ; ici)</span></span>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">LOOP</span></span>
+<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a>        <span class="kw">RETURN</span> <span class="kw">NEXT</span> v_r;                               <span class="co">-- 3. retour ligne par ligne</span></span>
+<span id="cb23-13"><a href="#cb23-13" aria-hidden="true" tabindex="-1"></a>    <span class="cf">END</span> <span class="cf">LOOP</span>;</span>
+<span id="cb23-14"><a href="#cb23-14" aria-hidden="true" tabindex="-1"></a>    <span class="kw">RETURN</span>;</span>
+<span id="cb23-15"><a href="#cb23-15" aria-hidden="true" tabindex="-1"></a><span class="cf">END</span>;</span>
+<span id="cb23-16"><a href="#cb23-16" aria-hidden="true" tabindex="-1"></a>$$ LANGUAGE plpgsql;</span>
+<span id="cb23-17"><a href="#cb23-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-18"><a href="#cb23-18" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> f(<span class="dv">1</span>) <span class="kw">AS</span> (a <span class="dt">varchar</span>, b <span class="dt">numeric</span>);          <span class="co">-- 4. tests, avec un cas d&#39;erreur</span></span></code></pre></div>
+<ul>
+<li>1 valeur → <code>RETURNS type</code> + <code>RETURN v;</code> +
+<code>SELECT f();</code></li>
+<li>1 ligne N colonnes → <code>RETURNS record</code> +
+<code>SELECT * FROM f() AS (...)</code></li>
+<li>N lignes N colonnes → <code>RETURNS SETOF record</code> +
+<code>RETURN NEXT</code> + <code>RETURN;</code> +
+<code>SELECT * FROM f() AS (...)</code></li>
+<li>lignes d’une table → <code>RETURNS SETOF table</code> +
+<code>RETURN QUERY SELECT …;</code> +
+<code>SELECT * FROM f();</code></li>
+<li>curseur → <code>c CURSOR (k int) FOR SELECT …;</code> /
+<code>OPEN c(x);</code> /
+<code>LOOP FETCH c INTO v; EXIT WHEN NOT FOUND; … END LOOP;</code> /
+<code>CLOSE c;</code></li>
+<li>jours entre deux timestamps →
+<code>extract(day FROM (fin - debut))</code> ; entre deux dates →
+<code>fin - debut</code></li>
+<li>NULL → <code>coalesce(x, 0)</code> ; apostrophe → <code>&#39;&#39;</code> ;
+changement de type de retour → <code>DROP FUNCTION</code> d’abord.</li>
+</ul>
+</body>
+</html>

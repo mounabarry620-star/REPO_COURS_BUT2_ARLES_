@@ -1,0 +1,783 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[french]{babel}
+\usepackage[a4paper,left=2cm,right=2cm,top=2.2cm,bottom=2.8cm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage[most]{tcolorbox}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage[hidelinks]{hyperref}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{4pt}
+
+% ---------------------------------------------------------------- couleurs
+\definecolor{fondcode}{gray}{0.94}
+\definecolor{motcle}{RGB}{170,34,255}
+\definecolor{module}{RGB}{0,0,255}
+\definecolor{chaine}{RGB}{186,33,33}
+\definecolor{commentaire}{RGB}{0,128,0}
+\definecolor{bleusommaire}{RGB}{30,30,230}
+
+% ---------------------------------------------------------------- code
+\lstdefinestyle{prof}{
+  language=Python,
+  basicstyle=\ttfamily\footnotesize,
+  backgroundcolor=\color{fondcode},
+  frame=single,
+  rulecolor=\color{black},
+  framesep=4pt,
+  xleftmargin=4pt, xrightmargin=4pt,
+  keywordstyle=\color{motcle}\bfseries,
+  keywordstyle=[2]\color{motcle},
+  keywordstyle=[3]\color{module}\bfseries,
+  morekeywords=[2]{print,input,type,len,range,hex,bytes,str,chr,ord},
+  morekeywords=[3]{hashlib,sqlite3,bcrypt,time,random,Crypto,Cipher,AES},
+  stringstyle=\color{chaine},
+  commentstyle=\color{commentaire}\itshape,
+  showstringspaces=false,
+  columns=fullflexible,
+  keepspaces=true,
+  breaklines=true,
+  upquote=true,
+  literate={é}{{\'e}}1 {è}{{\`e}}1 {ê}{{\^e}}1 {à}{{\`a}}1 {â}{{\^a}}1
+           {ç}{{\c{c}}}1 {É}{{\'E}}1 {ô}{{\^o}}1 {î}{{\^i}}1 {ù}{{\`u}}1
+           {û}{{\^u}}1 {Ê}{{\^E}}1
+}
+\lstset{style=prof}
+
+% sortie console (même cadre, sans coloration)
+\lstdefinestyle{sortie}{
+  style=prof, language={}, basicstyle=\ttfamily\footnotesize\color{black!75},
+  backgroundcolor=\color{white}, frame=single, rulecolor=\color{black!40}
+}
+
+% code en ligne sur fond gris
+\newcommand{\code}[1]{\colorbox{fondcode}{\ttfamily\small #1}}
+\newcommand{\q}{\textquotesingle}
+
+% ---------------------------------------------------------------- encadrés
+\newtcolorbox{rappel}[1][]{
+  enhanced, breakable, colback=white, colframe=white, boxrule=0pt,
+  borderline west={2.5pt}{0pt}{black}, left=8pt, top=2pt, bottom=2pt,
+  sharp corners, title={#1}, coltitle=black, fonttitle=\bfseries,
+  attach title to upper={\par}
+}
+
+% en-tête du document, comme les sujets
+\newcommand{\entete}[4]{%
+  \begin{tcolorbox}[enhanced, sharp corners, colback=white, colframe=black,
+    boxrule=0.5pt, top=6pt, bottom=2pt, left=4pt, right=4pt,
+    title={#1}, fonttitle=\small\bfseries, coltitle=black,
+    attach boxed title to top left={xshift=1.3cm, yshift=-\tcboxedtitleheight/2},
+    boxed title style={colback=white, colframe=white, boxrule=0pt, sharp corners,
+      left=3pt, right=3pt, top=0pt, bottom=0pt}]
+    \centering{\Large\bfseries #2\par}\vspace{6pt}
+    \hfill{\small #3 -- \textsc{#4}}
+  \end{tcolorbox}}
+
+% ---------------------------------------------------------------- titres
+\titleformat{\section}{\Large\bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}{\large\bfseries}{\thesubsection}{1em}{}
+\titlespacing*{\section}{0pt}{14pt}{6pt}
+\titlespacing*{\subsection}{0pt}{10pt}{4pt}
+
+\newcommand{\exo}[1]{\par\medskip\textbf{Exercice #1}.\ }
+
+% ---------------------------------------------------------------- pied de page
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0.4pt}
+\fancyfoot[L]{\small Info2 --- R3.09 - SAÉ3.01\\ Année 2026/2027}
+\fancyfoot[C]{\small\textsc{Cryptographie}}
+\fancyfoot[R]{\small page \thepage/\pageref*{LastPage}}
+\fancypagestyle{plain}{\fancyhf{}\renewcommand{\footrulewidth}{0pt}\cfoot{\thepage}}
+
+\setlist{itemsep=2pt, topsep=3pt}
+
+\begin{document}
+\thispagestyle{plain}
+
+\entete{R3.09 - SAÉ3.01 -- Walkthrough}{Mot de passe\\[2pt]\normalsize\bfseries Explication pas à pas du TP}{12 octobre 2026}{M.-B. Barry}
+
+\medskip
+Ce document reprend le sujet \og R3.09 - SAÉ3.01 -- Mot de passe \fg{} exercice par exercice. Pour chaque exercice : ce qui est demandé, le lien avec le cours \og Fonctions de hachage -- Stocker un mot de passe \fg{}, le code et ce qu'on obtient en l'exécutant. Tout le code a été testé en Python~3.
+
+\noindent\rule{\textwidth}{0.4pt}
+{\color{bleusommaire}\Large\bfseries Sommaire}
+\par\vspace{2pt}
+{\small\makeatletter\@starttoc{toc}\makeatother}
+\vspace{2pt}
+\noindent\rule{\textwidth}{0.4pt}
+
+% =================================================================
+\section{Avertissements}
+
+\textbf{Le TP se fait en Python3 !} Dans Jupyter, il faut choisir le noyau Python~3.
+
+\subsection{Encodage}
+
+Un caractère est stocké comme un nombre ; la façon de faire correspondre caractères et nombres s'appelle l'\emph{encodage} (UTF8, ASCII, LATIN1\dots).
+
+\begin{itemize}
+  \item \code{txt.encode("...")} transforme une chaîne (\code{str}) en \textbf{chaîne binaire} (\code{bytes}), reconnaissable au \code{b} devant ;
+  \item \code{txt.decode("...")} fait l'inverse, et provoque une erreur si un octet n'existe pas dans l'encodage choisi.
+\end{itemize}
+
+En exécutant l'exemple du sujet, on obtient :
+
+\begin{lstlisting}[style=sortie]
+Il était une fois...
+b'Il \xc3\xa9tait une fois...'        <- utf-8  : é = 2 octets c3 a9
+b'Il \xe9tait une fois...'            <- latin1 : é = 1 octet  e9
+b'Ben \xc3\xa7a alors !'
+<class 'bytes'>
+Ben ça alors !
+UnicodeDecodeError: 'ascii' codec can't decode byte 0xc3 in position 4
+\end{lstlisting}
+
+\textbf{À retenir pour la suite :} les fonctions de hachage travaillent sur des \code{bytes}. Il faudra donc toujours écrire \code{mot\_de\_passe.encode(\q{}utf-8\q{})} avant de hacher.
+
+\subsection{Fonctions de hachage}
+
+\begin{rappel}[Rappel du cours]
+Une fonction de hachage $h$ prend en entrée un bit-string de n'importe quelle taille et retourne une empreinte (\emph{digest}) de taille \textbf{fixe} $n$ :
+\[ h : \{0;1\}^* \longrightarrow \{0;1\}^n \]
+Propriétés attendues :
+\begin{itemize}
+  \item \textbf{résistance à la pré-image} : connaissant $y$, il est difficile de trouver $x$ tel que $h(x) = y$ ;
+  \item \textbf{résistance à la seconde pré-image} : connaissant $x$, il est difficile de trouver $x' \neq x$ tel que $h(x') = h(x)$ ;
+  \item \textbf{résistance aux collisions} : il est difficile de trouver $x \neq x'$ tels que $h(x) = h(x')$.
+\end{itemize}
+Pour SHA-256 (famille SHA-2), $n = 256$ bits, soit 64 caractères hexadécimaux.
+\end{rappel}
+
+Avec la bibliothèque \code{hashlib}, on hache une chaîne binaire avec \code{f\_hash(txt).hexdigest()} :
+
+\begin{lstlisting}
+import hashlib
+
+s2 = 'bonjour !'.encode('utf-8')
+s2.hex()
+hashlib.sha256(s2).hexdigest()
+\end{lstlisting}
+
+\begin{lstlisting}[style=sortie]
+'626f6e6a6f75722021'
+'4fdbad33e574248f84f44f3143896ca36c25b039480a7ff2e5dbabb2d6601d83'
+\end{lstlisting}
+
+\textbf{Attention aux formats :} \code{hashlib.sha256(...)} prend des \code{bytes} et renvoie un objet ; c'est \code{.hexdigest()} qui donne l'empreinte sous forme de \code{str} hexadécimale (64 caractères). On remarque aussi qu'en changeant un seul caractère (\og bonjour \fg{} / \og bonjour~! \fg{}), l'empreinte change complètement.
+
+% -----------------------------------------------------------------
+\exo{1} On connaît le haché SHA-256 d'un mot de 5 lettres minuscules :
+\begin{center}\ttfamily\small 9e69e7e29351ad837503c44a5971edebc9b7e6d8601c89c284b1b59bf37afa80\end{center}
+
+\textbf{Idée.} SHA-256 est résistante à la pré-image : on ne peut pas \og remonter \fg{} le haché. Mais ici l'ensemble des mots possibles est petit : $26^5 = 11\,881\,376$ mots. On peut donc tous les hacher et ranger les résultats dans une \textbf{table de hachage} (un dictionnaire Python) : \code{haché $\to$ mot}. C'est exactement la \texttt{Rainbow Table} du cours (\og une table précalculée de valeurs en clair et leurs hash associés \fg{}).
+
+On génère les mots avec 5 boucles imbriquées, une par lettre :
+
+\begin{lstlisting}
+alphabet = "abcdefghijklmnopqrstuvwxyz"
+
+table = {}
+for a in alphabet:
+    for b in alphabet:
+        for c in alphabet:
+            for d in alphabet:
+                for e in alphabet:
+                    mot = a + b + c + d + e
+                    table[hashlib.sha256(mot.encode('utf-8')).hexdigest()] = mot
+
+len(table)
+\end{lstlisting}
+
+\begin{lstlisting}[style=sortie]
+11881376
+\end{lstlisting}
+
+Une fois la table construite, la recherche est immédiate :
+
+\begin{lstlisting}
+table["9e69e7e29351ad837503c44a5971edebc9b7e6d8601c89c284b1b59bf37afa80"]
+\end{lstlisting}
+
+\begin{lstlisting}[style=sortie]
+'qwert'
+\end{lstlisting}
+
+\textbf{Le mot de passe est \texttt{qwert}.} Sur ma machine, la construction prend environ 17~s et la table occupe environ 2,4~Go de mémoire. Mais elle ne se calcule qu'\textbf{une seule fois}. Ensuite, n'importe quel haché d'un mot de 5 lettres est retrouvé instantanément. C'est pour cela que le cours dit que stocker seulement le haché du mot de passe est \og peu sécurisé \fg{}.
+
+% =================================================================
+\section{Stockage de mots de passe}
+
+On utilise \code{sqlite3} avec le code du sujet : une base \code{donnees.db} et une table \code{utilisateurs (name, password)}.
+
+\begin{lstlisting}
+import sqlite3
+
+# ouvrir la connexion ou créer la base
+connection = sqlite3.connect("donnees.db")
+
+# Créer un curseur
+curseur = connection.cursor()
+
+# Créer la table
+curseur.execute("CREATE TABLE IF NOT EXISTS utilisateurs (name TEXT, password TEXT)")
+\end{lstlisting}
+
+Deux commandes à connaître :
+\begin{itemize}
+  \item \code{curseur.execute(requete, (valeurs,))} exécute une requête SQL ; les \code{?} sont remplacés par les valeurs du tuple ;
+  \item \code{curseur.fetchall()} renvoie le résultat sous forme de \textbf{liste de tuples}, par exemple \code{[(\q{}alice\q{}, \q{}soleil\q{})]}. Une liste vide \code{[]} veut dire \og aucune ligne trouvée \fg{}.
+\end{itemize}
+Après un \code{INSERT}, il faut \code{connection.commit()} pour enregistrer dans le fichier.
+
+% -----------------------------------------------------------------
+\exo{2} \textbf{Niveau de sécurité $-\infty$}
+
+\begin{rappel}[Cours]
+identifiant + mot de passe en \textbf{clair} : \textcolor{red}{Interdit !!!}
+\end{rappel}
+
+La fonction \code{AjoutUtilisateur()} est donnée dans le sujet : elle demande un login, vérifie qu'il n'existe pas, demande deux fois le mot de passe et l'insère \textbf{tel quel} dans la base.
+
+\textbf{1.} Après avoir exécuté \code{AjoutUtilisateur()} (ici avec le login \texttt{alice} et le mot de passe \texttt{soleil}), on affiche toute la table :
+
+\begin{lstlisting}
+curseur.execute("SELECT * FROM utilisateurs")
+curseur.fetchall()
+\end{lstlisting}
+
+\begin{lstlisting}[style=sortie]
+[('alice', 'soleil')]
+\end{lstlisting}
+
+Le mot de passe est lisible directement : toute personne qui accède au fichier \code{donnees.db} (fuite de la base, administrateur\dots) connaît tous les mots de passe.
+
+\textbf{2.} \code{Verification()} suit le même schéma que \code{AjoutUtilisateur()} : on lit le login et le mot de passe avec \code{input}, on récupère le mot de passe stocké pour ce login, puis on compare.
+
+\begin{lstlisting}
+def Verification() :
+    nom = input("login : ")
+    mot_de_passe = input("Entrer votre mot de passe : ")
+    curseur.execute("SELECT password FROM utilisateurs WHERE name == ?", (nom,))
+    res = curseur.fetchall()
+    if res == [] :
+        print("Utilisateur inconnu")
+    elif res[0][0] == mot_de_passe :
+        print("Authentification réussie")
+    else :
+        print("Mot de passe incorrect")
+\end{lstlisting}
+
+\code{res[0][0]} : premier tuple de la liste, premier champ (le \code{password}).
+
+\begin{lstlisting}[style=sortie]
+login : alice   mot de passe : soleil   ->  Authentification réussie
+login : alice   mot de passe : lune     ->  Mot de passe incorrect
+login : carol   mot de passe : x        ->  Utilisateur inconnu
+\end{lstlisting}
+
+\textbf{Remarque.} Dans \code{AjoutUtilisateur()}, le \code{SELECT} est construit en collant le login dans la requête (\code{"... name == \q{}" + nom + "\q{}"}), alors que l'\code{INSERT} utilise des \code{?}. J'utilise les \code{?} partout, comme dans l'\code{INSERT} du sujet. Le contenu tapé par l'utilisateur reste ainsi une simple valeur et n'est jamais interprété comme du SQL.
+
+% -----------------------------------------------------------------
+\exo{3} \textbf{Niveau de sécurité $-2$} : on stocke \code{SHA256(mot\_de\_passe)}.
+
+On reprend les deux fonctions avec une nouvelle table \code{utilisateurs\_sha256}. Seule la ligne qui prépare le mot de passe change.
+
+\textbf{Attention au format} (comme indiqué dans le sujet) : \code{sha256} attend des \code{bytes}, d'où \code{.encode(\q{}utf-8\q{})} ; \code{.hexdigest()} renvoie une \code{str} de 64 caractères, qu'on peut stocker dans un champ \code{TEXT} et comparer avec \code{==}.
+
+\begin{lstlisting}
+curseur.execute("CREATE TABLE IF NOT EXISTS utilisateurs_sha256 (name TEXT, password TEXT)")
+
+def AjoutUtilisateur_sha256() :
+    nom = input("login : ")
+    curseur.execute("SELECT name FROM utilisateurs_sha256 WHERE name == ?", (nom,))
+    res = curseur.fetchall()
+    if (nom,) in res :
+        print("Utilisateur déjà inscrit")
+    else :
+        mot_de_passe = input("Entrer votre mot de passe : ")
+        mot_de_passe_bis = input("Entrer à nouveau votre mot de passe : ")
+        if mot_de_passe == mot_de_passe_bis :
+            hache = hashlib.sha256(mot_de_passe.encode('utf-8')).hexdigest()
+            curseur.execute("INSERT INTO utilisateurs_sha256 (name, password) VALUES (?, ?)", (nom, hache))
+            connection.commit()
+        else :
+            print("Erreur de saisie")
+
+def Verification_sha256() :
+    nom = input("login : ")
+    mot_de_passe = input("Entrer votre mot de passe : ")
+    curseur.execute("SELECT password FROM utilisateurs_sha256 WHERE name == ?", (nom,))
+    res = curseur.fetchall()
+    if res == [] :
+        print("Utilisateur inconnu")
+    elif res[0][0] == hashlib.sha256(mot_de_passe.encode('utf-8')).hexdigest() :
+        print("Authentification réussie")
+    else :
+        print("Mot de passe incorrect")
+\end{lstlisting}
+
+Contenu de la table :
+\begin{lstlisting}[style=sortie]
+[('alice', 'e93e24c1b877a15df5e4a8cbb20f351b891b750779cf5e8fb99119a7142d89cf')]
+\end{lstlisting}
+
+Pour vérifier, on \textbf{re-hache} le mot de passe saisi et on compare les deux hachés : on n'a jamais besoin de connaître le mot de passe en clair.
+
+\textbf{Pourquoi seulement $-2$ ?} Deux utilisateurs avec le même mot de passe ont le même haché. Surtout, une \texttt{Rainbow Table} des mots de passe courants (le cours donne les TOP 25 : \texttt{123456}, \texttt{password}, \texttt{qwerty}\dots) retrouve immédiatement les mots de passe de la base, comme à l'exercice~1. Le cours le dit : c'est une \og mauvaise méthode même avec un SHA2-256 ou même un SHA-3 \fg{}.
+
+% -----------------------------------------------------------------
+\exo{4} \textbf{Niveau de sécurité $-1$} : on stocke \code{SHA256(mot\_de\_passe + sel)} avec un \textbf{sel global}.
+
+\begin{rappel}[Cours -- Salage]
+Le salage consiste à concaténer le mot de passe avec une chaîne de caractères avant le hachage. \\
+Avantage : invalider les \texttt{Rainbow Table} existantes. Malheureusement insuffisant.
+\end{rappel}
+
+Le sel est choisi une fois pour toutes et écrit en dur dans le code. Par rapport à l'exercice~3, seule la ligne de hachage change, avec une nouvelle table \code{utilisateurs\_saltedsha256} :
+
+\begin{lstlisting}
+SEL = "R3.09-SAE3.01"
+curseur.execute("CREATE TABLE IF NOT EXISTS utilisateurs_saltedsha256 (name TEXT, password TEXT)")
+
+def AjoutUtilisateur_saltedsha256() :
+    nom = input("login : ")
+    curseur.execute("SELECT name FROM utilisateurs_saltedsha256 WHERE name == ?", (nom,))
+    res = curseur.fetchall()
+    if (nom,) in res :
+        print("Utilisateur déjà inscrit")
+    else :
+        mot_de_passe = input("Entrer votre mot de passe : ")
+        mot_de_passe_bis = input("Entrer à nouveau votre mot de passe : ")
+        if mot_de_passe == mot_de_passe_bis :
+            hache = hashlib.sha256((mot_de_passe + SEL).encode('utf-8')).hexdigest()
+            curseur.execute("INSERT INTO utilisateurs_saltedsha256 (name, password) VALUES (?, ?)", (nom, hache))
+            connection.commit()
+        else :
+            print("Erreur de saisie")
+
+def Verification_saltedsha256() :
+    nom = input("login : ")
+    mot_de_passe = input("Entrer votre mot de passe : ")
+    curseur.execute("SELECT password FROM utilisateurs_saltedsha256 WHERE name == ?", (nom,))
+    res = curseur.fetchall()
+    if res == [] :
+        print("Utilisateur inconnu")
+    elif res[0][0] == hashlib.sha256((mot_de_passe + SEL).encode('utf-8')).hexdigest() :
+        print("Authentification réussie")
+    else :
+        print("Mot de passe incorrect")
+\end{lstlisting}
+
+\begin{lstlisting}[style=sortie]
+[('alice', '51b76a36418c5a18e2793957c7665babdb7f7f9d4a57f4c5f33e7f3910e9679c')]
+\end{lstlisting}
+
+Le haché de \texttt{soleil} n'est plus le même qu'à l'exercice~3 : une \texttt{Rainbow Table} \og classique \fg{} ne sert plus à rien.
+
+\textbf{Pourquoi seulement $-1$ ?} (attaque vue en cours) L'attaquant crée un compte dont il connaît le mot de passe. Il retrouve ensuite le sel global par force brute, puis construit \textbf{une seule nouvelle} \texttt{Rainbow Table} avec ce sel, valable pour tous les utilisateurs.
+
+% -----------------------------------------------------------------
+\exo{5} \textbf{Niveau de sécurité $0$} : on stocke \code{SHA256(mot\_de\_passe + sel\_utilisateur)} avec un \textbf{sel aléatoire par utilisateur}.
+
+\begin{rappel}[Cours]
+\texttt{SHA1(\$pwd + \$perUserSalt)} : salage aléatoire par utilisateur \(\Rightarrow\) une \texttt{Rainbow Table} par utilisateur.
+\end{rappel}
+
+\textbf{Générer le sel.} 16 octets = $16 \times 8 = 128$ bits, donc \code{getrandbits(128)}. Ensuite \code{hex()} l'écrit en hexadécimal, avec \code{0x} devant qu'on enlève avec \code{[2:]}. Mais \code{hex()} n'écrit pas les 0 de gauche : lors d'un essai, j'ai obtenu \code{0x4972387f5a503ebde7897a3277c085c}, qui ne fait que 31 caractères après \code{0x}. On complète donc à gauche avec des \code{0} jusqu'à 32 caractères :
+
+\begin{lstlisting}
+from random import getrandbits
+
+def nouveau_sel() :
+    sel = hex(getrandbits(128))[2:]
+    while len(sel) < 32 :
+        sel = "0" + sel
+    return sel
+\end{lstlisting}
+
+\textbf{Stocker le sel dans une autre base.} Le sujet demande une \emph{autre base de données} : on ouvre une deuxième connexion vers \code{sels.db}, avec une table \code{sels (name, salt)}.
+
+\begin{lstlisting}
+connection_sel = sqlite3.connect("sels.db")
+curseur_sel = connection_sel.cursor()
+curseur_sel.execute("CREATE TABLE IF NOT EXISTS sels (name TEXT, salt TEXT)")
+curseur.execute("CREATE TABLE IF NOT EXISTS utilisateurs_randsaltedsha256 (name TEXT, password TEXT)")
+
+def AjoutUtilisateur_randsaltedsha256() :
+    nom = input("login : ")
+    curseur.execute("SELECT name FROM utilisateurs_randsaltedsha256 WHERE name == ?", (nom,))
+    res = curseur.fetchall()
+    if (nom,) in res :
+        print("Utilisateur déjà inscrit")
+    else :
+        mot_de_passe = input("Entrer votre mot de passe : ")
+        mot_de_passe_bis = input("Entrer à nouveau votre mot de passe : ")
+        if mot_de_passe == mot_de_passe_bis :
+            sel = nouveau_sel()
+            hache = hashlib.sha256((mot_de_passe + sel).encode('utf-8')).hexdigest()
+            curseur.execute("INSERT INTO utilisateurs_randsaltedsha256 (name, password) VALUES (?, ?)", (nom, hache))
+            connection.commit()
+            curseur_sel.execute("INSERT INTO sels (name, salt) VALUES (?, ?)", (nom, sel))
+            connection_sel.commit()
+        else :
+            print("Erreur de saisie")
+
+def Verification_randsaltedsha256() :
+    nom = input("login : ")
+    mot_de_passe = input("Entrer votre mot de passe : ")
+    curseur.execute("SELECT password FROM utilisateurs_randsaltedsha256 WHERE name == ?", (nom,))
+    res = curseur.fetchall()
+    curseur_sel.execute("SELECT salt FROM sels WHERE name == ?", (nom,))
+    res_sel = curseur_sel.fetchall()
+    if res == [] or res_sel == [] :
+        print("Utilisateur inconnu")
+    elif res[0][0] == hashlib.sha256((mot_de_passe + res_sel[0][0]).encode('utf-8')).hexdigest() :
+        print("Authentification réussie")
+    else :
+        print("Mot de passe incorrect")
+\end{lstlisting}
+
+\begin{lstlisting}[style=sortie]
+utilisateurs_randsaltedsha256 (donnees.db) :
+[('alice', '063c17fff26992d055dce8fd2c88fc3992028d1673d10c8733634b6160e617e4')]
+
+sels (sels.db) :
+[('alice', 'c083a6886d8be5279158baaa0ff74a23')]
+\end{lstlisting}
+
+\textbf{Remarque sur les noms.} Le sujet donne les mêmes noms \code{AjoutUtilisateur\_saltedsha256()} et \code{Verification\_saltedsha256()} aux exercices~4 et~5. Pour pouvoir garder les deux versions dans le même notebook, j'ai appelé celles de l'exercice~5 \code{...\_randsaltedsha256()} (\emph{random salted}).
+
+% -----------------------------------------------------------------
+\exo{6} \textbf{Niveau de sécurité $1$} : \code{bcrypt}.
+
+\begin{rappel}[Cours]
+\texttt{bcrypt(\$pwd + \$perUserSalt)}
+\begin{itemize}
+  \item basé sur l'algorithme de chiffrement \texttt{Blowfish} ;
+  \item plus lent à calculer : une attaque par force brute prend beaucoup plus de temps ;
+  \item sel aléatoire : même si l'on retrouve le mot de passe d'un utilisateur, cela ne compromet pas les autres.
+\end{itemize}
+\end{rappel}
+
+La bibliothèque \code{bcrypt} fournit trois fonctions :
+\begin{itemize}
+  \item \code{bcrypt.gensalt()} : génère un sel aléatoire ;
+  \item \code{bcrypt.hashpw(mdp, sel)} : hache le mot de passe (\code{bytes}) avec le sel et renvoie des \code{bytes} ;
+  \item \code{bcrypt.checkpw(mdp, hache)} : renvoie \code{True} si \code{mdp} correspond au haché.
+\end{itemize}
+
+\begin{lstlisting}
+import bcrypt
+
+curseur.execute("CREATE TABLE IF NOT EXISTS utilisateurs_bcrypt (name TEXT, password TEXT)")
+
+def AjoutUtilisateur_bcrypt() :
+    nom = input("login : ")
+    curseur.execute("SELECT name FROM utilisateurs_bcrypt WHERE name == ?", (nom,))
+    res = curseur.fetchall()
+    if (nom,) in res :
+        print("Utilisateur déjà inscrit")
+    else :
+        mot_de_passe = input("Entrer votre mot de passe : ")
+        mot_de_passe_bis = input("Entrer à nouveau votre mot de passe : ")
+        if mot_de_passe == mot_de_passe_bis :
+            hache = bcrypt.hashpw(mot_de_passe.encode('utf-8'), bcrypt.gensalt())
+            curseur.execute("INSERT INTO utilisateurs_bcrypt (name, password) VALUES (?, ?)", (nom, hache.decode('utf-8')))
+            connection.commit()
+        else :
+            print("Erreur de saisie")
+
+def Verification_bcrypt() :
+    nom = input("login : ")
+    mot_de_passe = input("Entrer votre mot de passe : ")
+    curseur.execute("SELECT password FROM utilisateurs_bcrypt WHERE name == ?", (nom,))
+    res = curseur.fetchall()
+    if res == [] :
+        print("Utilisateur inconnu")
+    elif bcrypt.checkpw(mot_de_passe.encode('utf-8'), res[0][0].encode('utf-8')) :
+        print("Authentification réussie")
+    else :
+        print("Mot de passe incorrect")
+\end{lstlisting}
+
+\begin{lstlisting}[style=sortie]
+[('alice', '$2b$12$g76hFixbC7ZUek/nwZC/tOzhGyZTKVDZum.1u4n/nPODYr6FI7.L.')]
+\end{lstlisting}
+
+\textbf{Lecture du haché.} \texttt{\$2b\$} indique la version de bcrypt, \texttt{12} le \og coût \fg{} (le calcul est répété $2^{12}$ fois, c'est ce qui le rend lent). Les 22 caractères suivants sont \textbf{le sel}, et le reste est le haché. Le sel est donc stocké \emph{dans} le haché : pas besoin d'une deuxième base, et \code{checkpw} le relit tout seul.
+
+\textbf{Formats.} \code{hashpw} renvoie des \code{bytes} : on fait \code{.decode(\q{}utf-8\q{})} pour stocker du texte, puis \code{.encode(\q{}utf-8\q{})} pour le redonner à \code{checkpw}. On ne compare pas avec \code{==} : comme le sel est aléatoire, hacher deux fois le même mot de passe donne deux résultats différents. C'est \code{checkpw} qui refait le calcul avec le bon sel.
+
+% =================================================================
+\section{Comparaison}
+
+\exo{7} On compare les temps de vérification des 5 types de stockage : clair, SHA-256, SHA-256 + sel global, SHA-256 + sel aléatoire, bcrypt.
+
+Pour ne pas mélanger avec les comptes créés à la main, j'utilise une nouvelle base \code{comparaison.db}. Il suffit de rouvrir la connexion avant l'exercice : toutes les fonctions utilisent \code{connection} et \code{curseur}.
+
+\begin{lstlisting}
+connection = sqlite3.connect("comparaison.db")
+curseur = connection.cursor()
+\end{lstlisting}
+
+\textbf{1.} \code{generermdp(N, n, alph)} : pour chaque utilisateur, on construit un mot de passe de \code{n} caractères en tirant chaque caractère avec \code{choice(alph)}. Les comptes sont rangés en clair dans la table \code{utilisateurs}.
+
+\begin{lstlisting}
+from random import choice
+
+def generermdp(N, n, alph) :
+    curseur.execute("DROP TABLE IF EXISTS utilisateurs")
+    curseur.execute("CREATE TABLE utilisateurs (name TEXT, password TEXT)")
+    for i in range(N) :
+        nom = "user" + str(i)
+        mot_de_passe = ""
+        for j in range(n) :
+            mot_de_passe = mot_de_passe + choice(alph)
+        curseur.execute("INSERT INTO utilisateurs (name, password) VALUES (?, ?)", (nom, mot_de_passe))
+    connection.commit()
+
+generermdp(50, 8, "abcdefghijklmnopqrstuvwxyz0123456789")
+curseur.execute("SELECT * FROM utilisateurs LIMIT 3")
+curseur.fetchall()
+\end{lstlisting}
+
+\begin{lstlisting}[style=sortie]
+[('user0', 'opbjdl61'), ('user1', 'zpe1jhfk'), ('user2', 'ifsy4fyy')]
+\end{lstlisting}
+
+\textbf{2.} Une fonction de stockage par type : elle lit toute la table \code{utilisateurs} et remplit une nouvelle table avec le mot de passe transformé. Le hachage est exactement celui des exercices 2 à 6.
+
+\begin{lstlisting}
+def stockage_clair() :
+    curseur.execute("DROP TABLE IF EXISTS stock_clair")
+    curseur.execute("CREATE TABLE stock_clair (name TEXT, password TEXT)")
+    curseur.execute("SELECT name, password FROM utilisateurs")
+    for (nom, mot_de_passe) in curseur.fetchall() :
+        curseur.execute("INSERT INTO stock_clair (name, password) VALUES (?, ?)", (nom, mot_de_passe))
+    connection.commit()
+
+def stockage_sha256() :
+    curseur.execute("DROP TABLE IF EXISTS stock_sha256")
+    curseur.execute("CREATE TABLE stock_sha256 (name TEXT, password TEXT)")
+    curseur.execute("SELECT name, password FROM utilisateurs")
+    for (nom, mot_de_passe) in curseur.fetchall() :
+        hache = hashlib.sha256(mot_de_passe.encode('utf-8')).hexdigest()
+        curseur.execute("INSERT INTO stock_sha256 (name, password) VALUES (?, ?)", (nom, hache))
+    connection.commit()
+
+def stockage_saltedsha256() :
+    curseur.execute("DROP TABLE IF EXISTS stock_saltedsha256")
+    curseur.execute("CREATE TABLE stock_saltedsha256 (name TEXT, password TEXT)")
+    curseur.execute("SELECT name, password FROM utilisateurs")
+    for (nom, mot_de_passe) in curseur.fetchall() :
+        hache = hashlib.sha256((mot_de_passe + SEL).encode('utf-8')).hexdigest()
+        curseur.execute("INSERT INTO stock_saltedsha256 (name, password) VALUES (?, ?)", (nom, hache))
+    connection.commit()
+
+def stockage_randsaltedsha256() :
+    curseur.execute("DROP TABLE IF EXISTS stock_randsaltedsha256")
+    curseur.execute("CREATE TABLE stock_randsaltedsha256 (name TEXT, password TEXT)")
+    curseur_sel.execute("DROP TABLE IF EXISTS stock_sels")
+    curseur_sel.execute("CREATE TABLE stock_sels (name TEXT, salt TEXT)")
+    curseur.execute("SELECT name, password FROM utilisateurs")
+    for (nom, mot_de_passe) in curseur.fetchall() :
+        sel = nouveau_sel()
+        hache = hashlib.sha256((mot_de_passe + sel).encode('utf-8')).hexdigest()
+        curseur.execute("INSERT INTO stock_randsaltedsha256 (name, password) VALUES (?, ?)", (nom, hache))
+        curseur_sel.execute("INSERT INTO stock_sels (name, salt) VALUES (?, ?)", (nom, sel))
+    connection.commit()
+    connection_sel.commit()
+
+def stockage_bcrypt() :
+    curseur.execute("DROP TABLE IF EXISTS stock_bcrypt")
+    curseur.execute("CREATE TABLE stock_bcrypt (name TEXT, password TEXT)")
+    curseur.execute("SELECT name, password FROM utilisateurs")
+    for (nom, mot_de_passe) in curseur.fetchall() :
+        hache = bcrypt.hashpw(mot_de_passe.encode('utf-8'), bcrypt.gensalt())
+        curseur.execute("INSERT INTO stock_bcrypt (name, password) VALUES (?, ?)", (nom, hache.decode('utf-8')))
+    connection.commit()
+\end{lstlisting}
+
+\textbf{3.} Authentification \og sur la seule donnée du login \fg{} : on va chercher le mot de passe en clair dans \code{utilisateurs} (il joue le rôle de ce que l'utilisateur taperait), puis on fait la même vérification qu'aux exercices précédents. Les fonctions renvoient \code{True} ou \code{False}.
+
+\begin{lstlisting}
+def mdp_clair(nom) :
+    curseur.execute("SELECT password FROM utilisateurs WHERE name == ?", (nom,))
+    return curseur.fetchall()[0][0]
+
+def auth_clair(nom) :
+    mot_de_passe = mdp_clair(nom)
+    curseur.execute("SELECT password FROM stock_clair WHERE name == ?", (nom,))
+    return curseur.fetchall()[0][0] == mot_de_passe
+
+def auth_sha256(nom) :
+    mot_de_passe = mdp_clair(nom)
+    curseur.execute("SELECT password FROM stock_sha256 WHERE name == ?", (nom,))
+    return curseur.fetchall()[0][0] == hashlib.sha256(mot_de_passe.encode('utf-8')).hexdigest()
+
+def auth_saltedsha256(nom) :
+    mot_de_passe = mdp_clair(nom)
+    curseur.execute("SELECT password FROM stock_saltedsha256 WHERE name == ?", (nom,))
+    return curseur.fetchall()[0][0] == hashlib.sha256((mot_de_passe + SEL).encode('utf-8')).hexdigest()
+
+def auth_randsaltedsha256(nom) :
+    mot_de_passe = mdp_clair(nom)
+    curseur_sel.execute("SELECT salt FROM stock_sels WHERE name == ?", (nom,))
+    sel = curseur_sel.fetchall()[0][0]
+    curseur.execute("SELECT password FROM stock_randsaltedsha256 WHERE name == ?", (nom,))
+    return curseur.fetchall()[0][0] == hashlib.sha256((mot_de_passe + sel).encode('utf-8')).hexdigest()
+
+def auth_bcrypt(nom) :
+    mot_de_passe = mdp_clair(nom)
+    curseur.execute("SELECT password FROM stock_bcrypt WHERE name == ?", (nom,))
+    return bcrypt.checkpw(mot_de_passe.encode('utf-8'), curseur.fetchall()[0][0].encode('utf-8'))
+\end{lstlisting}
+
+\textbf{4.} Pour mesurer le temps, on utilise \code{time.time()} (le nombre de secondes écoulées) avant et après la boucle sur tous les utilisateurs. La fonction d'authentification est passée en paramètre, ce qui permet de chronométrer les 5 types avec le même code :
+
+\begin{lstlisting}
+import time
+
+def temps_authentification(auth) :
+    curseur.execute("SELECT name FROM utilisateurs")
+    noms = curseur.fetchall()
+    debut = time.time()
+    for (nom,) in noms :
+        if not auth(nom) :
+            print("Échec pour", nom)
+    return time.time() - debut
+
+stockage_clair()
+print("clair :", temps_authentification(auth_clair))
+# ... de même pour sha256, saltedsha256, randsaltedsha256 et bcrypt
+\end{lstlisting}
+
+Résultats pour $N = 50$ utilisateurs (mots de passe de 8 caractères) :
+
+\begin{center}
+\begin{tabular}{l c c}
+\toprule
+\textbf{Stockage} & \textbf{Niveau} & \textbf{Temps pour 50 authentifications} \\
+\midrule
+en clair & $-\infty$ & 0,0015 s \\
+SHA-256 & $-2$ & 0,0014 s \\
+SHA-256 + sel global & $-1$ & 0,0015 s \\
+SHA-256 + sel aléatoire & $0$ & 0,0022 s \\
+bcrypt & $1$ & \textbf{10,1 s} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Interprétation.}
+\begin{itemize}
+  \item Les quatre premiers modes prennent tous un temps négligeable : SHA-256 est \emph{conçu} pour être rapide. Le sel aléatoire ajoute seulement une lecture dans la base des sels.
+  \item bcrypt est environ \textbf{5000 fois plus lent}, soit environ 0,2~s par vérification. On retrouve l'ordre de grandeur du sujet (\og de l'ordre de 10 secondes pour 50 utilisateurs \fg{}).
+  \item Pour un utilisateur honnête, 0,2~s à la connexion ne se remarque pas. Pour un attaquant qui doit tester des millions de mots de passe, c'est énorme : avec SHA-256, la table de l'exercice~1 se construit en 17~s ; avec bcrypt, il faudrait environ $11\,881\,376 \times 0{,}2 \approx 2{,}4$ millions de secondes, soit environ \textbf{27 jours}, et cela \emph{pour un seul utilisateur}, puisque chaque sel est différent. C'est exactement l'argument du cours : \og plus lent à calculer : procédé de brute-force beaucoup plus long \fg{}.
+\end{itemize}
+
+% -----------------------------------------------------------------
+\par\medskip\textbf{Bonus : Niveau de sécurité 2}
+
+\begin{rappel}[Cours]
+\texttt{AES(bcrypt(\$perUserSalt, \$pwd), \$secretKey)}
+\end{rappel}
+
+On chiffre le haché bcrypt avec AES en mode CTR (vu au TP4) et la clé \code{YELLOW SUBMARINE}. Même si la base fuite, les hachés sont inutilisables sans la clé secrète, qui n'est pas stockée dans la base.
+
+En mode CTR, le chiffrement tire un \code{nonce} aléatoire (\code{cipher.nonce}). Pour déchiffrer, il faut le même nonce : on le stocke dans le champ supplémentaire demandé. Comme le résultat d'\code{encrypt} est en \code{bytes}, on le stocke en hexadécimal avec \code{.hex()} et on le relit avec \code{bytes.fromhex(...)}.
+
+L'exercice~7 a rouvert la connexion vers \code{comparaison.db} : on revient d'abord sur \code{donnees.db}.
+
+\begin{lstlisting}
+from Crypto.Cipher import AES
+
+connection = sqlite3.connect("donnees.db")
+curseur = connection.cursor()
+
+CLE = b"YELLOW SUBMARINE"
+curseur.execute("CREATE TABLE IF NOT EXISTS utilisateurs_aes (name TEXT, password TEXT, nonce TEXT)")
+
+def AjoutUtilisateur_aes() :
+    nom = input("login : ")
+    curseur.execute("SELECT name FROM utilisateurs_aes WHERE name == ?", (nom,))
+    res = curseur.fetchall()
+    if (nom,) in res :
+        print("Utilisateur déjà inscrit")
+    else :
+        mot_de_passe = input("Entrer votre mot de passe : ")
+        mot_de_passe_bis = input("Entrer à nouveau votre mot de passe : ")
+        if mot_de_passe == mot_de_passe_bis :
+            hache = bcrypt.hashpw(mot_de_passe.encode('utf-8'), bcrypt.gensalt())
+            cipher = AES.new(CLE, AES.MODE_CTR)
+            chiffre = cipher.encrypt(hache)
+            curseur.execute("INSERT INTO utilisateurs_aes (name, password, nonce) VALUES (?, ?, ?)",
+                            (nom, chiffre.hex(), cipher.nonce.hex()))
+            connection.commit()
+        else :
+            print("Erreur de saisie")
+
+def Verification_aes() :
+    nom = input("login : ")
+    mot_de_passe = input("Entrer votre mot de passe : ")
+    curseur.execute("SELECT password, nonce FROM utilisateurs_aes WHERE name == ?", (nom,))
+    res = curseur.fetchall()
+    if res == [] :
+        print("Utilisateur inconnu")
+    else :
+        chiffre = bytes.fromhex(res[0][0])
+        nonce = bytes.fromhex(res[0][1])
+        cipher = AES.new(CLE, AES.MODE_CTR, nonce=nonce)
+        hache = cipher.decrypt(chiffre)
+        if bcrypt.checkpw(mot_de_passe.encode('utf-8'), hache) :
+            print("Authentification réussie")
+        else :
+            print("Mot de passe incorrect")
+\end{lstlisting}
+
+\begin{lstlisting}[style=sortie]
+[('alice',
+  'c733974200cd0299ede4e91790c343d9f19dcd19e893cbd3f93d2b12ec414613aec34a1546973155
+   5d6f110d81717fc744be8d056ae31136207e3965',
+  '9e64a292bf41a020')]
+\end{lstlisting}
+
+Le champ \code{password} ne ressemble plus du tout à un haché bcrypt (il n'y a plus de \texttt{\$2b\$12\$} visible) ; le dernier champ est le nonce (8 octets, soit 16 caractères hexadécimaux).
+
+\textbf{Remarque sur la clé.} \code{YELLOW SUBMARINE} fait 16 caractères, donc 16 octets = 128 bits : avec cette clé, \code{AES.new} fait en réalité de l'\textbf{AES-128}. Pour faire de l'AES-256 comme l'annonce le sujet, il faudrait une clé de 32 octets. J'ai gardé la clé imposée par le sujet.
+
+% =================================================================
+\section*{Conclusion}
+\addcontentsline{toc}{section}{Conclusion}
+
+On retrouve dans le TP les niveaux de stockage de la conclusion du cours :
+
+\begin{center}
+\begin{tabular}{c l l l}
+\toprule
+\textbf{Niveau} & \textbf{Stockage} & \textbf{Exercice} & \textbf{Faiblesse / apport} \\
+\midrule
+$-\infty$ & en clair & 2 & interdit : tout est lisible \\
+$-2$ & Haché(pwd) & 3 & Rainbow Tables (exercice 1) \\
+$-1$ & Haché(pwd + Salt) & 4 & un seul sel à retrouver pour tous \\
+$0$ & Haché(pwd + Salt-user) & 5 & une Rainbow Table par utilisateur \\
+$1$ & bcrypt(pwd + Salt-user) & 6 & hachage lent (exercice 7) \\
+$2$ & AES(bcrypt(\dots), SecretKey) & Bonus & base inutilisable sans la clé \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\end{document}

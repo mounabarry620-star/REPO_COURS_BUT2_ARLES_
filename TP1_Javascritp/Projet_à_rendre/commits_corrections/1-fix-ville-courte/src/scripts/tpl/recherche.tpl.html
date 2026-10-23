@@ -1,0 +1,108 @@
+<form class="formulaire">
+  <h2 class="formulaire-titre">Rechercher une formation</h2>
+  <fieldset class="choix-parcours">
+    <legend>Je cherche</legend>
+    <div class="segments">
+      <input type="radio" id="parcours-formations" name="parcours" value="formations" checked>
+      <label for="parcours-formations">Une formation après le bac <span>(Parcoursup)</span></label>
+      <input type="radio" id="parcours-masters" name="parcours" value="masters">
+      <label for="parcours-masters">Un master <span>(Mon Master)</span></label>
+    </div>
+  </fieldset>
+  <div class="champs">
+    <div class="champ">
+      <label for="champ-ville">Ville</label>
+      <p class="aide" id="aide-ville">3 lettres au moins, puis choisissez dans la liste</p>
+      <input type="text" id="champ-ville" name="ville" placeholder="ex. Arles" required maxlength="100" pattern="\s*[\p{L}\p{N}].+\S\s*" title="Au moins 3 caractères, en commençant par une lettre. Pour une commune au nom très court, ajoutez son code postal (ex. : Eu 76260)." list="villes-proposees" autocomplete="off" aria-describedby="aide-ville">
+      <datalist id="villes-proposees"></datalist>
+    </div>
+    <div class="champ champ-formations">
+      <label for="champ-rayon">Rayon</label>
+      <p class="aide" id="aide-rayon">En kilomètres, de 1 à 200</p>
+      <input type="number" id="champ-rayon" name="rayon" value="30" min="1" max="200" required aria-describedby="aide-rayon">
+    </div>
+    <div class="champ champ-formations">
+      <label for="champ-filiere">Filière</label>
+      <p class="aide" id="aide-filiere">BUT, BTS, licence, classe prépa…</p>
+      <select id="champ-filiere" name="filiere" aria-describedby="aide-filiere">
+        <option value="">Toutes</option>
+        <option value="BUT">BUT</option>
+        <option value="BTS">BTS</option>
+        <option value="Licence">Licence</option>
+        <option value="Licence_Las">Licence accès santé (L.AS)</option>
+        <option value="PASS">PASS</option>
+        <option value="CPGE">CPGE (classe prépa)</option>
+        <option value="Ecole d'Ingénieur">École d'ingénieur</option>
+        <option value="Ecole de Commerce">École de commerce</option>
+        <option value="IFSI">IFSI (soins infirmiers)</option>
+        <option value="EFTS">EFTS (travail social)</option>
+        <option value="Autre formation">Autre formation</option>
+      </select>
+    </div>
+    <div class="champ champ-masters" hidden>
+      <label for="champ-zone">Zone</label>
+      <p class="aide" id="aide-zone">Celle de la ville choisie</p>
+      <select id="champ-zone" name="zone" disabled aria-describedby="aide-zone">
+        <option value="region">Ma région</option>
+        <option value="departement">Mon département</option>
+      </select>
+    </div>
+    <div class="champ champ-masters" hidden>
+      <label for="champ-discipline">Discipline</label>
+      <p class="aide" id="aide-discipline">Le domaine d'études du master</p>
+      <select id="champ-discipline" name="discipline" disabled aria-describedby="aide-discipline">
+        <option value="">Toutes</option>
+        <option value="Administration économique et sociale">Administration économique et sociale</option>
+        <option value="Aménagement">Aménagement</option>
+        <option value="Archéologie, ethnologie, préhistoire, anthropologie">Archéologie, ethnologie, préhistoire, anthropologie</option>
+        <option value="Arts">Arts</option>
+        <option value="Chimie">Chimie</option>
+        <option value="Français, langue étrangère">Français, langue étrangère</option>
+        <option value="Génie civil">Génie civil</option>
+        <option value="Génie des procédés, matériaux">Génie des procédés, matériaux</option>
+        <option value="Géographie">Géographie</option>
+        <option value="Histoire">Histoire</option>
+        <option value="Informatique">Informatique</option>
+        <option value="Langues et littératures françaises">Langues et littératures françaises</option>
+        <option value="Langues et littératures étrangères">Langues et littératures étrangères</option>
+        <option value="Langues étrangères appliquées">Langues étrangères appliquées</option>
+        <option value="Littérature générale et comparée">Littérature générale et comparée</option>
+        <option value="Mathématique et informatique">Mathématique et informatique</option>
+        <option value="Mathématiques">Mathématiques</option>
+        <option value="Mathématiques appliquées et sciences sociales">Mathématiques appliquées et sciences sociales</option>
+        <option value="Mécanique, génie mécanique, ingénierie mécanique">Mécanique, génie mécanique, ingénierie mécanique</option>
+        <option value="Philosophie, épistémologie">Philosophie, épistémologie</option>
+        <option value="Physique">Physique</option>
+        <option value="Physique et chimie">Physique et chimie</option>
+        <option value="Pluridisciplinaire droit, sciences politiques">Pluridisciplinaire droit, sciences politiques</option>
+        <option value="Pluridisciplinaire droit, sciences économiques, AES">Pluridisciplinaire droit, sciences économiques, AES</option>
+        <option value="Pluridisciplinaire lettres, langues, sciences humaines">Pluridisciplinaire lettres, langues, sciences humaines</option>
+        <option value="Pluridisciplinaire lettres, sciences du langage, arts">Pluridisciplinaire lettres, sciences du langage, arts</option>
+        <option value="Pluridisciplinaire sciences">Pluridisciplinaire sciences</option>
+        <option value="Pluridisciplinaire sciences fondamentales et applications">Pluridisciplinaire sciences fondamentales et applications</option>
+        <option value="Pluridisciplinaire sciences humaines et sociales">Pluridisciplinaire sciences humaines et sociales</option>
+        <option value="Pluridisciplinaire sciences économiques et gestion">Pluridisciplinaire sciences économiques et gestion</option>
+        <option value="Psychologie, sciences cognitives">Psychologie, sciences cognitives</option>
+        <option value="STAPS">STAPS</option>
+        <option value="Sciences de gestion">Sciences de gestion</option>
+        <option value="Sciences de l'information et la communication">Sciences de l'information et la communication</option>
+        <option value="Sciences de l'univers, de la Terre, de l'espace, de la mer">Sciences de l'univers, de la Terre, de l'espace, de la mer</option>
+        <option value="Sciences de l'éducation">Sciences de l'éducation</option>
+        <option value="Sciences de la vie, biologie, santé">Sciences de la vie, biologie, santé</option>
+        <option value="Sciences du langage, linguistique">Sciences du langage, linguistique</option>
+        <option value="Sciences juridiques">Sciences juridiques</option>
+        <option value="Sciences politiques">Sciences politiques</option>
+        <option value="Sciences religieuses">Sciences religieuses</option>
+        <option value="Sciences économiques">Sciences économiques</option>
+        <option value="Sociologie, démographie">Sociologie, démographie</option>
+        <option value="Technologie et sciences industrielles">Technologie et sciences industrielles</option>
+        <option value="Théologie catholique">Théologie catholique</option>
+        <option value="Électronique, génie électrique, électronique - électrotechnique - automatique">Électronique, génie électrique, électronique - électrotechnique - automatique</option>
+      </select>
+    </div>
+  </div>
+  <button type="submit" class="bouton-rechercher">
+    <svg class="icone" aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="currentColor"><path d="M18.031 16.617l4.283 4.282-1.415 1.415-4.282-4.283A8.96 8.96 0 0 1 11 20c-4.968 0-9-4.032-9-9s4.032-9 9-9 9 4.032 9 9a8.96 8.96 0 0 1-1.969 5.617zm-2.006-.742A6.977 6.977 0 0 0 18 11c0-3.868-3.133-7-7-7-3.868 0-7 3.132-7 7 0 3.867 3.132 7 7 7a6.977 6.977 0 0 0 4.875-1.975l.15-.15z"/></svg>
+    Rechercher
+  </button>
+</form>

@@ -1,0 +1,17 @@
+{{#each masters}}
+<li class="formation">
+  <strong>{{mention}}</strong>
+  {{#if parcours}}
+  <p class="parcours">Parcours : {{parcours}}</p>
+  {{/if}}
+  <p>{{etablissement}} : {{lieux}}{{#if alternance}} · possible en alternance{{/if}}</p>
+  <ul class="chiffres">
+    <li>Places : {{places}}</li>
+    <li>Candidats : {{candidats}}</li>
+    <li>Taux de proposition : {{tauxProposition}}</li>
+    <li>Pour les licences 3 : {{licence3}}</li>
+    <li>Pour les BUT 3 : {{but3}}</li>
+  </ul>
+  <button type="button" class="bouton-secondaire" data-code="{{code}}">Voir l'historique</button>
+</li>
+{{/each}}
