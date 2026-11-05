@@ -1,0 +1,63 @@
+Journal produit sur une machine Linux cloud (pas le VDI IUT, pas le PC de l'étudiant).
+Commande : make test, dans code_a_rendre/, le 5 novembre 2026.
+g++ sans avertissement -Wall -Wextra. Code de retour 0.
+
+./tp1 && ./tp2 && ./tp3 && ./tp4 && ./tp5
+tp1_rectangles.pgm écrit (400 x 250)
+chat.pgm lu : 320 x 240
+tp1_chat_lunettes.pgm écrit
+comparaison avec chat_lunettes.pgm : 0 pixel(s) différent(s)
+Rafale30000.pgm (P2) lu puis écrit en P5 : tp1_rafale.pgm
+en-têtes souples : pixels 10 35 et 10 35 (attendu : 10 35 et 10 35)
+exception attendue : GrayImage::pixel : hors de l'image
+exception attendue : readPGM : ce n'est pas un fichier PGM (P5 ou P2 attendu)
+chat.ppm lu : 320 x 240
+tp2_chat.ppm écrit
+tp2_simple.ppm écrit (plus proche voisin)
+tp2_bilinear.ppm écrit (bilinéaire)
+tp2_simple.pgm et tp2_bilinear.pgm écrits
+Rafale30000.ppm (P3) lu puis écrit en P6 : tp2_rafale.ppm
+0.5*(200,100,1) + 0.5*(100,100,255) = (150,100,129)
+tp3_chat.ppm et tp3_chat.jpg écrits
+out_000.jpg ... out_100.jpg écrits
+out_075.jpg relu : 320 x 240, pixel (10,120) = (89,189,93) au lieu de (0,255,0)
+tp3_chat_gris.jpg écrit puis relu : 320 x 240
+exception attendue : libjpeg : Not a JPEG file: starts with 0x50 0x36
+chat.tga lu : 320 x 240
+  tp4_chat_brut.tga : 230418 octets
+  tp4_chat_rle.tga : 207106 octets
+  relecture brut identique : oui
+  relecture RLE identique  : oui
+  tp4_chat_bandeau_rle.tga : 122672 octets
+palette_bl.tga et palette_tl.tga lus (345 x 234)
+  tp4_palette_bl.tga : 11985 octets
+  tp4_palette_tl.tga : 11292 octets
+  tp4_chat10_brut.tga : 230418 octets
+  tp4_chat10_rle.tga : 104396 octets
+chanel.tga (RLE) lu puis écrit en PPM : tp4_chanel.ppm
+  tp4_chat_gris_brut.tga relu identique : oui
+  tp4_chat_gris_rle.tga relu identique : oui
+exception attendue : readTGA : seules les couleurs 24 bits sont gérées
+tp5_octant1.ppm écrit
+tp5_octants12.ppm écrit
+tp5_cercle.ppm écrit
+
+=== tailles JPEG ===
+tp3_chat.jpg 18908
+out_075.jpg 18908
+out_000.jpg 3005
+out_100.jpg 73468
+
+=== td2 ===
+Cette machine est little endian.
+swap_bytes(0x1234) = 0x3412
+méthode 1 (swap_bytes) : a = -1234, b = 3.14159, fourcc = JFIF, d = "Bonjour R3.L01"
+méthode 2 (décalages)   : a = -1234, b = 3.14159, fourcc = JFIF, d = "Bonjour R3.L01"
+sizeof(Data) = 56 : on ne peut pas lire la structure d'un seul bloc (padding, std::string).
+od:
+ fb 2e 40 09 21 f9 f0 1b 86 6e 4a 46 49 46 0e 42
+ 6f 6e 6a 6f 75 72 20 52 33 2e 4c 30 31
+
+=== compilateur ===
+g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
+Linux 6.12.94+ x86_64
