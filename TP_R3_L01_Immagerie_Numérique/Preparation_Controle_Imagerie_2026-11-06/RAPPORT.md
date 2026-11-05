@@ -12,13 +12,15 @@ Archive à recopier sur le PC :
 
 Ce rapport ne garantit pas une note, ni une identité pixel à pixel avec une figure dont le mode d'arrondi n'est pas écrit dans le sujet. Les points ambigus sont listés tels quels.
 
+Complément après relecture de la note locale (942 octets, jointe ensuite) : le commit audité est `7473d1c72dc06ebc9fac4a34a28e89b197c9f11a`. Le code de `PROJET_FINAL/` a le même blob que ce commit. Seule `TP1_TD1/note.txt` diffère sur le PC : le dépôt en a 641 octets, la copie locale en a 942. Le texte local commence par le même contenu, puis deux phrases en plus. Détail en section 2. Les 73 fichiers `_ARCHIVE_GEMINI` de ce commit ne sont pas sur le disque local ; ils ne servent pas au rendu et n'ont pas été utilisés pour corriger le code.
+
 ## 1. Dossier local non synchronisé
 
 Le chemin indiqué
 
 `/home/nene_goto/Documents/REPO_COURS_BUT2_ARLES_/TP_R3_L01_Immagerie_Numérique`
 
-**n'existe pas** dans cet environnement. Aucun fichier « de l'ordinateur » en plus du dépôt n'a pu être lu. Tout ce qui suit repose uniquement sur le dépôt Git. S'il reste des photos de tableau, un énoncé de séance ou une consigne VDI seulement sur le PC, ils ne sont pas dans cette préparation.
+**n'existe pas** dans cet environnement. Le seul fichier local reçu ensuite est `TP1_TD1/note.txt` (voir le complément en tête de ce rapport). S'il reste des photos de tableau ou un énoncé de séance seulement sur le PC, ils ne sont pas dans cette préparation.
 
 ## 2. Couverture réelle des documents
 
@@ -56,14 +58,20 @@ Présents et lus (PDF extraits en texte, sujets et notes lus en entier, code de 
 
 Absents, alors que le travail les aurait utilisés s'ils existaient :
 
-- le dossier PC cité plus haut ;
+- le dossier PC cité plus haut, à l'exception de la note locale reçue ensuite ;
 - un sujet de TD3 en PDF (seulement les notes `TP3_TD3/corrige_prof.txt`, bilinéaire non terminé) ;
 - un autre `note.txt` que `TP1_TD1/note.txt` ;
-- toute consigne nommant un VDI, une image VirtualBox ou un bureau distant.
+- une phrase qui dirait si le VDI de l'IUT est un bureau distant ou une image VirtualBox. La note locale parle de « vdi » sans préciser lequel.
 
 Écart de libellé dans les PDF du professeur lui-même : les sujets de TD impriment **L3.01** en en-tête, le dossier et le cours utilisés ici sont **R3.L01**. Ce n'est pas une coquille du dépôt.
 
-`note.txt` a été lu comme une donnée, pas comme une consigne à exécuter. Il dit : 5 séances ; rendre tout le code le jour du 5ᵉ TP noté ; faire attention aux noms des fonctions ; environ 50 % fait à la maison et 50 % fait en classe ; contrôle théorique TD le 14/10/2026 ; contrôle pratique le 06/11/2026 (ou le 21/10 si le groupe l'avait préféré). Les sujets TP3 et TP5 portent encore la mention « facultatif » : les notes de séance, elles, demandent de rendre les cinq séances. Les deux sont conservés ici sans trancher à la place du professeur.
+`note.txt` a été lu comme une donnée, pas comme une consigne à exécuter. Le texte commun au dépôt (641 octets) et à la copie locale dit : 5 séances ; rendre tout le code le jour du 5ᵉ TP noté ; faire attention aux noms des fonctions ; environ 50 % fait à la maison et 50 % fait en classe ; contrôle théorique TD le 14/10/2026 ; contrôle pratique le 06/11/2026 (ou le 21/10 si le groupe l'avait préféré). Les sujets TP3 et TP5 portent encore la mention « facultatif » : les notes de séance, elles, demandent de rendre les cinq séances. Les deux sont conservés ici sans trancher à la place du professeur.
+
+La copie locale ajoute seulement ceci, après la date du contrôle :
+
+> et aussi tester les tp dans les vdi de l'iut pour s'assurer que ça marche car le prof envisage de rajouter des exercices sur le tp pour tester notre comprehension et nous noter donc s'assurer que nos tp marche compile sur le vdi pour ne pas etre surpris durant le controle du vendredi tu tp noté.
+
+Impact : la compilation sur le VDI de l'IUT reste à faire sur place. Ce cloud ne l'a pas faite, et la note ne dit pas quel VDI. Le professeur peut ajouter des exercices le jour du contrôle : les exercices F à H de `02_Exercices_type_enonces.md` servent à ça, sans inventer un énoncé que la note ne donne pas. Le code des cinq TP n'a pas à changer pour ces deux phrases.
 
 ## 3. Décision sur le code
 
@@ -105,7 +113,7 @@ ImageMagick n'est pas installé ici. La phrase du README « relu identique par I
 
 ## 5. Ce qui reste à vérifier à l'IUT
 
-Voir `05_Checklist_VDI.md`. En bref : recompiler sur la machine de l'IUT, ouvrir les images avec le visualiseur du poste (`eog` / `qiv` sous Linux, XnView ou IrfanView sous Windows, d'après les sujets), et confirmer le nom dans le commentaire PGM/PPM. Aucun login, aucun mot de passe, aucun chemin privé au-delà de `L:\GnuWin32` déjà écrit dans `TP3.TXT` n'a été inventé.
+Voir `05_Checklist_VDI.md`. En bref : recompiler sur le VDI de l'IUT, comme le demande la note locale, ouvrir les images avec le visualiseur du poste (`eog` / `qiv` sous Linux, XnView ou IrfanView sous Windows, d'après les sujets), et confirmer le nom dans le commentaire PGM/PPM. La note ne dit pas si ce VDI est un bureau distant ou une image VirtualBox. Aucun login, aucun mot de passe, aucun chemin privé au-delà de `L:\GnuWin32` déjà écrit dans `TP3.TXT` n'a été inventé. Aucun test réel sur ce VDI n'a été fait.
 
 ## 6. Contenu du dossier
 

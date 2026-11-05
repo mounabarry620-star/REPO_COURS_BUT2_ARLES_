@@ -2,7 +2,7 @@
 
 ## Ce que les supports disent du poste
 
-Aucun fichier du dossier `TP_R3_L01_Immagerie_Numérique` ne contient les mots VDI, VirtualBox ou « bureau distant ». On ne peut donc pas dire, à partir du dépôt, si le contrôle se passe dans un bureau distant ou dans une image VirtualBox. À regarder le jour même sur l'énoncé de séance ou au tableau. Ne pas inventer d'adresse, de login ou de mot de passe.
+Dans le commit `7473d1c` (641 octets), `TP1_TD1/note.txt` ne contient pas le mot VDI. La copie locale actuelle (942 octets) ajoute deux phrases : tester les TP sur les VDI de l'IUT, parce que le professeur envisage d'ajouter des exercices pour noter la compréhension, et vérifier que ça compile avant le contrôle du vendredi. Cette note ne dit pas si le VDI est un bureau distant ou une image VirtualBox. Aucun test n'a été lancé sur un VDI. Ne pas inventer d'adresse, de login ou de mot de passe.
 
 Ce qui est écrit :
 
@@ -11,7 +11,8 @@ Ce qui est écrit :
 | `TP1_TD1/tp1_sujet` | Linux : `eog` ou `qiv`. Windows : XnView. Éviter Gimp ou Photoshop pour un simple aperçu. |
 | `TP3_TD3/TP3.TXT` | Linux Debian/Ubuntu : `apt-get install libjpeg62 libjpeg62-dev`, puis `-ljpeg`. Windows, machines de l'IUT : MinGW et la libjpeg du disque réseau `L:\GnuWin32` (`include`, `lib`, `bin`). |
 | `TP4/tp4.txt` | Linux : Eye of Gnome, gThumb. Windows : XnView ou IrfanView. |
-| `TP1_TD1/note.txt` | Le TP est noté, à rendre en fin de séance ; les noms de fonctions comptent ; cinq séances au total. Pas un mode d'emploi machine. |
+| `TP1_TD1/note.txt` (dépôt, 641 octets) | Le TP est noté, à rendre en fin de séance ; les noms de fonctions comptent ; cinq séances au total. | 
+| `TP1_TD1/note.txt` (copie locale, 942 octets) | Même texte, plus : compiler sur les VDI de l'IUT ; le professeur peut ajouter des exercices le jour du contrôle. Pas de mode d'emploi du VDI. |
 | CM diapo 9 | `std::ios::binary`, parce que Windows transforme les fins de ligne. |
 
 Le cloud où cette préparation a été compilée est un Linux x86_64 avec g++ 13.3 et `libjpeg-dev`. Ce n'est pas une validation IUT.
