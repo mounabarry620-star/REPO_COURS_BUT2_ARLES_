@@ -322,51 +322,51 @@ if (imageType != 1 &amp;&amp; pixelBits != 24)
 if (cmapType &gt; 1 || (cmapType == 1 &amp;&amp; cmapBits != 24))
   throw std::runtime_error("readTGA : seules les palettes 24 bits sont gérées");
 // ... + bits 4, 6, 7 du descripteur (page « descripteur ») et dimensions nulles
-is.ignore(idLength);   // champ d'identification : on le saute</pre>
+// La suite est dans un try : palette et image sont libérées si la lecture échoue.</pre>
 </section>
 
 <section class="slide">
   <h2>readTGA (2/2) : palette puis pixels</h2>
   <div class="cols">
     <div style="flex:2">
-<pre class="cpp petit">std::vector&lt;Color&gt; palette;            // cmapLength entrées b, g, r
-for (uint16_t i = 0; cmapType == 1 &amp;&amp; i &lt; cmapLength; i++)
-  palette.push_back(read_tga_color(is, false, palette, 0));
-ColorImage* res = new ColorImage(w, h);
-try {
-  size_t n = 0;                          // rang du pixel lu
+<pre class="cpp petit">Color* palette = nullptr; ColorImage* res = nullptr;
+try { skip_bytes(is, idLength);        // champ d'identification
+  if (cmapType == 1) {                   // cmapLength entrées b, g, r
+    palette = new Color[cmapLength];
+    for (uint16_t i = 0; i &lt; cmapLength; i++) palette[i] = read_tga_bgr(is);
+  }
+  res = new ColorImage(w, h); size_t n = 0; // n : rang du pixel lu
   if (imageType == 10) {                 // paquets RLE
     while (n &lt; total) {
-      int packet = is.get();
-      if (packet == EOF)
-        throw std::runtime_error("readTGA : fichier tronqué");
+      const uint8_t packet = read_byte(is);
       size_t count = (packet &amp; 0x7F) + 1;
-      if (n + count &gt; total)
-        throw std::runtime_error("readTGA : paquet RLE qui dépasse");
+      if (n + count &gt; total) throw std::runtime_error("RLE : dépasse");
       if (packet &amp; 0x80) {               // 1 couleur répétée count fois
-        Color c = read_tga_color(is, false, palette, 0);
+        Color c = read_tga_bgr(is);
         for (size_t k = 0; k &lt; count; k++)
           store_tga_pixel(*res, n++, topToBottom, c);
       } else {                           // count couleurs différentes
         for (size_t k = 0; k &lt; count; k++)
-          store_tga_pixel(*res, n++, topToBottom,
-                          read_tga_color(is, false, palette, 0));
+          store_tga_pixel(*res, n++, topToBottom, read_tga_bgr(is));
       }
     }
-  } else {                               // types 1 et 2 : non compressé
+  } else if (imageType == 1) {           // palette, non compressé
     for (n = 0; n &lt; total; n++)
       store_tga_pixel(*res, n, topToBottom,
-                      read_tga_color(is, indexed, palette, cmapOrigin));
+        read_tga_index(is, palette, cmapLength, cmapOrigin));
+  } else {                               // type 2, non compressé
+    for (n = 0; n &lt; total; n++)
+      store_tga_pixel(*res, n, topToBottom, read_tga_bgr(is));
   }
-} catch (...) { delete res; throw; }     // pas de fuite mémoire
-return res;</pre>
+} catch (...) { delete[] palette; delete res; throw; } // pas de fuite
+delete[] palette; return res;</pre>
     </div>
     <div class="petit">
       <ul>
-        <li><code>read_tga_color</code> lit 3 octets b, g, r, ou 1 indice de palette (type 1), et lève une exception si le fichier est tronqué ou l'indice invalide.</li>
+        <li><code>read_tga_bgr</code> lit 3 octets b, g, r ; <code>read_tga_index</code> lit 1 indice de palette (type 1). Ils lèvent une exception si le fichier est tronqué ou l'indice invalide.</li>
         <li><code>store_tga_pixel</code> range le <i>n</i>-ième pixel lu en <code>(n % w, ligne)</code>, en retournant l'image si l'origine est en bas.</li>
         <li><code>total</code> = w × h.</li>
-        <li>Le <code>catch (...)</code> libère l'image si quoi que ce soit échoue, puis relance l'exception.</li>
+        <li>Le <code>catch (...)</code> libère la palette et l'image si quoi que ce soit échoue, puis relance l'exception.</li>
       </ul>
     </div>
   </div>

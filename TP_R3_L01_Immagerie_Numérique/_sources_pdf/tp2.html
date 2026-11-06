@@ -115,8 +115,7 @@ public:
         </g>
         <text x="45" y="42" font-size="9.5" text-anchor="middle">array[0]</text><text x="135" y="42" font-size="9.5" text-anchor="middle">array[1]</text>
       </svg>
-      <p class="petit">C'est ce qui permet d'écrire tous les pixels d'un seul <code>write</code>. Mais seulement si une <code>Color</code> fait 3 octets, sans octet de remplissage (<i>padding</i>, CM diapo 14). C'est le cas ici (trois <code>uint8_t</code>, alignement sur 1 octet) et on le fait vérifier au compilateur :</p>
-<pre class="cpp">static_assert(sizeof(Color) == 3, "Color doit faire exactement 3 octets (r,g,b)");</pre>
+      <p class="petit">C'est ce qui permet d'écrire tous les pixels d'un seul <code>write</code>. Mais seulement si une <code>Color</code> fait 3 octets, sans octet de remplissage (<i>padding</i>, CM diapo 14). C'est le cas ici : trois <code>uint8_t</code>, et une classe est alignée sur sa donnée la plus exigeante, soit 1 octet. Donc <code>sizeof(Color)</code> vaut 3.</p>
     </div>
   </div>
 </section>
@@ -188,10 +187,11 @@ if (magic == "P6") {
   is.get();                              // un seul blanc après 255
   is.read((char*)res-&gt;array, size_t(w) * h * 3);  // 2. × 3
 } else {                                 // 3. "P3" : r g b en texte
-  for (size_t t = 0; t &lt; size_t(w) * h &amp;&amp; is; t++) {
+  for (size_t t = 0; t &lt; size_t(w) * h; t++) {
     unsigned int r = 0, g = 0, b = 0;
-    if (is &gt;&gt; r &gt;&gt; g &gt;&gt; b &amp;&amp; (r &gt; 255 || g &gt; 255 || b &gt; 255))
-      is.setstate(std::ios::failbit);
+    if (!(is &gt;&gt; r &gt;&gt; g &gt;&gt; b) || r &gt; 255 || g &gt; 255 || b &gt; 255) {
+      delete res; throw std::runtime_error("...");
+    }
     res-&gt;array[t] = Color(uint8_t(r), uint8_t(g), uint8_t(b));
   }
 }
@@ -369,7 +369,7 @@ static void bilinear_coord(uint16_t p, uint16_t dst, uint16_t src,
     <tr><td><code>Color + Color</code></td><td>200 + 100 donnait 44 (débordement).</td><td>Addition saturée à 255.</td></tr>
     <tr><td><code>double * Color</code></td><td>Troncature (l'image s'assombrit).</td><td>Arrondi au plus proche.</td></tr>
     <tr><td>Rééchantillonnage</td><td>Seulement pour ColorImage ; pas de correction du demi-pixel.</td><td>Les deux classes (le corrigé du TD est sur GrayImage) ; correction ±0,5.</td></tr>
-    <tr><td><code>writePPM</code></td><td>Écrit le tableau en bloc sans vérifier que <code>sizeof(Color) == 3</code>.</td><td><code>static_assert</code> : le compilateur refuse si ce n'est pas le cas.</td></tr>
+    <tr><td><code>writePPM</code></td><td>Écrit le tableau en bloc sans justifier la taille d'une <code>Color</code>.</td><td>Justifié par le CM diapo 14 : trois <code>uint8_t</code>, pas de remplissage.</td></tr>
     <tr><td>Commentaire PPM</td><td>Sans nom.</td><td>« Image sauvegardée par <i>nom</i> ... » (TD2 question 2).</td></tr>
   </table>
 </section>

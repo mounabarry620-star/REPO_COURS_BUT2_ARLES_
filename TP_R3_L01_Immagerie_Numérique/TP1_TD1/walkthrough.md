@@ -33,7 +33,7 @@ eog images/chat.pgm tp1_chat_lunettes.pgm
 
 ## Corrections par rapport à la version de Gemini
 
-- `skip_comments` réécrite comme le demande le TD1, avec `skip_line` après les dimensions pour gérer les commentaires de `chat.pgm`.
+- `skip_comments` réécrite comme le demande le TD1, avec `skip_blanks` (`get` + `putback`) avant pour gérer les commentaires de `chat.pgm`.
 - Commentaire « Image sauvegardée par *nom* pour les TP de RepCod. » (demandé au TD).
 - Taille du tableau calculée en `size_t` (pas de débordement d'`int`).
 - Valeurs P2 > 255 refusées.

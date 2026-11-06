@@ -24,7 +24,7 @@ eog tp2_simple.ppm tp2_bilinear.ppm
 
 - GrayImage avait disparu du TP2 : tout est maintenant dans `Image.hpp/.cpp`.
 - `Color + Color` débordait (200 + 100 = 44) ; `double * Color` tronquait.
-- `static_assert(sizeof(Color) == 3)` avant d'écrire le tableau de pixels d'un bloc.
+- Tableau de pixels écrit d'un bloc : `Color` ne contient que 3 `uint8_t`, donc pas de remplissage (CM diapo 14).
 - Rééchantillonnage ajouté à GrayImage (le corrigé du TD3 est écrit pour GrayImage).
 
 Ancienne version : `../_ARCHIVE_GEMINI/TP2_TD2/`.

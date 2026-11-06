@@ -150,7 +150,7 @@ g++ -o programme programme.o -ljpeg</pre>
     </div>
     <div class="petit">
       <p>libjpeg attend, pour chaque ligne, un pointeur vers <b>3 × width octets</b> r, g, b à la suite : <code>JSAMPROW</code> = <code>unsigned char*</code>.</p>
-      <p>Notre tableau de <code>Color</code> a exactement cette forme (3 octets par <code>Color</code>, garanti par le <code>static_assert</code>). Il suffit donc de pointer sur le début de la ligne :</p>
+      <p>Notre tableau de <code>Color</code> a exactement cette forme (3 octets par <code>Color</code>, sans remplissage, CM diapo 14). Il suffit donc de pointer sur le début de la ligne :</p>
 <pre class="cpp">row_pointer[0] = (JSAMPROW)(array + size_t(cinfo.next_scanline) * width);</pre>
       <ul>
         <li><code>array + n</code> sur un <code>Color*</code> avance de <code>n</code> <b>Color</b>, soit 3n octets.</li>

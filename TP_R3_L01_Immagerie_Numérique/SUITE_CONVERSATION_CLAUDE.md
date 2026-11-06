@@ -47,7 +47,7 @@ Pour reprendre, ouvre Claude Code dans ce dossier et colle le texte de la sectio
   - **TP4** : `writeTGA(ostream&, bool rle = true)` (sous-formats 2 / 10) et `readTGA` (sous-formats 1, 2, 10 ; origine en haut ou en bas) ;
   - **TP5** : `line(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, const Color)`, Bresenham sur les 8 octants ;
   - **en plus** (le sujet du TP1 annonce `writeFormat` « PGM, TGA, JPEG » pour les gris) : `GrayImage::writeJPEG`/`readJPEG` et `writeTGA`/`readTGA` (sous-formats 3 et 11).
-- Lecture d'en-tête PGM/PPM tolérante (`is >> std::ws` avant `skip_comments`), comme le demande PGM.txt (« *as lenient as possible* ») : elle gère les commentaires après les dimensions de `chat.pgm`, les fins de ligne Windows et un en-tête sur une seule ligne.
+- Lecture d'en-tête PGM/PPM tolérante (`skip_blanks`, écrite avec `get` et `putback`, avant `skip_comments`), comme le demande PGM.txt (« *as lenient as possible* ») : elle gère les commentaires après les dimensions de `chat.pgm`, les fins de ligne Windows et un en-tête sur une seule ligne.
 
 ### Vérifications faites
 
@@ -127,9 +127,10 @@ Le script signale les pages dont le contenu déborde.
 
 - **Tout dans `Image.hpp`/`Image.cpp`** : c'est une consigne des sujets, ne pas re-séparer en un fichier par TP.
 - **Noms et prototypes exactement ceux des sujets** : ils sont vérifiés à la notation.
-- **`skip_line` / `skip_comments`** écrites comme le TD1 les décrit ; la tolérance vient de `is >> std::ws` placé avant.
+- **`skip_line` / `skip_comments`** écrites comme le TD1 les décrit ; la tolérance vient de `skip_blanks` placé avant.
 - **Un seul `is.get()` après 255** : un pixel peut valoir 10 (LF) ou 32 (espace).
-- **`static_assert(sizeof(Color) == 3)`** avant d'écrire le tableau de Color d'un bloc (padding, CM diapo 14).
+- **Tableau de Color écrit d'un bloc** : possible car Color ne contient que 3 `uint8_t`, donc pas de padding (CM diapo 14).
+- **Uniquement ce qui est vu en cours, en TD ou dans les docs du prof** : `GUIDE_TP_NOTE.md` donne la source de chaque outil.
 - **TGA** : ordre b, g, r ; entiers 16 bits en little endian écrits avec des décalages (portable) ; bit 5 du descripteur = origine en haut ; paquets RLE limités à une ligne.
 - **Bilinéaire** : formule standard (2 interpolations horizontales + 1 verticale) avec la correction ±0,5 du demi-pixel citée par le sujet du TP2.
 - Les PDF sont présentés comme une **fiche de révision « d'après le cours d'E. Remy »**, jamais comme un document du prof.

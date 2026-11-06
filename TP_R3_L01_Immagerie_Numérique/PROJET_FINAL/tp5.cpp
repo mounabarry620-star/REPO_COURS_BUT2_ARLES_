@@ -37,8 +37,8 @@ int main()
     im3.clear(noir);
     for (int degres = 0; degres < 360; degres += 5) {
       double angle = degres * M_PI / 180.0; // cos et sin attendent des radians !
-      uint16_t x = uint16_t(std::lround(250 + 200 * std::cos(angle)));
-      uint16_t y = uint16_t(std::lround(250 + 200 * std::sin(angle)));
+      uint16_t x = uint16_t(250 + 200 * std::cos(angle) + 0.5); // + 0.5 : arrondi au plus proche
+      uint16_t y = uint16_t(250 + 200 * std::sin(angle) + 0.5);
       im3.line(250, 250, x, y, bleu);
       im3.pixel(x, y) = blanc; // le point visé, en blanc comme sur la figure du sujet
     }

@@ -86,7 +86,6 @@ std::ifstream ifs("f.dat", std::ios::binary); // sinon : conversions de fin de l
         <tr><td><code>os.write(const char* p, n)</code></td><td>écrit n octets d'un coup</td></tr>
         <tr><td><code>is.read(char* p, n)</code></td><td>lit n octets d'un coup</td></tr>
         <tr><td><code>is.putback(char c)</code></td><td>remet c dans le flux</td></tr>
-        <tr><td><code>is.ignore(n)</code></td><td>saute n octets</td></tr>
       </table>
       <p class="tres-petit">Fermeture automatique par le <b>destructeur</b> du flux, en fin de bloc <code>{ }</code>.</p>
     </div>
@@ -442,8 +441,8 @@ void skip_comments(std::istream&amp; is)
     skip_line(is);
   if (is) is.putback(c);
 }
-// readPGM : is &gt;&gt; magic ; is &gt;&gt; std::ws ; skip_comments ;
-// is &gt;&gt; w &gt;&gt; h ; is &gt;&gt; std::ws ; skip_comments ;
+// readPGM : is &gt;&gt; magic ; skip_blanks ; skip_comments ;
+// is &gt;&gt; w &gt;&gt; h ; skip_blanks ; skip_comments ;
 // is &gt;&gt; maxval (255) ; new GrayImage(w, h) ;
 // is.get() (UN seul blanc) ; is.read(array, w*h)</pre>
       <p class="tres-petit">Le détail et les justifications sont dans <code>TP1_explications.pdf</code> (pourquoi <code>static</code>, pourquoi un seul <code>get()</code>, le piège des commentaires après les dimensions).</p>

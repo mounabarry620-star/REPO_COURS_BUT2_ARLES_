@@ -3,7 +3,6 @@
 
 #include <cstdio>  // FILE*, fopen, fclose (nécessaire AVANT jpeglib.h)
 #include <string>
-#include <vector>
 
 extern "C" {
 #include <jpeglib.h> /* Ce sont des déclarations relatives à des fonctions C ! */
@@ -12,9 +11,9 @@ extern "C" {
 // Nom écrit dans le commentaire des fichiers PGM/PPM (TD1 question 2, TD2 question 2).
 static const char* const AUTEUR = "Mamadou Bailo BARRY";
 
-// On écrit/lit le tableau de Color en un seul bloc (CM diapos 20-21) : cela
-// suppose qu'une Color occupe exactement 3 octets, sans remplissage (CM diapo 14).
-static_assert(sizeof(Color) == 3, "Color doit faire exactement 3 octets (r,g,b)");
+// On écrit/lit le tableau de Color en un seul bloc (CM diapos 20-21). C'est possible car
+// Color ne contient que 3 uint8_t : une classe est alignée sur sa donnée la plus exigeante
+// (CM diapo 14), ici 1 octet, donc pas de remplissage et sizeof(Color) vaut 3.
 
 // ===========================================================================
 // TD1 : fonctions de lecture d'en-tête communes à PGM et PPM
@@ -34,6 +33,16 @@ void skip_comments(std::istream& is)
   char c;
   while (is.get(c) && c == '#')
     skip_line(is);
+  if (is)
+    is.putback(c);
+}
+
+// Saute les blancs de l'en-tête (PGM.txt : « Whitespace (blanks, TABs, CRs, LFs) »).
+// Même principe que skip_comments : get() puis putback() du premier caractère utile.
+static void skip_blanks(std::istream& is)
+{
+  char c;
+  while (is.get(c) && (c == ' ' || c == '\t' || c == '\r' || c == '\n')) {}
   if (is)
     is.putback(c);
 }
@@ -123,14 +132,14 @@ GrayImage* GrayImage::readPGM(std::istream& is)
   if (magic != "P5" && magic != "P2")
     throw std::runtime_error("readPGM : ce n'est pas un fichier PGM (P5 ou P2 attendu)");
 
-  is >> std::ws;           // Saute les blancs (LF, CR, espaces...) jusqu'à la ligne suivante,
+  skip_blanks(is);         // Saute les blancs (LF, CR, espaces...) jusqu'à la ligne suivante,
   skip_comments(is);       // puis les éventuelles lignes de commentaires.
   unsigned int w = 0, h = 0;
   if (!(is >> w >> h))
     throw std::runtime_error("readPGM : largeur et hauteur illisibles");
   if (w == 0 || h == 0 || w > 65535 || h > 65535)
     throw std::runtime_error("readPGM : dimensions invalides");
-  is >> std::ws;           // >> s'arrête AVANT le '\n' : sans cette ligne, skip_comments
+  skip_blanks(is);         // >> s'arrête AVANT le '\n' : sans cette ligne, skip_comments
   skip_comments(is);       // lirait ce '\n' et ne verrait pas les commentaires de chat.pgm.
   unsigned int maxval = 0;
   if (!(is >> maxval))
@@ -143,10 +152,12 @@ GrayImage* GrayImage::readPGM(std::istream& is)
     is.get(); // UN SEUL caractère blanc après 255, puis les octets des pixels.
     is.read((char*)res->array, size_t(w) * h);
   } else { // "P2" (bonus) : les pixels sont écrits en décimal, séparés par des blancs.
-    for (size_t t = 0; t < size_t(w) * h && is; t++) {
+    for (size_t t = 0; t < size_t(w) * h; t++) {
       unsigned int v = 0;
-      if (is >> v && v > 255)
-        is.setstate(std::ios::failbit);
+      if (!(is >> v) || v > 255) {
+        delete res;
+        throw std::runtime_error("readPGM : valeur de pixel absente ou invalide");
+      }
       res->array[t] = uint8_t(v);
     }
   }
@@ -313,14 +324,14 @@ ColorImage* ColorImage::readPPM(std::istream& is)
   if (magic != "P6" && magic != "P3")
     throw std::runtime_error("readPPM : ce n'est pas un fichier PPM (P6 ou P3 attendu)");
 
-  is >> std::ws;
+  skip_blanks(is);
   skip_comments(is);
   unsigned int w = 0, h = 0;
   if (!(is >> w >> h))
     throw std::runtime_error("readPPM : largeur et hauteur illisibles");
   if (w == 0 || h == 0 || w > 65535 || h > 65535)
     throw std::runtime_error("readPPM : dimensions invalides");
-  is >> std::ws;
+  skip_blanks(is);
   skip_comments(is);
   unsigned int maxval = 0;
   if (!(is >> maxval))
@@ -333,10 +344,12 @@ ColorImage* ColorImage::readPPM(std::istream& is)
     is.get(); // Un seul caractère blanc après 255.
     is.read((char*)res->array, size_t(w) * h * 3);
   } else { // "P3" (bonus) : 3 valeurs décimales (r g b) par pixel.
-    for (size_t t = 0; t < size_t(w) * h && is; t++) {
+    for (size_t t = 0; t < size_t(w) * h; t++) {
       unsigned int r = 0, g = 0, b = 0;
-      if (is >> r >> g >> b && (r > 255 || g > 255 || b > 255))
-        is.setstate(std::ios::failbit);
+      if (!(is >> r >> g >> b) || r > 255 || g > 255 || b > 255) {
+        delete res;
+        throw std::runtime_error("readPPM : valeur de pixel absente ou invalide");
+      }
       res->array[t] = Color(uint8_t(r), uint8_t(g), uint8_t(b));
     }
   }
@@ -553,19 +566,35 @@ void ColorImage::writeTGA(std::ostream& os, bool rle) const
     throw std::runtime_error("writeTGA : erreur d'écriture");
 }
 
-// Lit la couleur d'un pixel : 3 octets b,g,r (sous-formats 2 et 10)
-// ou 1 octet d'indice dans la palette (sous-format 1).
-static Color read_tga_color(std::istream& is, bool indexed,
-                            const std::vector<Color>& palette, uint16_t origin)
+// Lit un octet (CM diapo 19) ; un fichier trop court lève une exception.
+static uint8_t read_byte(std::istream& is)
 {
-  if (indexed) {
-    int index = is.get();
-    if (index == EOF)
-      throw std::runtime_error("readTGA : fichier tronqué");
-    if (index < origin || size_t(index - origin) >= palette.size())
-      throw std::runtime_error("readTGA : indice de palette invalide");
-    return palette[index - origin];
-  }
+  char c;
+  if (!is.get(c))
+    throw std::runtime_error("readTGA : fichier tronqué");
+  return uint8_t(c);
+}
+
+// Saute n octets (champ d'identification, palette inutile).
+static void skip_bytes(std::istream& is, size_t n)
+{
+  for (size_t i = 0; i < n; i++)
+    read_byte(is);
+}
+
+// Sous-format 1 : le pixel est un indice dans la palette (CM diapo 40).
+static Color read_tga_index(std::istream& is, const Color* palette,
+                            uint16_t length, uint16_t origin)
+{
+  const uint8_t index = read_byte(is);
+  if (index < origin || index - origin >= length)
+    throw std::runtime_error("readTGA : indice de palette invalide");
+  return palette[index - origin];
+}
+
+// Sous-formats 2 et 10, et entrées de la palette : 3 octets b, g, r.
+static Color read_tga_bgr(std::istream& is)
+{
   uint8_t bgr[3];
   if (!is.read((char*)bgr, 3))
     throw std::runtime_error("readTGA : fichier tronqué");
@@ -615,45 +644,51 @@ ColorImage* ColorImage::readTGA(std::istream& is)
   if (w == 0 || h == 0)
     throw std::runtime_error("readTGA : dimensions nulles");
 
-  is.ignore(idLength); // Champ d'identification : on le saute.
-
-  // Palette : cmapLength entrées de 3 octets b,g,r. Pour le sous-format 2,
-  // une palette éventuelle est simplement lue puis ignorée.
-  std::vector<Color> palette;
-  for (uint16_t i = 0; cmapType == 1 && i < cmapLength; i++)
-    palette.push_back(read_tga_color(is, false, palette, 0));
-
-  const bool   indexed     = (imageType == 1);
   const bool   topToBottom = (descriptor & 0x20) != 0; // bit 5
   const size_t total       = size_t(w) * h;
-  ColorImage*  res         = new ColorImage(w, h);
+  Color*       palette     = nullptr; // Tableau alloué dynamiquement (CM diapo 27)
+  ColorImage*  res         = nullptr;
   try {
+    skip_bytes(is, idLength); // Champ d'identification : on le saute.
+
+    // Palette : cmapLength entrées de 3 octets b,g,r. Pour le sous-format 2,
+    // une palette éventuelle est simplement lue puis ignorée.
+    if (cmapType == 1) {
+      palette = new Color[cmapLength];
+      for (uint16_t i = 0; i < cmapLength; i++)
+        palette[i] = read_tga_bgr(is);
+    }
+
+    res = new ColorImage(w, h);
     size_t n = 0;
     if (imageType == 10) { // Données découpées en paquets RLE
       while (n < total) {
-        int packet = is.get();
-        if (packet == EOF)
-          throw std::runtime_error("readTGA : fichier tronqué");
+        const uint8_t packet = read_byte(is);
         size_t count = (packet & 0x7F) + 1; // 7 bits de poids faible + 1
         if (n + count > total)
           throw std::runtime_error("readTGA : paquet RLE qui dépasse de l'image");
         if (packet & 0x80) { // bit 7 à 1 : une couleur répétée count fois
-          Color c = read_tga_color(is, false, palette, 0);
+          Color c = read_tga_bgr(is);
           for (size_t k = 0; k < count; k++)
             store_tga_pixel(*res, n++, topToBottom, c);
         } else {             // bit 7 à 0 : count couleurs différentes
           for (size_t k = 0; k < count; k++)
-            store_tga_pixel(*res, n++, topToBottom, read_tga_color(is, false, palette, 0));
+            store_tga_pixel(*res, n++, topToBottom, read_tga_bgr(is));
         }
       }
-    } else { // Sous-formats 1 et 2 : pixels non compressés
+    } else if (imageType == 1) { // Palette, pixels non compressés
       for (n = 0; n < total; n++)
-        store_tga_pixel(*res, n, topToBottom, read_tga_color(is, indexed, palette, cmapOrigin));
+        store_tga_pixel(*res, n, topToBottom, read_tga_index(is, palette, cmapLength, cmapOrigin));
+    } else {                     // Sous-format 2 : pixels non compressés
+      for (n = 0; n < total; n++)
+        store_tga_pixel(*res, n, topToBottom, read_tga_bgr(is));
     }
-  } catch (...) {
+  } catch (...) { // Rien ne doit rester alloué si la lecture échoue.
+    delete[] palette;
     delete res;
     throw;
   }
+  delete[] palette; // La palette ne sert plus : l'image est convertie en RGB (sujet du TP4).
   return res;
 }
 
@@ -855,9 +890,9 @@ GrayImage* GrayImage::readTGA(std::istream& is)
   if (w == 0 || h == 0)
     throw std::runtime_error("readTGA : dimensions nulles");
 
-  is.ignore(idLength);
+  skip_bytes(is, idLength);
   if (cmapType == 1) // Palette inutile pour du gris : on la saute.
-    is.ignore(std::streamsize(cmapLength) * ((cmapBits + 7) / 8));
+    skip_bytes(is, size_t(cmapLength) * ((cmapBits + 7) / 8));
 
   const bool   topToBottom = (descriptor & 0x20) != 0;
   const size_t total       = size_t(w) * h;
@@ -868,24 +903,19 @@ GrayImage* GrayImage::readTGA(std::istream& is)
       size_t count = total - n; // sous-format 3 : tout le reste, d'un coup
       bool repete = false;
       if (imageType == 11) {
-        int packet = is.get();
-        if (packet == EOF)
-          throw std::runtime_error("readTGA : fichier tronqué");
+        const uint8_t packet = read_byte(is);
         count  = (packet & 0x7F) + 1;
         repete = (packet & 0x80) != 0;
         if (n + count > total)
           throw std::runtime_error("readTGA : paquet RLE qui dépasse de l'image");
       }
-      int gris = 0;
+      uint8_t gris = 0;
       for (size_t k = 0; k < count; k++, n++) {
-        if (!repete || k == 0) {
-          gris = is.get();
-          if (gris == EOF)
-            throw std::runtime_error("readTGA : fichier tronqué");
-        }
+        if (!repete || k == 0)
+          gris = read_byte(is);
         uint16_t x   = uint16_t(n % w);
         uint16_t row = uint16_t(n / w);
-        res->pixel(x, topToBottom ? row : uint16_t(h - 1 - row)) = uint8_t(gris);
+        res->pixel(x, topToBottom ? row : uint16_t(h - 1 - row)) = gris;
       }
     }
   } catch (...) {

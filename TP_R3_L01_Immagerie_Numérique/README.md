@@ -14,6 +14,7 @@ comment compiler et tester, et comment réviser TP par TP et TD par TD.
 ```
 TP_R3_L01_Immagerie_Numérique/
 ├── README.md                       ← ce guide
+├── GUIDE_TP_NOTE.md                ← compiler, ajouter un exercice, justifications, révision
 ├── R3.L01_CM.pdf                   ← le cours d'E. Remy
 ├── REVISION_CONTROLE_TD_R3L01.pdf  ← fiche de révision du contrôle de TD (cours + TD1, TD2, TD3 + exercices)
 ├── PROJET_FINAL/                   ← LE CODE À RENDRE (tous les TP)
@@ -183,7 +184,7 @@ Légende : ✅ fait et testé · ➕ bonus du sujet, fait · ℹ️ remarque
 |---|---|
 | `ios::binary` à l'ouverture (CM 9) | tous les `ifstream`/`ofstream` des tests |
 | `write`/`read` par bloc (CM 20-21) | pixels PGM/PPM |
-| Padding (CM 14) | `static_assert(sizeof(Color) == 3)` avant d'écrire le tableau de Color en bloc |
+| Padding (CM 14) | `Color` ne contient que 3 `uint8_t`, donc pas de remplissage : on peut écrire le tableau de Color en bloc |
 | Endianness (CM 15-19, TD2) | TGA : entiers 16 bits little endian écrits et lus avec décalages et masques (portable) |
 | Piège `cout << uint8_t` (CM 13) | conversion `(unsigned int)` dans les affichages |
 | `<cstdint>` (CM 12) | `uint8_t`, `uint16_t`, `uint32_t` partout |
@@ -276,7 +277,7 @@ commencent par une **tabulation** (sinon : erreur `missing separator`).
 | `./tp1` | `tp1_rectangles.pgm`, `tp1_chat_lunettes.pgm`, `tp1_rafale.pgm` | « 0 pixel(s) différent(s) », en-têtes souples « 10 35 et 10 35 », 2 exceptions attendues |
 | `./tp2` | `tp2_chat.ppm`, `tp2_simple.ppm/.pgm`, `tp2_bilinear.ppm/.pgm`, `tp2_rafale.ppm` | blocs (simple) contre dégradés (bilinéaire) ; `0.5*(…) + 0.5*(…) = (150,100,129)` |
 | `./tp3` | `tp3_chat.ppm`, `tp3_chat.jpg`, `tp3_chat_gris.jpg`, `out_000.jpg` … `out_100.jpg` | taille et qualité des JPEG ; l'exception libjpeg |
-| `./tp4` | `tp4_chat_brut.tga`, `tp4_chat_rle.tga`, `tp4_chat_bandeau_rle.tga`, `tp4_palette_*.tga`, `tp4_chat10_*.tga`, `tp4_chanel.ppm`, `tp4_chat_gris_*.tga` | tailles affichées ; toutes les relectures « identique : oui » |
+| `./tp4` | `tp4_chat_brut.tga`, `tp4_chat_rle.tga`, `tp4_chat_bandeau_rle.tga`, `tp4_palette_*.tga`, `tp4_chat10_*.tga`, `tp4_chanel.ppm`, `tp4_chat_gris_*.tga` | toutes les relectures « identique : oui » ; pour les tailles : `ls -l tp4_*` |
 | `./tp5` | `tp5_octant1.ppm`, `tp5_octants12.ppm`, `tp5_cercle.ppm` | comparer à `images/tp5_im1/2/3.png` |
 
 Pour voir les images : `eog fichier.ppm`, ou `eog *.ppm` puis les flèches gauche/droite pour les faire alterner.
@@ -331,8 +332,8 @@ Idées d'exercices dans la copie :
 | Exercice | Comment vérifier |
 |---|---|
 | Vider `readPGM` et la réécrire | `./tp1` doit afficher « 0 pixel(s) différent(s) » |
-| Remplacer `is >> std::ws` par rien | `./tp1` échoue sur `chat.pgm` : tu vois le piège des commentaires |
-| Remplacer `is.get()` après 255 par `is >> std::ws` | le test « en-têtes souples » n'affiche plus « 10 35 » : le pixel 10 (= LF) a été avalé |
+| Retirer les appels à `skip_blanks` | `./tp1` échoue sur `chat.pgm` : tu vois le piège des commentaires |
+| Remplacer `is.get()` après 255 par `skip_blanks(is)` | le test « en-têtes souples » n'affiche plus « 10 35 » : le pixel 10 (= LF) a été avalé |
 | Réécrire `simpleScale` / `bilinearScale` | comparer avec les images produites avant |
 | Retirer la saturation de `operator+` | des pixels clairs deviennent sombres |
 | Réécrire `writeTGA` en RLE | `./tp4` : « relecture RLE identique : oui » |

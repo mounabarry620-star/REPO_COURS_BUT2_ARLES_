@@ -320,7 +320,7 @@ void skip_comments(std::istream&amp; is)
 # de l'image.⏎
 255⏎</pre>
         <p><code>is &gt;&gt; w &gt;&gt; h</code> s'arrête <b>juste avant</b> le <span style="color:#b31a1a">⏎</span> rouge. Appelée tout de suite, <code>skip_comments</code> lit ce ⏎, voit que ce n'est pas '#' et le remet : aucun commentaire sauté, et <code>is &gt;&gt; maxval</code> échoue sur '#'.</p>
-        <p><b>Solution</b> : <code>is &gt;&gt; std::ws</code> (saute espaces, tabulations, CR, LF) <i>avant</i> <code>skip_comments(is)</code>. Marche aussi avec les fins de ligne Windows et un en-tête sur une ligne (PGM.txt : « <i>be as lenient as possible</i> »).</p>
+        <p><b>Solution</b> : <code>skip_blanks(is)</code> (<code>get</code> + <code>putback</code>) <i>avant</i> <code>skip_comments(is)</code>. Marche aussi avec les fins de ligne Windows (PGM.txt : « <i>be as lenient as possible</i> »).</p>
       </div></div>
     </div>
   </div>
@@ -336,14 +336,14 @@ void skip_comments(std::istream&amp; is)
   is &gt;&gt; magic;              // lit "P5"
   if (magic != "P5" &amp;&amp; magic != "P2")
     throw std::runtime_error("readPGM : ce n'est pas un fichier PGM");
-  is &gt;&gt; std::ws;            // saute les blancs (LF, CR, espaces)
+  skip_blanks(is);          // saute les blancs (LF, CR, espaces)
   skip_comments(is);
   unsigned int w = 0, h = 0;
   if (!(is &gt;&gt; w &gt;&gt; h))
     throw std::runtime_error("readPGM : largeur et hauteur illisibles");
   if (w == 0 || h == 0 || w &gt; 65535 || h &gt; 65535)
     throw std::runtime_error("readPGM : dimensions invalides");
-  is &gt;&gt; std::ws;            // saute le LF laissé par &gt;&gt;
+  skip_blanks(is);          // saute le LF laissé par &gt;&gt;
   skip_comments(is);
   unsigned int maxval = 0;
   if (!(is &gt;&gt; maxval))
@@ -357,10 +357,9 @@ void skip_comments(std::istream&amp; is)
     is.get();   // UN SEUL caractère blanc après 255
     is.read((char*)res-&gt;array, size_t(w) * h);
   } else {      // "P2" (bonus) : pixels écrits en décimal
-    for (size_t t = 0; t &lt; size_t(w) * h &amp;&amp; is; t++) {
+    for (size_t t = 0; t &lt; size_t(w) * h; t++) {
       unsigned int v = 0;
-      if (is &gt;&gt; v &amp;&amp; v &gt; 255)
-        is.setstate(std::ios::failbit);
+      if (!(is &gt;&gt; v) || v &gt; 255) { delete res; throw std::runtime_error("..."); }
       res-&gt;array[t] = uint8_t(v);
     }
   }
@@ -444,7 +443,7 @@ eog images/chat.pgm tp1_chat_lunettes.pgm</pre>
   <h2>Ce qui a été corrigé par rapport à la version de Gemini</h2>
   <table class="petit">
     <tr><th>Point</th><th>Version Gemini</th><th>Correction</th></tr>
-    <tr><td><code>skip_comments</code></td><td>Sautait aussi les espaces et les LF : ça marche, mais ce n'est pas la fonction demandée au TD1 (question 4).</td><td>Version du TD (lit, teste '#', <code>putback</code>), précédée de <code>is &gt;&gt; std::ws</code>.</td></tr>
+    <tr><td><code>skip_comments</code></td><td>Sautait aussi les espaces et les LF : ça marche, mais ce n'est pas la fonction demandée au TD1 (question 4).</td><td>Version du TD (lit, teste '#', <code>putback</code>), précédée de <code>skip_blanks</code>.</td></tr>
     <tr><td>Commentaire écrit</td><td>« Image sauvegardee pour les TP de RepCod. » sans nom.</td><td>« Image sauvegardée par <i>nom</i> pour les TP de RepCod. » (demandé au TD).</td></tr>
     <tr><td>Taille du tableau</td><td><code>width * height</code> calculé en <code>int</code>.</td><td><code>size_t(width) * height</code>.</td></tr>
     <tr><td>Lecture P2</td><td>Valeurs &gt; 255 acceptées sans erreur.</td><td>Valeur &gt; 255 = fichier invalide.</td></tr>

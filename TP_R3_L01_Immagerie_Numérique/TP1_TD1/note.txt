@@ -12,3 +12,6 @@ Controle Théorique TD le 14/10/2026.
 controle pratique (tp) le 06/11/2026. ou le 21/10 si les étudiant pensent que c'est mieux ainsi..
 
 
+et aussi tester les tp dans les vdi de l'iut pour s'assurer que ça marche car le prof envisage de rajouter des exercices sur le tp pour tester notre comprehension et nous noter donc s'assurer que nos tp marche compile sur le vdi pour ne pas etre surpris durant le controle du vendredi tu tp noté.
+
+

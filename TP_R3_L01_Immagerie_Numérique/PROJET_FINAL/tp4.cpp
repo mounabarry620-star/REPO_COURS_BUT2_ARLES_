@@ -5,24 +5,21 @@
 #include <string>
 
 // Lit un fichier TGA (exception si on ne peut pas l'ouvrir).
-static ColorImage* lire(const std::string& nom)
+static ColorImage* lire(const char* nom)
 {
   std::ifstream ifs(nom, std::ios::binary);
   if (!ifs)
-    throw std::runtime_error("impossible d'ouvrir " + nom);
+    throw std::runtime_error(std::string("impossible d'ouvrir ") + nom);
   return ColorImage::readTGA(ifs);
 }
 
-// Écrit un fichier TGA et affiche sa taille.
-static void ecrire(const ColorImage& im, const std::string& nom, bool rle)
+// Écrit un fichier TGA. Pour voir les tailles : ls -l tp4_*
+static void ecrire(const ColorImage& im, const char* nom, bool rle)
 {
-  {
-    std::ofstream ofs(nom, std::ios::binary);
-    im.writeTGA(ofs, rle);
-  } // Fermeture du fichier ici (destructeur de ofstream).
-  std::ifstream f(nom, std::ios::binary | std::ios::ate); // ate : position = fin du fichier
-  std::cout << "  " << nom << " : " << f.tellg() << " octets" << std::endl;
-}
+  std::ofstream ofs(nom, std::ios::binary);
+  im.writeTGA(ofs, rle);
+  std::cout << "  " << nom << " écrit" << std::endl;
+} // Fermeture du fichier ici (destructeur de ofstream, CM diapo 9).
 
 static bool identiques(const ColorImage& a, const ColorImage& b)
 {
